@@ -1,0 +1,6 @@
+**/*.log
+cronai/cronai.zip
+anyverse-studio-scripts.code-workspace
+.vscode
+__pycache__
+
