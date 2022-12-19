@@ -1699,8 +1699,8 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryAccessories(self):
         query = aux.ResourceQueryManager(self._workspace)
-        query.add_attribute_filter("Category", "Human Accessories")
-        query.add_attribute_filter_from_list("Class", [ "Hat", "Facemask", "Baseball_cap", "Sunglasses", "Glasses" ])
+        query.add_attribute_filter("category", "Human Accessories")
+        query.add_attribute_filter_from_list("class", [ "Hat", "Facemask", "Baseball_cap", "Sunglasses", "Glasses" ])
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
