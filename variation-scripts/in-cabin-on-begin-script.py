@@ -119,6 +119,7 @@ import random
 import sys
 import incabin
 import importlib
+del sys.modules['incabin.incabin']
 importlib.reload(incabin)
 
 
