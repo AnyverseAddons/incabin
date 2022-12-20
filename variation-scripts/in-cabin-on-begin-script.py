@@ -22,94 +22,107 @@ print('Script Console: {}'.format(script_console))
 #__________________________________________
 # Global config: Cameras, environmental conditions, Occupant distribution, childseats, seat belts, additional props, gaze
 incabin_config = {
-"cameras":{
-    "RVM": { "probability": 0.75,
+    "cameras":{
+        "RVM": {
+            "probability": 0.75,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [5,5,5], # in degrees
-            "cam_positions": { 'Audi_Q5':          {'EGO': (0.385, 0.0, 1.44), 'position': (0.52, 0.0, 1.45, 30) }, 
-                               'Chevrolet_Menlo':  {'EGO': (0.41, 0.0, 1.315), 'position': (0.61, 0.0, 1.31, 30) },
-                               'Lexus_UX':         {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.53, 0.005, 1.29, 30) },
-                               'Porsche_Cayenne': {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.45, 25) },
-                               'Unbranded_GenericSUV':    {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.52, -0.005, 1.43, 25) },
-                               'Volkswagen_Passat':{'EGO': (0.45, 0.025, 1.3), 'position': (0.60, -0.027, 1.287, 30)},
-                               'default':          {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
-                },
+            "cam_positions": {
+                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.52, 0.0, 1.45, 30) }, 
+                'Chevrolet_Menlo':  {'EGO': (0.41, 0.0, 1.315), 'position': (0.61, 0.0, 1.31, 30) },
+                'Lexus_UX':         {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.53, 0.005, 1.29, 30) },
+                'Porsche_Cayenne': {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.45, 25) },
+                'Unbranded_GenericSUV':    {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.52, -0.005, 1.43, 25) },
+                'Volkswagen_Passat':{'EGO': (0.45, 0.025, 1.3), 'position': (0.60, -0.027, 1.287, 30)},
+                'default':          {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
+            },
+        },
+        "CC": { 
+            "probability": 0.25,
+            "vibration_traslation": [0,0,0], # in meters
+            "vibration_rotation": [5,5,5], # in degrees
+            "cam_positions": {
+                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.53, 0.0, 1.11, 10)}, 
+                'Chevrolet_Menlo':   {'EGO': (0.41, 0.0, 1.315), 'position': (0.64, 0.0, 1.03, 10)},
+                'Lexus_UX':          {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.505, 0.02, 0.95, 10)},
+                'Porsche_Cayenne':  {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.165, 10)},
+                'Unbranded_GenericSUV':     {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.58, 0.005, 1.085, 10)},
+                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.70, 0.027, 1.00, 10)},
+                'default':           {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
+            },
+        }
     },
-    
-    "CC": { "probability": 0.25,
-            "vibration_traslation": [0,0,0], # in meters
-            "vibration_rotation": [5,5,5], # in degrees
-            "cam_positions": { 'Audi_Q5':           {'EGO': (0.385, 0.0, 1.44), 'position': (0.53, 0.0, 1.11, 10)}, 
-                               'Chevrolet_Menlo':   {'EGO': (0.41, 0.0, 1.315), 'position': (0.64, 0.0, 1.03, 10)},
-                               'Lexus_UX':          {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.505, 0.02, 0.95, 10)},
-                               'Porsche_Cayenne':  {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.165, 10)},
-                               'Unbranded_GenericSUV':     {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.58, 0.005, 1.085, 10)},
-                               'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.70, 0.027, 1.00, 10)},
-                               'default':           {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
-                },
+    "conditions": [ 
+        {'Day': True,  'Cond':'sunny',          'Probability': 0.25},
+        {'Day': True,  'Cond':'scattered',      'Probability': 0.25},
+        {'Day': True,  'Cond':'overcast',       'Probability': 0.25},
+        {'Day': False, 'Cond':'interior-lights','Probability': 0.25}
+    ],
+    "occupant_confs_probabilities": [ 
+        {'Conf': 'Empty', 'Probability': 0.0},
+        {'Conf': 'Normal', 'Probability': 1.0}
+    ],
+    "occupancy_distribution": {
+        'driver_occupancy_probabilities': [
+            {'name': 'Empty',  'occupancy': 0, 'probability': 0.15},
+            {'name': 'Driver', 'occupancy': 1, 'probability': 0.85} 
+        ],
+        'copilot_occupancy_probabilities': [
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
+        ],
+        'backseat_occupancy_probabilities': [
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.25}
+        ],
+        'middleseat_occupancy_probabilities': [
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
+        ],
+        'childseat_type_probabilities': [
+            {'Type': 'BabyChild',   'Probability': 0.3},
+            {'Type': 'Convertible', 'Probability': 0.3},
+            {'Type': 'Booster',     'Probability': 0.3}
+        ],
+        'childseat_occupied_probability':  0.3,
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+        'seatbelts_distribution': {
+            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
+            'seatbelt_placement_probabilities': {
+                'Normal': 0.80,
+                'BehindTheBack': 0.05,
+                'UnderShoulder': 0.05,
+                'WrongSideOfHead': 0.05,
+                'CharacterOverSeatbelt': 0.05
+            },   
+            'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
+        },
+        'gaze_probabilities': {
+            'driver_gaze_probabilities':  [
+                {'name': 'road', 'gaze': 0, 'probability': 0.7},
+                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.1},
+                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.05},
+                {'name': 'infotainment', 'gaze': 3, 'probability': 0.05},
+                {'name': 'passenger', 'gaze': 4, 'probability': 0.1},
+                {'name': 'rear', 'gaze': 5, 'probability': 0.0}
+            ],
+            'copilot_gaze_probabilities': [
+                {'name': 'road', 'gaze': 0, 'probability': 0.50},
+                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.05},
+                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.1},
+                {'name': 'infotainment', 'gaze': 3, 'probability': 0.1},
+                {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
+                {'name': 'rear', 'gaze': 5, 'probability': 0.05}
+            ]
+        }
     }
-},
-
-"conditions": [{'Day': True,  'Cond':'sunny',          'Probability': 0.25},
-             {'Day': True,  'Cond':'scattered',      'Probability': 0.25},
-             {'Day': True,  'Cond':'overcast',       'Probability': 0.25},
-             {'Day': False, 'Cond':'interior-lights','Probability': 0.25}],
-
-"occupant_confs_probabilities": [ {'Conf': 'Empty', 'Probability': 0.0},
-                                {'Conf': 'Normal', 'Probability': 1.0}],
-
-"occupancy_distribution": { 'driver_occupancy_probabilities': [ {'name': 'Empty',  'occupancy': 0, 'probability': 0.15},
-                                                              {'name': 'Driver', 'occupancy': 1, 'probability': 0.85} ],
-                                                              
-                          'copilot_occupancy_probabilities': [ {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-                                                               {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-                                                               {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-                                                               {'name': 'Object',    'occupancy': 4, 'probability': 0.25} ],
-                                                               
-                          'backseat_occupancy_probabilities': [ {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-                                                                {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-                                                                {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-                                                                {'name': 'Object',    'occupancy': 4, 'probability': 0.25} ],
-                                                                
-                          'middleseat_occupancy_probabilities': [ {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-                                                                  {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-                                                                  {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-                                                                  {'name': 'Object',    'occupancy': 4, 'probability': 0.25} ],
-                          'childseat_type_probabilities': [ {'Type': 'BabyChild',   'Probability': 0.3},
-                                                            {'Type': 'Convertible', 'Probability': 0.3},
-                                                            {'Type': 'Booster',     'Probability': 0.3}],
-                          'childseat_occupied_probability':  0.3,
-                          'accessories_probabilities': {'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
-                          
-                          "seatbelts_distribution": {
-                                'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
-                                'seatbelt_placement_probabilites': {
-                                       'Normal': 0.80,
-                                       'BehindTheBack': 0.05,
-                                       'UnderShoulder': 0.05,
-                                       'WrongSideOfHead': 0.05,
-                                       'CharacterOverSeatbelt': 0.05
-                                },   
-                                'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
-                            },
-                           'gaze_probabilities': {
-                                'driver_gaze_probabilities':  [ {'name': 'road', 'gaze': 0, 'probability': 0.7},
-                                                                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.1},
-                                                                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.05},
-                                                                {'name': 'infotainment', 'gaze': 3, 'probability': 0.05},
-                                                                {'name': 'passenger', 'gaze': 4, 'probability': 0.1},
-                                                                {'name': 'rear', 'gaze': 5, 'probability': 0.0}],
-                                'copilot_gaze_probabilities': [ {'name': 'road', 'gaze': 0, 'probability': 0.50},
-                                                                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.05},
-                                                                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.1},
-                                                                {'name': 'infotainment', 'gaze': 3, 'probability': 0.1},
-                                                                {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
-                                                                {'name': 'rear', 'gaze': 5, 'probability': 0.05}]
-                           }
-                        }
 }
-
-
 
 #__________________________________________
 #      

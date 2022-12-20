@@ -2159,7 +2159,7 @@ class InCabinUtils:
                 beltPlacement = anyverse_platform.SeatBeltPlacement.WithoutCharacter
                 beltType = 'WithoutCharacter'
             else:
-                toList = [ (key, float(value)) for key, value in seatbelts_distribution['seatbelt_placement_probabilites'].items() ]
+                toList = [ (key, float(value)) for key, value in seatbelts_distribution['seatbelt_placement_probabilities'].items() ]
                 idx = self.choiceUsingProbabilities([x[1] for x in toList])
                 beltType = toList[idx][0]
                 beltPlacement = self._beltOptions[beltType]
