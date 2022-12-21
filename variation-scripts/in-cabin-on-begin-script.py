@@ -190,6 +190,7 @@ if not hasattr(workspace, 'backgrounds'):
 #__________________________________________________________
 # Get the workspace simulation id
 simulation_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Simulation)[0]
+generator_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Batch)[0]
 
 #__________________________________________________________
 # Star setting up the scene for an iteration
@@ -261,19 +262,18 @@ camera_id, camera_name = icu.setCameraVisibility(camera_selected)
 print('Using camera: {}'.format(camera_name))
 
 # Reduce camera resolution while testing
-Generator_BatchId = workspace.get_entities_by_name('Generator')[0]
 if workspace.reduce_resolution and iteration_index == 0:
     print('Reducing all cameras resolution for testing')
     icu.reduceAllCameraResolution(2)
 if workspace.testing:
     print('Setting render quality to Medium and denoiser off for testing')
-    workspace.set_entity_property_value(Generator_BatchId, 'BatchPropertiesComponent','render_quality','Medium')
-    workspace.set_entity_property_value(Generator_BatchId, 'BatchPropertiesComponent','enable_denosier', False)
+    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','render_quality','Medium')
+    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','enable_denosier', False)
 else:
     print('PRODUCTION!!!!')
     print('Setting render quality to Ultra and denoiser on for production')
-    workspace.set_entity_property_value(Generator_BatchId, 'BatchPropertiesComponent','render_quality','Ultra')
-    workspace.set_entity_property_value(Generator_BatchId, 'BatchPropertiesComponent','enable_denosier', True)
+    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','render_quality','Ultra')
+    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','enable_denosier', True)
 
 #__________________________________________________________
 # Set background, day/night and conditions for illumination
