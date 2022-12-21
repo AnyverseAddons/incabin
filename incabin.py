@@ -11,7 +11,8 @@ class InCabinUtils:
     def __init__(self, workspace, script_console, iteration_index = None):
         self._iteration_index = iteration_index
         self._workspace = workspace
-        self._no_entry = 4294967295
+        self._no_entry = anyverse_platform.invalid_entity_id
+        print(self._no_entry)
         self._ego_id = self._workspace.get_entities_by_name("Ego")[0]
         self._already_used_characters = []
         self._car_brand = ""
