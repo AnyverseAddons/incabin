@@ -12,7 +12,6 @@ class InCabinUtils:
         self._iteration_index = iteration_index
         self._workspace = workspace
         self._no_entry = anyverse_platform.invalid_entity_id
-        print(self._no_entry)
         self._ego_id = self._workspace.get_entities_by_name("Ego")[0]
         self._already_used_characters = []
         self._car_brand = ""
@@ -180,6 +179,10 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(entity_id, 'ExportConfigurationComponent','export_always', True)
         self._workspace.set_entity_property_value(entity_id, 'ExportConfigurationComponent','exclude_from_occlusion_tests', True)
         self._workspace.set_entity_property_value(entity_id, 'VisibleComponent','visible', True)
+
+    #_______________________________________________________________
+    def setAvoidArmsAutoCollision(self, entity_id):
+        self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','avoid_arms_auto_collision', True)
 
     #_______________________________________________________________
     def setExportAlwaysExcludeOcclusionToAllEntities(self):
@@ -922,6 +925,7 @@ class InCabinUtils:
                 driver['Seatbelt_placement'] = belt_placement
 
             self.setExportAlwaysExcludeOcclusion(driver_id)
+            self.setAvoidArmsAutoCollision(driver_id)
             self.removeMotionBlur(driver_id)
             self.applyCharacterOffset(driver)
             self.setCharacterInfo(driver)
@@ -1163,6 +1167,7 @@ class InCabinUtils:
                 child['Seatbelt_placement'] = 'Normal'
 
         self.setExportAlwaysExcludeOcclusion(child_id)
+        self.setAvoidArmsAutoCollision(child_id)
         self.removeMotionBlur(child_id)
         self.setCharacterInfo(child)
         self.setSeatInfo(child)
@@ -1292,6 +1297,7 @@ class InCabinUtils:
                 passenger['Seatbelt_placement'] = belt_placement
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
+            self.setAvoidArmsAutoCollision(passenger_id)
             self.removeMotionBlur(passenger_id)
             self.applyCharacterOffset(passenger)
             self.setCharacterInfo(passenger)
@@ -1608,7 +1614,9 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(cam_id, 'CameraPropertiesComponent','width_resolution', width*factor)
         self._workspace.set_entity_property_value(cam_id, 'CameraPropertiesComponent','height_resolution', height*factor)
 
-        if 'OPENCV_FISHEYE' == self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','lens_type'):
+        lens_name = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','lens_type')
+
+        if 'OPENCV' in lens_name:
             cx = self._workspace.get_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cx')
             cy = self._workspace.get_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cy')
             self._workspace.set_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cx', cx*factor)
@@ -1662,6 +1670,7 @@ class InCabinUtils:
     def queryCharacters(self):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_tag_filter("character")
+        query.add_attribute_filter('texture', '8k')
         query.add_exists_attribute_filter('root_offset')
         query.add_exists_attribute_filter('kind')
         query.add_exists_attribute_filter('agegroup')
