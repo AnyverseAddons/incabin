@@ -42,9 +42,21 @@ Configure the number of iterations property to generate the samples ina  dataset
 Check the tutorials for a step-by-step explanation of the process.
 
 ## In-cabin variability configuration
-At the beginning of the on-begin-iteration script we define the **`incabin_config`** dictionary with all the variables you can use to configure the variability of the resulting dataset. It has 4 configuration properties: `cameras`, `conditions`, `occupant_confs_probabilities` and `occupancy_distribution`.
+At the beginning of the on-begin-iteration script we define the **`incabin_config`** dictionary with all the variables you can use to configure the variability of the resulting dataset. It has 5 configuration properties: `car_interior_probabilities`, `cameras`, `conditions`, `occupant_confs_probabilities` and `occupancy_distribution`.
 
-The first property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation and the initial position and pitch angle for every car cabin model. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
+The first property `car_interior_probabilities`, allows to set different probabilities to the different car models. For every model, there are 4 different interior colors we pick one of the interior colors randomly. These property is used in with the `selectCar` method, calling it passing the the use_probs parameter with the list of car model probabilities from the `incabin_config` dictionary like this: `selectCar(incabin_config['car_interior_probabilities'])`, it will select a car using the specified probabilities. Calling it like this: `selectCar(False)` or with no parameter `selectCar()` the default behavior is select a car interior randomly using a uniform distribution: 
+
+```
+    "car_interior_probabilities": [
+        {'car_name': 'Audi_Q5', 'probability': 0.17 }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0.17 },
+        {'car_name': 'Lexus_UX', 'probability': 0.17 },
+        {'car_name': 'Porsche_Cayenne', 'probability': 0.17 },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.16 },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.16 }
+    ],
+```
+The next property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation and the initial position and pitch angle for every car cabin model. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
 
 ```
     "cameras":{
