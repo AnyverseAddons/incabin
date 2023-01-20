@@ -1994,14 +1994,14 @@ class InCabinUtils:
         return selected_background, ws_bckgnd_id
 
     #_______________________________________________________________
-    def selectCar(self, use_probs = False, idx = None):
+    def selectCar(self, use_probs = False):
         if use_probs:
             probabilities = [ c['probability'] for c in use_probs ]
             idx = self.choiceUsingProbabilities(probabilities)
             car_name = use_probs[idx]['car_name']
             elegible_cars = [ i for i, c in enumerate(self._workspace.cars) if car_name in c['resource_name'] ]
             idx = elegible_cars[random.randrange(len(elegible_cars))]
-        elif idx == None:
+        else:
             idx = random.randrange(len(self._workspace.cars))
 
         picked_car = self._workspace.cars[idx]

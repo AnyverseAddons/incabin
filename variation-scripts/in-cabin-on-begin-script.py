@@ -221,13 +221,15 @@ print('Deleting current occupants...')
 icu.clearDescendantFixedEntities(the_car)
 icu.deleteAllOnBelts()
 #__________________________________________________________
-# Pick a ramdom car with preobabilities from list of cars, 
+# Pick a random car with probabilities from list of cars, 
 # load it as an asset in the workspace and set it as "the_car" 
 # to render. If the car from the list can't be loaded from 
 # resources, log an error and keep the current car in the workspace
-car_probabilities = incabin_config['car_interior_probabilities']
-selected_car = icu.selectCar(use_probs = car_probabilities)
-# selected_car = icu.ï¿¼selectCar(use_probs = False, idx = 0) # picking the Audi Q5
+# To use a uniform distribution of cars instead of probabilities
+# uncomment line 232 
+# car_probabilities = incabin_config['car_interior_probabilities']
+# selected_car = icu.selectCar(car_probabilities)
+selected_car = icu.selectCar() # Uniform car interior distribution
 car_name = 'default'
 if selected_car['Entity_id'] != -1:
     icu.buildCar(selected_car, the_car)
