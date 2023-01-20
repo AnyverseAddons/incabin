@@ -22,6 +22,14 @@ print('Script Console: {}'.format(script_console))
 #__________________________________________
 # Global config: Cameras, environmental conditions, Occupant distribution, childseats, seat belts, additional props, gaze
 incabin_config = {
+    "car_interior_probabilities": [
+        {'car_name': 'Audi_Q5', 'probability': 0.17 }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0.17 },
+        {'car_name': 'Lexus_UX', 'probability': 0.17 },
+        {'car_name': 'Porsche_Cayenne', 'probability': 0.17 },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.16 },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.16 }
+    ],
     "cameras":{
         "RVM": {
             "probability": 0.75,
@@ -144,47 +152,54 @@ def getCameraProbabilityList(incabin_config):
 icu = incabin.InCabinUtils(workspace, script_console)
 workspace.icu = icu
 
-if not hasattr(workspace, 'cars'):
+if not hasattr(anyverse_platform, 'cars'):
     print('Loading car interiors...')
-    workspace.cars = icu.queryCars()
-    #print(workspace.cars)
+    anyverse_platform.cars = icu.queryCars()
+    #print(anyverse_platform.cars)
     print('Car list loaded!')
+workspace.cars = anyverse_platform.cars
     
-if not hasattr(workspace, 'characters'):
+if not hasattr(anyverse_platform, 'characters'):
     print('Loading characters...')
-    workspace.characters = icu.queryCharacters()
-    #print(workspace.characters)
+    anyverse_platform.characters = icu.queryCharacters()
+    #print(anyverse_platform.characters)
     print('Characters list loaded!')
+workspace.characters = anyverse_platform.characters
 
-if not hasattr(workspace, 'babies'):
+if not hasattr(anyverse_platform, 'babies'):
     print('Loading babies...')
-    workspace.babies = icu.queryBabies()
-    #print(workspace.babies)
+    anyverse_platform.babies = icu.queryBabies()
+    #print(anyverse_platform.babies)
     print('Babies list loaded!')
+workspace.babies = anyverse_platform.babies
     
-if not hasattr(workspace, 'childseats'):
+if not hasattr(anyverse_platform, 'childseats'):
     print('Loading childseats...')
-    workspace.childseats = icu.queryChildSeats()
-    #print(workspace.childseats)
+    anyverse_platform.childseats = icu.queryChildSeats()
+    #print(anyverse_platform.childseats)
     print('Childseat list loaded!')
+workspace.childseats = anyverse_platform.childseats
     
-if not hasattr(workspace, 'objects'):
+if not hasattr(anyverse_platform, 'objects'):
     print('Loading objects...')
-    workspace.objects = icu.queryObjects()
-    #print(workspace.objects)
+    anyverse_platform.objects = icu.queryObjects()
+    #print(anyverse_platform.objects)
     print('Objects list loaded!')
+workspace.objects = anyverse_platform.objects
     
-if not hasattr(workspace, 'accessories'):
+if not hasattr(anyverse_platform, 'accessories'):
     print('Loading accessories...')
-    workspace.accessories = icu.queryAccessories()
-    #print(workspace.accessories)
+    anyverse_platform.accessories = icu.queryAccessories()
+    #print(anyverse_platform.accessories)
     print('Accessories list loaded!')
+workspace.accessories = anyverse_platform.accessories
 
-if not hasattr(workspace, 'backgrounds'):
+if not hasattr(anyverse_platform, 'backgrounds'):
     print('Loading backgrounds...')
-    workspace.backgrounds = icu.queryBackgrounds()
-    #print(workspace.backgrounds)
+    anyverse_platform.backgrounds = icu.queryBackgrounds()
+    #print(anyverse_platform.backgrounds)
     print('Backgrounds list loaded!')
+workspace.backgrounds = anyverse_platform.backgrounds
 
 
 #__________________________________________________________
@@ -210,7 +225,8 @@ icu.deleteAllOnBelts()
 # load it as an asset in the workspace and set it as "the_car" 
 # to render. If the car from the list can't be loaded from 
 # resources, log an error and keep the current car in the workspace
-selected_car = icu.selectCar(use_probs = False)
+car_probabilities = incabin_config['car_interior_probabilities']
+selected_car = icu.selectCar(use_probs = car_probabilities)
 # selected_car = icu.ï¿¼selectCar(use_probs = False, idx = 0) # picking the Audi Q5
 car_name = 'default'
 if selected_car['Entity_id'] != -1:
