@@ -1795,7 +1795,10 @@ class InCabinUtils:
     #_______________________________________________________________
     def getBeltAssetsForCar(self, brand, model, assetList):
         result = []
-        prefix = "{}_{}".format(brand, model)
+        if brand != 'Unbranded':
+            prefix = "{}_{}".format(brand, model)
+        else:
+            prefix = "{}".format(brand)
         for item in assetList:
             if (prefix in item.name and "belt" in item.name and "Off" in item.name) :
                 result.append(item)
@@ -1999,7 +2002,7 @@ class InCabinUtils:
             probabilities = [ c['probability'] for c in use_probs ]
             idx = self.choiceUsingProbabilities(probabilities)
             car_name = use_probs[idx]['car_name']
-            elegible_cars = [ i for i, c in enumerate(self._workspace.cars) if car_name in c['resource_name'] ]
+            elegible_cars = [ i for i, c in enumerate(self._workspace.cars) if c['brand'] in car_name ]
             idx = elegible_cars[random.randrange(len(elegible_cars))]
         else:
             idx = random.randrange(len(self._workspace.cars))
