@@ -32,9 +32,10 @@ incabin_config = {
     ],
     "cameras":{
         "RVM": {
-            "probability": 0.75,
+            "probability": 0.5,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [5,5,5], # in degrees
+            "nir_at_night": True,
             "cam_positions": {
                 'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.52, 0.0, 1.45, 30) }, 
                 'Chevrolet_Menlo':  {'EGO': (0.41, 0.0, 1.315), 'position': (0.61, 0.0, 1.31, 30) },
@@ -46,9 +47,10 @@ incabin_config = {
             },
         },
         "CC": { 
-            "probability": 0.25,
+            "probability": 0.5,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [5,5,5], # in degrees
+            "nir_at_night": False,
             "cam_positions": {
                 'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.53, 0.0, 1.11, 10)}, 
                 'Chevrolet_Menlo':   {'EGO': (0.41, 0.0, 1.315), 'position': (0.64, 0.0, 1.03, 10)},
@@ -251,6 +253,8 @@ names, probabilities = getCameraProbabilityList(incabin_config)
 cam_ids_idx = icu.choiceUsingProbabilities(probabilities)
 camera_selected = names[cam_ids_idx]
 
+nir_simulation = incabin_config["cameras"][camera_selected]["nir_at_night"]
+
 cam_positions = incabin_config["cameras"][camera_selected]["cam_positions"]
 
 if car_name in cam_positions:
@@ -315,8 +319,22 @@ rvm_left_locator = icu.createRVMLocator(the_car, 'left')
 rvm_right_locator = icu.createRVMLocator(the_car, 'right')
 cc_info_locator = icu.createCCLocator(the_car)
 
+# Set NIR sensor and NIR ISP for night scenes. Unset it for the rest
+if not day and nir_simulation:
+    icu.setSensor(camera_id, 'NIR-Sensor')
+    icu.setIsp(camera_id, 'NIR-ISP')
+    active_light = True
+else:
+    icu.setSensor(camera_id, None)
+    icu.setIsp(camera_id, None)
+    active_light = False
+
+# Check if sensor sim is enabled (NIR sample)
+sensor_enabled = False if workspace.get_entity_property_value(camera_id, 'CameraReferencesComponent','sensor') == icu._no_entry else True 
+
+print('Sensor enabled? {}. Setting active light to {}'.format(sensor_enabled, active_light))
 # set the illumination depending on day/night and conditions
-intensity = icu.setIllumination(day, cond, background, simulation_id, active_light = False)
+intensity = icu.setIllumination(day, cond, background, simulation_id, active_light = active_light)
 if day:
     print('Sun intensity: {}'.format(intensity))
 else:
