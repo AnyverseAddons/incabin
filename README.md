@@ -1,5 +1,6 @@
 # Anyverse In-Cabin Add-on
 This repo has all the necessary python modules and scripts to generate dataset for an in-cabin use case with the [Anyverse Platform](https://anyverse.ai)
+
 You can find additional documentation and a **series of tutorials** to get you started with the In-Cabin Add-on in out [resources page](https://anyverse.ai/resources/)
 
 ## Getting started
