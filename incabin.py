@@ -1077,22 +1077,23 @@ class InCabinUtils:
             child_id = self._workspace.create_fixed_entity(child['name'], childseat_locator, child_asset_id)
         else:
             # No matching children found returning id -1
-            print('[ERROR]: could not find suatable child for childseat')
+            print('[ERROR]: could not find suitable child for childseat')
             child_id = -1
 
         child['Entity_id'] = child_id
 
         # Decide if we fasten the seat belt or not
         # Never fasten seatbelt if it's a big baby or if the convertible backwards
-        # For the othe children in convertibles we always fasten the seatbelts to have a 50/50
+        # For the other children in convertibles we always fasten the seatbelts to have a 50/50
         # considering the re are 4 big babies and 4 children characters suitable for convertibles.
-        # Faastening seat belts affect what base animation we set: only stting straight when seat belts fastened
+        # Fastening seat belts affect what base animation we set: only sitting straight when seat belts fastened
         if 'Baby' in child['name'] or childseat['Orientation'] == 'Backward':
             fasten_seatbelt = False
         else:
             fasten_seatbelt = self.decideFastenSeatbelt(child, seatbelts_distribution['belt_on_probability'])
 
         child['Seatbelt_on'] = fasten_seatbelt
+        child['Seatbelt_placement'] = 'Normal' if fasten_seatbelt else 'Off'
 
         # set child pose if not a big baby
         if 'Baby' not in child['name']:
@@ -2285,6 +2286,12 @@ class InCabinUtils:
         self.validateConfig( config )
 
         beltId = self._workspace.create_child_seat_belt( *args )
+
+        # Set the user custom metadata with the belt placement and the 
+        seat_info = {}
+        seat_info['number'] = 'seat0{}'.format(seat_pos)
+        self.setCustomMetadata(beltId, "Seat", seat_info)
+        self.setCustomMetadata(beltId, "Placement", "Normal")
 
         return beltId
     #_______________________________________________________________
