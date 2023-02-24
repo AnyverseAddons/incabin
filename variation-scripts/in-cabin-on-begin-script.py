@@ -234,8 +234,8 @@ icu.deleteAllOnBelts()
 # load it as an asset in the workspace and set it as "the_car" 
 # to render. If the car from the list can't be loaded from 
 # resources, log an error and keep the current car in the workspace
-# To use a uniform distribution of cars instead of probabilities
-# uncomment line 232 
+# To use a uniform distribution of cars instead of probabilities,
+# set the 'use_car_interior_probabilities' in the config to False
 if incabin_config['use_car_interior_probabilities']:
     car_probabilities = incabin_config['car_interior_probabilities']
     selected_car = icu.selectCar(car_probabilities)

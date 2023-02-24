@@ -46,40 +46,47 @@ Check the tutorials for a step-by-step explanation of the process.
 ## In-cabin variability configuration
 At the beginning of the on-begin-iteration script we define the **`incabin_config`** dictionary with all the variables you can use to configure the variability of the resulting dataset. It has 5 configuration properties: `car_interior_probabilities`, `cameras`, `conditions`, `occupant_confs_probabilities` and `occupancy_distribution`.
 
-The first property `car_interior_probabilities`, allows to set different probabilities to the different car models. For every model, there are 4 different interior colors we pick one of the interior colors randomly. These property is used in with the `selectCar` method, calling it passing the the use_probs parameter with the list of car model probabilities from the `incabin_config` dictionary like this: `selectCar(incabin_config['car_interior_probabilities'])`, it will select a car using the specified probabilities. Calling it like this: `selectCar(False)` or with no parameter `selectCar()` the default behavior is select a car interior randomly using a uniform distribution: 
+The first property `car_interior_probabilities`, allows to set different probabilities to the different car models[^models]. For models with different interior colors we pick one of the interior colors randomly. These property is used in with the `use_car_interior_probabilities`. If set to True, the `selectCar` method is called passing the `car_interior_probabilities` probabilities list. If set to False, the `selectCar` is called without parameters for the default behavior selecting a car interior randomly using a uniform distribution: 
 
 ```
+    "use_car_interior_probabilities": False,
     "car_interior_probabilities": [
-        {'car_name': 'Audi_Q5', 'probability': 0.17 }, 
-        {'car_name': 'Chevrolet_Menlo', 'probability': 0.17 },
-        {'car_name': 'Lexus_UX', 'probability': 0.17 },
-        {'car_name': 'Porsche_Cayenne', 'probability': 0.17 },
-        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.16 },
-        {'car_name': 'Volkswagen_Passat', 'probability': 0.16 }
+        {'car_name': 'Audi_Q5', 'probability': 0.125 }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125 },
+        {'car_name': 'Lexus_UX', 'probability': 0.125 },
+        {'car_name': 'Porsche_Cayenne', 'probability': 0.125 },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125 },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.125 },
+        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
+        {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
 ```
-The next property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation and the initial position and pitch angle for every car cabin model. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
+The next property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation; and the initial position and pitch angle for every car cabin model. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
 
 ```
     "cameras":{
         "RVM": {
-            "probability": 0.75,
+            "probability": 1.0,
             "vibration_traslation": [0,0,0], # in meters
-            "vibration_rotation": [5,5,5], # in degrees
+            "vibration_rotation": [0,0,0], # in degrees
+            "nir_at_night": False,
             "cam_positions": {
                 'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.52, 0.0, 1.45, 30) }, 
                 'Chevrolet_Menlo':  {'EGO': (0.41, 0.0, 1.315), 'position': (0.61, 0.0, 1.31, 30) },
                 'Lexus_UX':         {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.53, 0.005, 1.29, 30) },
                 'Porsche_Cayenne': {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.45, 25) },
                 'Unbranded_GenericSUV':    {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.52, -0.005, 1.43, 25) },
-                'Volkswagen_Passat':{'EGO': (0.45, 0.025, 1.3), 'position': (0.60, -0.027, 1.287, 30)},
+                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.60, -0.027, 1.287, 30)},
+                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.315, 35)},
+                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.50, 0.0, 1.6, 30)},
                 'default':          {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
             },
         },
         "CC": { 
-            "probability": 0.25,
+            "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
-            "vibration_rotation": [5,5,5], # in degrees
+            "vibration_rotation": [0,0,0], # in degrees
+            "nir_at_night": True,
             "cam_positions": {
                 'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.53, 0.0, 1.11, 10)}, 
                 'Chevrolet_Menlo':   {'EGO': (0.41, 0.0, 1.315), 'position': (0.64, 0.0, 1.03, 10)},
@@ -87,6 +94,8 @@ The next property, `cameras` allow you to configure as many cameras you want in 
                 'Porsche_Cayenne':  {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.165, 10)},
                 'Unbranded_GenericSUV':     {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.58, 0.005, 1.085, 10)},
                 'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.70, 0.027, 1.00, 10)},
+                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.09, 10)},
+                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.63, 0.0, 1.22, 10)},
                 'default':           {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
             },
         }
@@ -185,6 +194,15 @@ Finally for the driver and the copilot, you can control their gaze setting the p
 ```
 
 
+[^models]: There are 8 different car brands and model, for a total of 26 distinct interiors:
+- Audi Q5, 4 different interior colors
+- Chevrolet Menlo, 4 different interior colors
+- Lexus UX, 4 different interior colors
+- Porsche Cayenne, 4 different interior colors
+- Unbranded Generic SUV, 4 different interior colors
+- Volkswagen Passat, 4 different interior colors
+- Hyundai Ioniq, 1 interior colors
+- Land Rover Autobiography, 1 interior colors
 
 [^probabilities]: they represent the percentage of samples that will have the correspondent characteristic. 0 is 0% and 1  is 100%.
 
