@@ -194,15 +194,7 @@ Finally for the driver and the copilot, you can control their gaze setting the p
 ```
 
 
-[^models]: There are 8 different car brands and model, for a total of 26 distinct interiors:
-- Audi Q5, 4 different interior colors
-- Chevrolet Menlo, 4 different interior colors
-- Lexus UX, 4 different interior colors
-- Porsche Cayenne, 4 different interior colors
-- Unbranded Generic SUV, 4 different interior colors
-- Volkswagen Passat, 4 different interior colors
-- Hyundai Ioniq, 1 interior colors
-- Land Rover Autobiography, 1 interior colors
+[^models]: There are 8 different car brands and model, for a total of 26 distinct interiors: Audi Q5, 4 different interior colors; Chevrolet Menlo, 4 different interior colors; Lexus UX, 4 different interior colors; Porsche Cayenne, 4 different interior colors; Unbranded Generic SUV, 4 different interior colors; Volkswagen Passat, 4 different interior colors; Hyundai Ioniq, 1 interior colors; Land Rover Autobiography, 1 interior colors
 
 [^probabilities]: they represent the percentage of samples that will have the correspondent characteristic. 0 is 0% and 1  is 100%.
 
