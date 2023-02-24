@@ -61,7 +61,7 @@ The first property `car_interior_probabilities`, allows to set different probabi
         {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
 ```
-The next property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation; and the initial position and pitch angle for every car cabin model. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
+The next property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation; and the initial position and pitch angle for every car cabin model. The `nir_at_night` property for each camera indicates if the camera should behave as a near infrared (NIR) camera for night scenes. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
 
 ```
     "cameras":{
