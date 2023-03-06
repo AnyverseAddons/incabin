@@ -33,6 +33,7 @@ incabin_config = {
         {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
         {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
+    "multiple-cameras": True,
     "cameras":{
         "RVM": {
             "probability": 1.0,
@@ -40,15 +41,15 @@ incabin_config = {
             "vibration_rotation": [0,0,0], # in degrees
             "nir_at_night": False,
             "cam_positions": {
-                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.52, 0.0, 1.45, 30) }, 
-                'Chevrolet_Menlo':  {'EGO': (0.41, 0.0, 1.315), 'position': (0.61, 0.0, 1.31, 30) },
-                'Lexus_UX':         {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.53, 0.005, 1.29, 30) },
-                'Porsche_Cayenne': {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.45, 25) },
-                'Unbranded_GenericSUV':    {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.52, -0.005, 1.43, 25) },
-                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.60, -0.027, 1.287, 30)},
-                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.315, 35)},
-                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.50, 0.0, 1.6, 30)},
-                'default':          {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
+                'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
+                'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
+                'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.53, 0.005, 1.29) },
+                'Porsche_Cayenne': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.52, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.60, -0.027, 1.287)},
+                'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.58, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.50, 0.0, 1.6)},
+                'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         },
         "CC": { 
@@ -57,15 +58,15 @@ incabin_config = {
             "vibration_rotation": [0,0,0], # in degrees
             "nir_at_night": True,
             "cam_positions": {
-                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.53, 0.0, 1.11, 10)}, 
-                'Chevrolet_Menlo':   {'EGO': (0.41, 0.0, 1.315), 'position': (0.64, 0.0, 1.03, 10)},
-                'Lexus_UX':          {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.505, 0.02, 0.95, 10)},
-                'Porsche_Cayenne':  {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.165, 10)},
-                'Unbranded_GenericSUV':     {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.58, 0.005, 1.085, 10)},
-                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.70, 0.027, 1.00, 10)},
-                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.09, 10)},
-                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.63, 0.0, 1.22, 10)},
-                'default':           {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
+                'Audi_Q5': {'rotation': (0, -10, 0), 'position': (0.53, 0.0, 1.11)}, 
+                'Chevrolet_Menlo':   {'rotation': (0, -10, 0), 'position': (0.64, 0.0, 1.03)},
+                'Lexus_UX':          {'rotation': (0, -10, 0), 'position': (0.505, 0.02, 0.95)},
+                'Porsche_Cayenne':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
+                'Unbranded_GenericSUV':     {'rotation': (0, -10, 0), 'position': (0.58, 0.005, 1.085)},
+                'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
+                'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
+                'LandRover_Autobiography': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.22)},
+                'default':           {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         }
     },
@@ -219,6 +220,7 @@ generator_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityT
 #__________________________________________________________
 # Star setting up the scene for an iteration
 print('Iteration: {}'.format(iteration_index))
+icu.setGroundRotation(0, simulation_id)
 
 #__________________________________________________________
 # Get the car in the workspace id and delete all its occupants
@@ -256,41 +258,83 @@ icu.setExportAlwaysExcludeOcclusion(the_car)
 icu.setSplitAction(the_car, 'Split')
 
 #__________________________________________________________
-# Randomly select the camera to use and place the ego in the camera position
+# Reset Ego, cameras and light position at origin with rotations 
+icu.resetEgo()
+icu.resetCameras()
+icu.resetLights()
+cameras = incabin_config["cameras"]
+multiple_cameras = incabin_config["multiple-cameras"]
+# If multiple cameras,  
+# place each camera in its position relative to the ego
+# move the active light to the CC camera
+# TODO: Figure out a way to use several active lights 
+if multiple_cameras:
+    nir_simulation = False
+    # place each cameras in its position
+    for camera in cameras:
+        # if there is a camera configured for NIR at night we do NIR sim for all
+        if cameras[camera]["nir_at_night"]:
+            nir_simulation = True
+        cam_positions = cameras[camera]["cam_positions"]
+        if car_name in cam_positions:
+            cam_pos = cam_positions[car_name]['position']
+            cam_rot = cam_positions[car_name]['rotation']
+        else:
+            cam_pos = cam_positions["default"]['position']
+            cam_rot = cam_positions["default"]['rotation']
+        cam_position = anyverse_platform.Vector3D( cam_pos[0], cam_pos[1], cam_pos[2] )
+        cam_rotation = anyverse_platform.Vector3D( cam_rot[0], cam_rot[1], cam_rot[2] )
 
-names, probabilities = getCameraProbabilityList(incabin_config)
-cam_ids_idx = icu.choiceUsingProbabilities(probabilities)
-camera_selected = names[cam_ids_idx]
-
-nir_simulation = incabin_config["cameras"][camera_selected]["nir_at_night"]
-
-cam_positions = incabin_config["cameras"][camera_selected]["cam_positions"]
-
-if car_name in cam_positions:
-    cam_pos = cam_positions[car_name]['position']
+        cam_ids = [ ci for ci in workspace.get_camera_entities() if camera in workspace.get_entity_name(ci) ]
+        cam_id = cam_ids[0] if len(cam_ids) == 1 else 0
+        if cam_id != 0:
+            icu.setCameraInPosition(cam_id, cam_rotation, cam_position)
+            workspace.set_entity_property_value(cam_id, 'VisibleComponent','visible', True)
+        else:
+            print('[ERROR] Missing {} camera in workspace'.format(camera))
+    # place active light in the CC cam position
+    light_id = workspace.get_entities_by_type('Light')[0]
+    cc_pos = cameras["CC"]["cam_positions"][car_name]["position"]
+    cc_rot = cameras["CC"]["cam_positions"][car_name]["rotation"]
+    light_pos = anyverse_platform.Vector3D(cc_pos[0], cc_pos[1], cc_pos[2])
+    light_rot = anyverse_platform.Vector3D(cc_rot[0], cc_rot[1], cc_rot[2])
+    icu.setActiveLightInPosition(light_id, light_rot, light_pos)
+# If not multiple cameras,  
+# Randomly select the camera to use and place the ego in the camera position,
+# apply vibration as configured and set the visibility to a single camera
 else:
-    cam_pos = cam_positions["default"]['position']
+    names, probabilities = getCameraProbabilityList(incabin_config)
+    cam_ids_idx = icu.choiceUsingProbabilities(probabilities)
+    camera_selected = names[cam_ids_idx]
 
-cam_position = anyverse_platform.Vector3D( cam_pos[0], cam_pos[1], cam_pos[2] )
+    nir_simulation = cameras[camera_selected]["nir_at_night"]
 
-# Set an optional initial pitch delta
-cam_pitch_delta = cam_pos[3]
-ego_pos, ego_rot = icu.setEgoInPosition(cam_pitch_delta, cam_position)
-print('Ego initial position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
-print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
+    cam_positions = cameras[camera_selected]["cam_positions"]
 
-# Apply caemra vibration simulation with normal distribution
-pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
-rot_intervals = incabin_config["cameras"][camera_selected]["vibration_rotation"]
+    if car_name in cam_positions:
+        cam_pos = cam_positions[car_name]['position']
+        cam_rot = cam_positions[car_name]['rotation']
+    else:
+        cam_pos = cam_positions["default"]['position']
+        cam_rot = cam_positions["default"]['rotation']
 
-ego_pos, ego_rot, _, _ = icu.setEgoVibration(pos_intervals, rot_intervals)
-print('Ego final position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
-print('Ego final rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
+    cam_position = anyverse_platform.Vector3D( cam_pos[0], cam_pos[1], cam_pos[2] )
+    cam_rotation = anyverse_platform.Vector3D( cam_rot[0], cam_rot[1], cam_rot[2] )
+    ego_pos, ego_rot = icu.setEgoInPosition(cam_rotation, cam_position)
+    print('Ego initial position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
+    print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
 
-#__________________________________________________________
-# Set cameras visibility, accordingly with the selected camera
-camera_id, camera_name = icu.setCameraVisibility(camera_selected)
-print('Using camera: {}'.format(camera_name))
+    # Apply camera vibration simulation with normal distribution
+    pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
+    rot_intervals = incabin_config["cameras"][camera_selected]["vibration_rotation"]
+
+    ego_pos, ego_rot, _, _ = icu.setEgoVibration(pos_intervals, rot_intervals)
+    print('Ego final position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
+    print('Ego final rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
+    #__________________________________________________________
+    # Set cameras visibility, accordingly with the selected camera
+    camera_id, camera_name = icu.setCameraVisibility(camera_selected)
+    print('Using camera: {}'.format(camera_name))
 
 # Reduce camera resolution while testing
 if workspace.reduce_resolution and iteration_index == 0:
@@ -330,17 +374,30 @@ rvm_inside_locator = icu.createRVMLocator(the_car, 'inside')
 cc_info_locator = icu.createCCLocator(the_car)
 
 # Set NIR sensor and NIR ISP for night scenes. Unset it for the rest
-if not day and nir_simulation:
-    icu.setSensor(camera_id, 'NIR-Sensor')
-    icu.setIsp(camera_id, 'NIR-ISP')
-    active_light = True
+if multiple_cameras:
+    camera_ids = workspace.get_camera_entities()
+    for camera_id in camera_ids:
+        if not day and nir_simulation:
+            icu.setSensor(camera_id, 'NIR-Sensor')
+            icu.setIsp(camera_id, 'NIR-ISP')
+            active_light = True
+            sensor_enabled = True
+        else:
+            icu.setSensor(camera_id, None)
+            icu.setIsp(camera_id, None)
+            active_light = False
+            sensor_enabled = False
 else:
-    icu.setSensor(camera_id, None)
-    icu.setIsp(camera_id, None)
-    active_light = False
-
-# Check if sensor sim is enabled (NIR sample)
-sensor_enabled = False if workspace.get_entity_property_value(camera_id, 'CameraReferencesComponent','sensor') == icu._no_entry else True
+    if not day and nir_simulation:
+        icu.setSensor(camera_id, 'NIR-Sensor')
+        icu.setIsp(camera_id, 'NIR-ISP')
+        active_light = True
+        sensor_enabled = True
+    else:
+        icu.setSensor(camera_id, None)
+        icu.setIsp(camera_id, None)
+        active_light = False
+        sensor_enabled = False
 
 print('Sensor enabled? {}. Setting active light to {}'.format(sensor_enabled, active_light))
 # set the illumination depending on day/night and conditions

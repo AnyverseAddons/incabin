@@ -77,8 +77,11 @@ class InCabinUtils:
         assert config.clip_second_central_locator_id != anyverse_platform.invalid_entity_id, "Child seat belt configuration: clip_second_central_locator_id not set"
 
     #_______________________________________________________________
-    def getParent(self, entityId):
-        return self._workspace.get_entity_property_value(entityId, 'RelativeTransformToComponent','entity_id')
+    def getParent(self, entity_id):
+        try:
+            return self._workspace.get_entity_property_value( entity_id, "RelativeTransformToComponent", "entity_id" )
+        except:
+            return anyverse_platform.invalid_entity_id
 
     #_______________________________________________________________
     def vectorToList(self, vector):
@@ -115,7 +118,9 @@ class InCabinUtils:
     #_______________________________________________________________
     def clearDescendantFixedEntities(self, entity_id):
         entity_name = self._workspace.get_entity_name(entity_id)
-        descendant_fixed_entities_list = self.vectorToList(self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.FixedEntity))
+        # print('Deleting all entities under {}'.format(entity_name))
+        # descendant_fixed_entities_list = self.vectorToList(self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.FixedEntity))
+        descendant_fixed_entities_list = [ fe for fe in self._workspace.get_hierarchy(entity_id) if 'FixedEntity' == self._workspace.get_entity_type(fe) ]
         descendant_fixed_entities_list.reverse()
 
         for fixed_entity_id in descendant_fixed_entities_list:
@@ -238,7 +243,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def getSeatLocators(self, entity_id):
         locators_list = self._workspace.get_hierarchy(entity_id)
-        seat_locators = [ l for l in locators_list if re.search("^seat0?._locator$", self._workspace.get_entity_name(l)) ]
+        seat_locators = [ l for l in locators_list if re.search("^seat0?._locator$", self._workspace.get_entity_name(l)) and self.isVisible(l) ]
         return seat_locators
 
     #_______________________________________________________________
@@ -691,10 +696,10 @@ class InCabinUtils:
             object = self.selectObject(name, version, big_object)
             go_on = False if count < 5 else True
             count += 1
-        print('Object to place {}'.format(object['resource-name']))
+        print('Object to place {}'.format(object['resource_name']))
         if object['Asset_id'] != -1:
             # Create the object fixed entity
-            object_entity_id = self._workspace.create_fixed_entity(object['resource-name']+'_'+object['Version'], seat_locator, object['Asset_id'])
+            object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['Version'], seat_locator, object['Asset_id'])
             scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
             if scale_factor != 1:
                 print('Rescaling object to {}'.format(round(scale_factor, 2)))
@@ -730,6 +735,88 @@ class InCabinUtils:
             port_entities = city_builder.core.EntitySet()
             # port_entities.insert(the_car)
             port_entities.insert(character_id)
+
+            # place the object in the in the region and land it in the car seat
+            # For next version to control lander orientation and position 
+            # self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 30)
+            self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
+            self._workspace.set_entity_property_value(object_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
+
+            # WORKAROUND: Set instance if possible ALWAYS to False so custom metadata
+            # for identical objects is always exported. Until ANYS-3660 is fixed
+            self.setInstanceIfPossible(object_entity_id, False)
+
+            # Set custom meta data for the object
+            self.setExportAlwaysExcludeOcclusion(object_entity_id)
+            object['Seatbelt_on'] = False
+            object['Face'] = ''
+            self.setObjectInfo(object)
+            self.setSeatInfo(object)
+            object['Accessory'] = 'None'
+
+        else:
+            # No matching objects found returning id -1
+            object_entity_id = -1
+            object = None
+
+        return object
+
+    #_______________________________________________________________
+    def placeObjectOnSeat(self, seat_locator, seat_id, name = None, version = None):
+        print('Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
+
+        big_object = False
+
+        # select a named object from resoures
+        object = self.selectObject(name, version, big_object)
+        count, go_on = 0, True
+        while object['Asset_id'] == -1 and go_on:
+            object = self.selectObject(name, version, big_object)
+            go_on = False if count < 5 else True
+            count += 1
+        print('Object to place {}'.format(object['resource_name']))
+        if object['Asset_id'] != -1:
+            # Create the object fixed entity
+            try:
+                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['Asset_id'])
+                scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
+            except KeyError as ke:
+                print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
+                scale_factor = -1
+
+            if scale_factor != 1:
+                print('Rescaling object to {}'.format(round(scale_factor, 2)))
+                self.scaleEntity(object_entity_id,round(scale_factor, 2))
+            object['Entity_id'] = object_entity_id
+
+            # Delete existing region if it exists
+            existing_landing_region = self._workspace.get_entities_by_name('landing_region')
+            if len(existing_landing_region) > 0:
+                self._workspace.delete_entity(existing_landing_region[0])
+
+            # Create a reagion around the seat locator. Default 1x1x1 meters
+            landing_region_id = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Region, 'landing_region', seat_locator)
+
+            # Resize the region to 70x70x70 cm
+            width = 0.5
+            depth = 0.4
+            height = 1
+            self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','width', width)
+            self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','height', height)
+            self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','depth', depth)
+
+            # Apply position offset to separate from the back of the seat to avoid "flying" objects
+            # pos_offset_y = 0
+            # pos_offset_x = 0.25
+            # landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
+            # landing_region_pos.x += pos_offset_x
+            # landing_region_pos.y += pos_offset_y
+            # self._workspace.set_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position',landing_region_pos)
+
+            # Get the car id and insert it in the set of port entities
+            # The car is goign to be the only one for the time being
+            port_entities = city_builder.core.EntitySet()
+            port_entities.insert(seat_id)
 
             # place the object in the in the region and land it in the car seat
             # For next version to control lander orientation and position 
@@ -1516,31 +1603,113 @@ class InCabinUtils:
         return cams
 
     #_______________________________________________________________
-    def setEgoInCameraLocator(self, pitch_delta, cam_locator_id):
-        cam_locator_position = self._workspace.get_entity_local_position(cam_locator_id)
-        cam_locator_rotation = self._workspace.get_entity_property_value(cam_locator_id, 'RelativeTransformToComponent','rotation')
+    def resetLight(self, light_id):
+        light_position = self._workspace.get_entity_property_value(light_id, 'RelativeTransformToComponent','position')
+        light_rotation = self._workspace.get_entity_property_value(light_id, 'RelativeTransformToComponent','rotation')
 
-        cam_locator_rotation.y += pitch_delta
+        light_position.x = 0
+        light_position.y = 0
+        light_position.z = 0
+        light_rotation.x = 0
+        light_rotation.y = -90
+        light_rotation.z = 0
 
-        ego_id = self._ego_id
-        self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','position', cam_locator_position)
-        self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation', cam_locator_rotation)
+        self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_position)
+        self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','rotation', light_rotation)
 
-        return cam_locator_position, cam_locator_rotation
+        return light_position, light_rotation
+    
+    #_______________________________________________________________
+    def resetLights(self):
+        light_ids = self._workspace.get_entities_by_type('Light')
+        for light_id in light_ids:
+            self.resetLight(light_id)
+
+     #_______________________________________________________________
+    def resetCamera(self, cam_id):
+        cam_position = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','position')
+        cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
+
+        cam_position.x = 0
+        cam_position.y = 0
+        cam_position.z = 0
+        cam_rotation.x = -90
+        cam_rotation.y = 0
+        cam_rotation.z = 90
+
+        self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', cam_position)
+        self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation', cam_rotation)
+
+        return cam_position, cam_rotation
+    
+    #_______________________________________________________________
+    def resetCameras(self):
+        cam_ids = self._workspace.get_camera_entities()
+        for cam_id in cam_ids:
+            self.resetCamera(cam_id)
 
     #_______________________________________________________________
-    def setEgoInPosition(self, pitch_delta, position):
+    def resetEgo(self):
+        ego_id = self._ego_id
+        ego_position = self._workspace.get_entity_property_value(ego_id, 'RelativeTransformToComponent','position')
+        ego_rotation = self._workspace.get_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation')
+        ego_scale = self._workspace.get_entity_property_value(ego_id, 'RelativeTransformToComponent','scale')
+
+        ego_position.x = 0
+        ego_position.y = 0
+        ego_position.z = 0
+        ego_rotation.x = 0
+        ego_rotation.y = 0
+        ego_rotation.z = 0
+        ego_scale.x = 1
+        ego_scale.y = 1
+        ego_scale.z = 1
+
+        self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','position', ego_position)
+        self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation', ego_rotation)
+        self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','scale', ego_scale)
+
+        return ego_position, ego_rotation, ego_scale
+
+    #_______________________________________________________________
+    def setEgoInPosition(self, rotation, position):
         ego_id = self._ego_id
         ego_rotation = self._workspace.get_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation')
 
-        ego_rotation.x = 0
-        ego_rotation.y = pitch_delta
-        ego_rotation.z = 180
+        ego_rotation.x += rotation.x
+        ego_rotation.y += rotation.y
+        ego_rotation.z += rotation.z
 
         self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','position', position)
         self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation', ego_rotation)
 
         return position, ego_rotation
+
+    #_______________________________________________________________
+    def setCameraInPosition(self, cam_id, rotation, position):
+        cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
+
+        cam_rotation.x += rotation.y
+        cam_rotation.y += rotation.x
+        cam_rotation.z += rotation.z
+    
+        self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', position)
+        self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation', cam_rotation)
+
+        return position, cam_rotation
+
+    #_______________________________________________________________
+    def setActiveLightInPosition(self, light_id, rotation, position):
+        light_rotation = self._workspace.get_entity_property_value(light_id, 'RelativeTransformToComponent','rotation')
+
+        light_rotation.x += rotation.x
+        light_rotation.y += rotation.y
+        light_rotation.z += rotation.z
+    
+        self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', position)
+        self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','rotation', light_rotation)
+
+        return position, light_rotation
 
     #_______________________________________________________________
     def setEgoVibration(self, pos_intervals, rot_intervals, normal = True):
@@ -1570,6 +1739,41 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation', ego_rotation)
 
         return ego_position, ego_rotation, pos_delta, rot_delta
+
+    #_______________________________________________________________
+    def setCameraVibration(self, camera, pos_intervals, rot_intervals, normal = True):
+        center = 0
+        x, y, z = 0, 1 ,2
+        cam_ids = [ ci for ci in self._workspace.get_camera_entities() if camera in self._workspace.get_entity_name(ci) ]
+        cam_id = cam_ids[0] if len(cam_ids) == 1 else 0
+        if cam_id != 0:
+            cam_position = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','position')
+            cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
+
+            left_right_delta = self.getCameraDelta(center, pos_intervals[y], normal)    # pos.y
+            up_down_delta = self.getCameraDelta(center, pos_intervals[z], normal)       # pos.z
+            front_back_delta = self.getCameraDelta(center, pos_intervals[x], normal)    # pos.x
+            pos_delta = (front_back_delta, left_right_delta, up_down_delta)
+            roll_delta = self.getCameraDelta(center, rot_intervals[x], normal)  # rot.x
+            pitch_delta = self.getCameraDelta(center, rot_intervals[y], normal) # rot.y
+            yaw_delta = self.getCameraDelta(center, rot_intervals[z], normal)   # rot.z
+            rot_delta = (roll_delta, pitch_delta, yaw_delta)
+
+            cam_position.x += front_back_delta / 100
+            cam_position.y += left_right_delta / 100
+            cam_position.z += up_down_delta / 100
+            cam_rotation.x += roll_delta
+            cam_rotation.y += pitch_delta
+            cam_rotation.z += yaw_delta
+
+            self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', cam_position)
+            self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation', cam_rotation)
+        else:
+            print('[ERROR] Missing {} camera in workspace'.format(camera))
+            cam_position, cam_rotation = anyverse_platform.Vector3D(0,0,0), anyverse_platform.Vector3D(0,0,0)
+            pos_delta, rot_delta = (0,0,0), (0,0,0)
+
+        return cam_position, cam_rotation, pos_delta, rot_delta
 
     #_______________________________________________________________
     def setCameraVisibility(self, cam_name):
@@ -1647,6 +1851,8 @@ class InCabinUtils:
                     continue
                 if dic[att.lower()].lower() == 'true':
                     dic[att.lower()] = True
+                # if re.match("[-+]?(([0-9]*[.]?[0-9]+([eE][-+]?[0-9]+)?))", dic[att.lower()]):
+                #     dic[att.lower()] = float(dic[att.lower()])
 
             dic["resource_id"] = elem
             dic["resource_name"] = self._workspace.get_entity_name(entityId)
@@ -1659,7 +1865,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryCars(self):
         query = aux.ResourceQueryManager(self._workspace)
-        query.add_tag_filter("compound")
+        # query.add_tag_filter("compound")
         query.add_tag_filter("car-interior")
         query.add_exists_attribute_filter('brand')
         query.add_exists_attribute_filter('model')
@@ -1874,7 +2080,7 @@ class InCabinUtils:
         elif incabin_light == None:
             print('WARN: Active light set to True, but no activelight defined in the workspace')
         else:
-            print('Active light {} turned off'.format(self._workspace.get_entity_name(active_light)))
+            print('Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
             self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
 
         if day:
