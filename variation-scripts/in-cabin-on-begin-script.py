@@ -33,10 +33,10 @@ incabin_config = {
         {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
         {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
-    "multiple-cameras": True,
+    "multiple-cameras": False,
     "cameras":{
         "RVM": {
-            "probability": 1.0,
+            "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "nir_at_night": False,
@@ -53,7 +53,7 @@ incabin_config = {
             },
         },
         "CC": { 
-            "probability": 0.0,
+            "probability": 1.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "nir_at_night": True,
@@ -109,7 +109,7 @@ incabin_config = {
             {'Type': 'Booster',     'Probability': 1.0}
         ],
         'childseat_occupied_probability':  0.5,
-        'accessories_probabilities': { 'global': 0.0, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
@@ -138,7 +138,15 @@ incabin_config = {
                 {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
                 {'name': 'rear', 'gaze': 5, 'probability': 0.05}
             ]
-        }
+        },
+        'expression_probabilities': [
+            {'name': 'neutral', 'expression': 0, 'probability': 0.20},
+            {'name': 'happy', 'expression': 1, 'probability': 0.20},
+            {'name': 'sad', 'expression': 2, 'probability': 0.20},
+            {'name': 'angry', 'expression': 3, 'probability': 0.15},
+            {'name': 'surprised', 'expression': 4, 'probability': 0.15},
+            {'name': 'random', 'expression': 5, 'probability': 0.1}
+        ]
     }
 }
 
