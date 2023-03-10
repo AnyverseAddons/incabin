@@ -2238,7 +2238,8 @@ class InCabinUtils:
             seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
             if seat != None:
                 seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
-                self._workspace.create_fixed_entity(seat["resource_name"], locator, seat_asset)
+                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat_asset)
+                self.setSplitAction(seat_id, True)
             else:
                 print("Locator {} exists but not its seat".format(self._workspace.get_entity_name(locator)) )
         else:
@@ -2246,12 +2247,10 @@ class InCabinUtils:
             seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
             if seat != None:
                 seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
-                self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat_asset)
+                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat_asset)
+                self.setSplitAction(seat_id, True)
             else:
                 print("No exists locator neither seat for position {}".format(seat_pos) )
-
-
-
 
     #_______________________________________________________________
     def setSeats(self, picked_car, the_car):
