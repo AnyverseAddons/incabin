@@ -258,6 +258,13 @@ class InCabinUtils:
         position = self._workspace.get_entity_property_value(character['Entity_id'], 'RelativeTransformToComponent','position')
         position.z += float(character['root_offset'].replace(',','.'))/100
         self._workspace.set_entity_property_value(character['Entity_id'], 'RelativeTransformToComponent','position', position)
+    #_______________________________________________________________
+    # def applyCharacterOffset(self, character):
+    #     # Apply the  offset to the locator instead of the character
+    #     parent_id = self.getParent(character['Entity_id'])
+    #     position = self._workspace.get_entity_property_value(parent_id, 'RelativeTransformToComponent','position')
+    #     position.z += float(character['root_offset'].replace(',','.'))/100
+    #     self._workspace.set_entity_property_value(parent_id, 'RelativeTransformToComponent','position', position)
 
     #_______________________________________________________________
     def getSeatPos(self, seat_locator):
