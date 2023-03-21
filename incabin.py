@@ -1741,37 +1741,31 @@ class InCabinUtils:
         return ego_position, ego_rotation, pos_delta, rot_delta
 
     #_______________________________________________________________
-    def setCameraVibration(self, camera, pos_intervals, rot_intervals, normal = True):
+    def setCameraVibration(self, cam_id, pos_intervals, rot_intervals, normal = True):
         center = 0
         x, y, z = 0, 1 ,2
-        cam_ids = [ ci for ci in self._workspace.get_camera_entities() if camera in self._workspace.get_entity_name(ci) ]
-        cam_id = cam_ids[0] if len(cam_ids) == 1 else 0
-        if cam_id != 0:
-            cam_position = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','position')
-            cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
 
-            left_right_delta = self.getCameraDelta(center, pos_intervals[y], normal)    # pos.y
-            up_down_delta = self.getCameraDelta(center, pos_intervals[z], normal)       # pos.z
-            front_back_delta = self.getCameraDelta(center, pos_intervals[x], normal)    # pos.x
-            pos_delta = (front_back_delta, left_right_delta, up_down_delta)
-            roll_delta = self.getCameraDelta(center, rot_intervals[x], normal)  # rot.x
-            pitch_delta = self.getCameraDelta(center, rot_intervals[y], normal) # rot.y
-            yaw_delta = self.getCameraDelta(center, rot_intervals[z], normal)   # rot.z
-            rot_delta = (roll_delta, pitch_delta, yaw_delta)
+        cam_position = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','position')
+        cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
 
-            cam_position.x += front_back_delta / 100
-            cam_position.y += left_right_delta / 100
-            cam_position.z += up_down_delta / 100
-            cam_rotation.x += roll_delta
-            cam_rotation.y += pitch_delta
-            cam_rotation.z += yaw_delta
+        left_right_delta = self.getCameraDelta(center, pos_intervals[y], normal)    # pos.y
+        up_down_delta = self.getCameraDelta(center, pos_intervals[z], normal)       # pos.z
+        front_back_delta = self.getCameraDelta(center, pos_intervals[x], normal)    # pos.x
+        pos_delta = (front_back_delta, left_right_delta, up_down_delta)
+        roll_delta = self.getCameraDelta(center, rot_intervals[x], normal)  # rot.x
+        pitch_delta = self.getCameraDelta(center, rot_intervals[y], normal) # rot.y
+        yaw_delta = self.getCameraDelta(center, rot_intervals[z], normal)   # rot.z
+        rot_delta = (roll_delta, pitch_delta, yaw_delta)
 
-            self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', cam_position)
-            self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation', cam_rotation)
-        else:
-            print('[ERROR] Missing {} camera in workspace'.format(camera))
-            cam_position, cam_rotation = anyverse_platform.Vector3D(0,0,0), anyverse_platform.Vector3D(0,0,0)
-            pos_delta, rot_delta = (0,0,0), (0,0,0)
+        cam_position.x += front_back_delta / 100
+        cam_position.y += left_right_delta / 100
+        cam_position.z += up_down_delta / 100
+        cam_rotation.x += roll_delta
+        cam_rotation.y += pitch_delta
+        cam_rotation.z += yaw_delta
+
+        self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', cam_position)
+        self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation', cam_rotation)
 
         return cam_position, cam_rotation, pos_delta, rot_delta
 
@@ -1840,8 +1834,12 @@ class InCabinUtils:
         print('{} assets'.format(total))
         processed = 0
         for elem in queryResult:
-            
-            entityId = self._workspace.add_resource_to_workspace(workspaceEntityType, elem)
+            try:
+                entityId = self._workspace.add_resource_to_workspace(workspaceEntityType, elem)
+            except RuntimeError as rte:
+                print('asset_resource_id = {}'.format(elem))
+                print('[WARN] Latest version of the asset above is not compatible with current Anyverse studio version, skipping it... Update Anyverse Studio to support it')
+                continue
             attrs = self._workspace.get_attribute_list_from_entity(entityId)
             dic = {}
             for att in attrs:
@@ -2077,17 +2075,15 @@ class InCabinUtils:
 
         incabin_light = None
         incabin_lights = self._workspace.get_entities_by_type('Light')
-        if len(incabin_lights) > 0:
-            incabin_light = incabin_lights[0]
-
-        if active_light and incabin_light != None:
-            print('Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-            self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-        elif incabin_light == None:
-            print('WARN: Active light set to True, but no activelight defined in the workspace')
-        else:
-            print('Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-            self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
+        for incabin_light in incabin_lights:
+            if active_light and incabin_light != None:
+                print('Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
+                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
+            elif incabin_light == None:
+                print('WARN: Active light set to True, but no activelight defined in the workspace')
+            else:
+                print('Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
+                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
 
         if day:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'PhysicalSky')

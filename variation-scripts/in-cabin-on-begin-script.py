@@ -273,9 +273,13 @@ icu.resetLights()
 cameras = incabin_config["cameras"]
 multiple_cameras = incabin_config["multiple-cameras"]
 # If multiple cameras,  
-# place each camera in its position relative to the ego
-# move the active light to the CC camera
-# TODO: Figure out a way to use several active lights 
+# place each camera in its position relative to the ego.
+# The workspace needs to have an active light associated to each camera for NIR
+# To associate lights to cameras we use a naming convention:
+# Each active light has to have the same prefix as the correspondent camera.   
+# We try to find each active light and move them to the correspondent cam position.
+# If an active light is missing, we log a [WARN] 
+# and there will be no active illumination for that camera 
 if multiple_cameras:
     nir_simulation = False
     # place each cameras in its position
@@ -296,17 +300,24 @@ if multiple_cameras:
         cam_ids = [ ci for ci in workspace.get_camera_entities() if camera in workspace.get_entity_name(ci) ]
         cam_id = cam_ids[0] if len(cam_ids) == 1 else 0
         if cam_id != 0:
-            icu.setCameraInPosition(cam_id, cam_rotation, cam_position)
+            cam_pos, cam_rot = icu.setCameraInPosition(cam_id, cam_rotation, cam_position)
+            print('{} initial position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
+            print('{} initial rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
+            pos_intervals = cameras[camera]["vibration_traslation"]
+            rot_intervals = cameras[camera]["vibration_rotation"]
+            cam_pos, cam_rot, _, _ = icu.setCameraVibration(cam_id, pos_intervals, rot_intervals)
+            print('{} final position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
+            print('{} final rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
             workspace.set_entity_property_value(cam_id, 'VisibleComponent','visible', True)
         else:
             print('[ERROR] Missing {} camera in workspace'.format(camera))
-    # place active light in the CC cam position
-    light_id = workspace.get_entities_by_type('Light')[0]
-    cc_pos = cameras["CC"]["cam_positions"][car_name]["position"]
-    cc_rot = cameras["CC"]["cam_positions"][car_name]["rotation"]
-    light_pos = anyverse_platform.Vector3D(cc_pos[0], cc_pos[1], cc_pos[2])
-    light_rot = anyverse_platform.Vector3D(cc_rot[0], cc_rot[1], cc_rot[2])
-    icu.setActiveLightInPosition(light_id, light_rot, light_pos)
+        # place active light in the cam position
+        light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
+        light_id = light_ids[0] if len(light_ids) == 1 else 0
+        if light_id != 0:
+            icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
+        else:
+            print('[WARN] Missing light for {} camera in workspace'.format(camera))
 # If not multiple cameras,  
 # Randomly select the camera to use and place the ego in the camera position,
 # apply vibration as configured and set the visibility to a single camera
@@ -407,7 +418,7 @@ else:
         active_light = False
         sensor_enabled = False
 
-print('Sensor enabled? {}. Setting active light to {}'.format(sensor_enabled, active_light))
+print('Sensor enabled? {}. Setting active lights to {}'.format(sensor_enabled, active_light))
 # set the illumination depending on day/night and conditions
 intensity = icu.setIllumination(day, cond, background, simulation_id, active_light = active_light)
 if day:
