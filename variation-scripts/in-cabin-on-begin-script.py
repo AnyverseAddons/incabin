@@ -34,12 +34,13 @@ incabin_config = {
         {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
     "multiple-cameras": False,
+    "nir_at_night": True,
+    "rgb_sensor_sim": False,
     "cameras":{
         "RVM": {
             "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": False,
             "cam_positions": {
                 'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
                 'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
@@ -56,7 +57,6 @@ incabin_config = {
             "probability": 1.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": True,
             "cam_positions": {
                 'Audi_Q5': {'rotation': (0, -10, 0), 'position': (0.53, 0.0, 1.11)}, 
                 'Chevrolet_Menlo':   {'rotation': (0, -10, 0), 'position': (0.64, 0.0, 1.03)},
@@ -271,7 +271,10 @@ icu.resetEgo()
 icu.resetCameras()
 icu.resetLights()
 cameras = incabin_config["cameras"]
+# Global camera settings
 multiple_cameras = incabin_config["multiple-cameras"]
+nir_simulation = incabin_config["nir_at_night"]
+rgb_sensor_sim = incabin_config["rgb_sensor_sim"]
 # If multiple cameras,  
 # place each camera in its position relative to the ego.
 # The workspace needs to have an active light associated to each camera for NIR
@@ -281,12 +284,8 @@ multiple_cameras = incabin_config["multiple-cameras"]
 # If an active light is missing, we log a [WARN] 
 # and there will be no active illumination for that camera 
 if multiple_cameras:
-    nir_simulation = False
     # place each cameras in its position
     for camera in cameras:
-        # if there is a camera configured for NIR at night we do NIR sim for all
-        if cameras[camera]["nir_at_night"]:
-            nir_simulation = True
         cam_positions = cameras[camera]["cam_positions"]
         if car_name in cam_positions:
             cam_pos = cam_positions[car_name]['position']
@@ -325,8 +324,6 @@ else:
     names, probabilities = getCameraProbabilityList(incabin_config)
     cam_ids_idx = icu.choiceUsingProbabilities(probabilities)
     camera_selected = names[cam_ids_idx]
-
-    nir_simulation = cameras[camera_selected]["nir_at_night"]
 
     cam_positions = cameras[camera_selected]["cam_positions"]
 
@@ -401,6 +398,11 @@ if multiple_cameras:
             icu.setIsp(camera_id, 'NIR-ISP')
             active_light = True
             sensor_enabled = True
+        elif rgb_sensor_sim:
+            icu.setSensor(camera_id, 'RGB-Sensor')
+            icu.setIsp(camera_id, 'RGB-ISP')
+            active_light = False
+            sensor_enabled = True
         else:
             icu.setSensor(camera_id, None)
             icu.setIsp(camera_id, None)
@@ -411,6 +413,11 @@ else:
         icu.setSensor(camera_id, 'NIR-Sensor')
         icu.setIsp(camera_id, 'NIR-ISP')
         active_light = True
+        sensor_enabled = True
+    elif rgb_sensor_sim:
+        icu.setSensor(camera_id, 'RGB-Sensor')
+        icu.setIsp(camera_id, 'RGB-ISP')
+        active_light = False
         sensor_enabled = True
     else:
         icu.setSensor(camera_id, None)
