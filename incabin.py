@@ -1611,7 +1611,7 @@ class InCabinUtils:
         light_position.y = 0
         light_position.z = 0
         light_rotation.x = 0
-        light_rotation.y = -90
+        light_rotation.y = 90
         light_rotation.z = 0
 
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_position)
