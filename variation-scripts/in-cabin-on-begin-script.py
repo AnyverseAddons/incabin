@@ -71,14 +71,14 @@ incabin_config = {
         }
     },
     "conditions": [ 
-        {'Day': True,  'Cond':'sunny',          'Probability': 0.25},
-        {'Day': True,  'Cond':'scattered',      'Probability': 0.25},
-        {'Day': True,  'Cond':'overcast',       'Probability': 0.25},
-        {'Day': False, 'Cond':'interior-lights','Probability': 0.25}
+        {'Day': True,  'Cond':'sunny',          'probability': 0.25},
+        {'Day': True,  'Cond':'scattered',      'probability': 0.25},
+        {'Day': True,  'Cond':'overcast',       'probability': 0.25},
+        {'Day': False, 'Cond':'interior-lights','probability': 0.25}
     ],
     "occupant_confs_probabilities": [ 
-        {'Conf': 'Empty', 'Probability': 0.0},
-        {'Conf': 'Normal', 'Probability': 1.0}
+        {'Conf': 'Empty', 'probability': 0.0},
+        {'Conf': 'Normal', 'probability': 1.0}
     ],
     "occupancy_distribution": {
         'driver_occupancy_probabilities': [
@@ -103,12 +103,23 @@ incabin_config = {
             {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
             {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
         ],
-        'childseat_type_probabilities': [
-            {'Type': 'BabyChild',   'Probability': 0.0},
-            {'Type': 'Convertible', 'Probability': 0.0},
-            {'Type': 'Booster',     'Probability': 1.0}
-        ],
-        'childseat_occupied_probability':  0.5,
+        'childseat_config': {
+            'childseat_type_probabilities': [
+                {'Type': 'BabyChild', 'probability': 0.75},
+                {'Type': 'Convertible', 'probability': 0.25},
+                {'Type': 'Booster', 'probability': 0.0}
+            ],
+            'childseat_occupancy_probabilities': [
+                {'name': 'Empty', 'occupancy': 0, 'probability': 0.25},
+                {'name': 'Child', 'occupancy': 1, 'probability': 0.5},
+                {'name': 'Object', 'occupancy': 2, 'probability': 0.25}
+            ],
+            'childseat_orientation_probabilities': [
+                {'Orientation': 'Forward', 'probability': 0.5},
+                {'Orientation': 'Backward', 'probability': 0.5}
+            ],
+            'childseat_rotation_max': 30
+        },
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
@@ -452,7 +463,7 @@ occupant_confs_probabilities = incabin_config["occupant_confs_probabilities"]
 # Production occupancy settings
 occupancy_distribution = incabin_config["occupancy_distribution"]
 
-conf_idx = icu.choiceUsingProbabilities([ float(c['Probability']) for c in occupant_confs_probabilities])
+conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
 if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
     icu.EmptyDistribution(the_car)
 elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
