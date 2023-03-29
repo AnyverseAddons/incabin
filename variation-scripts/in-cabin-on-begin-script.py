@@ -314,7 +314,11 @@ if multiple_cameras:
         light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
         light_id = light_ids[0] if len(light_ids) == 1 else 0
         if light_id != 0:
-            icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
+            light_pos, _ = icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
+            if camera == 'RVM':
+                # Advance the light 10 cm to avoid rvm casted shadows
+                light_pos.x += 0.1
+                workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
         else:
             print('[WARN] Missing light for {} camera in workspace'.format(camera))
 # If not multiple cameras,  
@@ -339,6 +343,13 @@ else:
     ego_pos, ego_rot = icu.setEgoInPosition(cam_rotation, cam_position)
     print('Ego initial position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
     print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
+
+    # Advance the light 10 cm to avoid rvm casted shadows
+    light_pos = anyverse_platform.Vector3D(0.1, 0, 0)
+    incabin_lights = workspace.get_entities_by_type('Light')
+    if len(incabin_lights) > 0:
+        incabin_light = incabin_lights[0]
+    workspace.set_entity_property_value(incabin_light, 'RelativeTransformToComponent','position', light_pos)
 
     # Apply camera vibration simulation with normal distribution
     pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
@@ -427,7 +438,7 @@ else:
 
 print('Sensor enabled? {}. Setting active lights to {}'.format(sensor_enabled, active_light))
 # set the illumination depending on day/night and conditions
-intensity = icu.setIllumination(day, cond, background, simulation_id, active_light = active_light)
+intensity = icu.setIllumination(day, cond, background, simulation_id, multiple_cameras, active_light = active_light)
 if day:
     print('Sun intensity: {}'.format(intensity))
 else:
