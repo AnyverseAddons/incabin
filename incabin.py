@@ -1543,7 +1543,13 @@ class InCabinUtils:
         childseat_info["type"] = childseat['kind']
         childseat_info["brand"] = childseat["brand"]
         childseat_info["orientation"] = childseat['Orientation']
-        childseat_info["occupied"] = self.isChildseatOccupied(childseat['Entity_id'])
+        occupied = self.isChildseatOccupied(childseat['Entity_id'])
+        childseat_info["occupied"] = occupied
+        occupant_name = ''
+        if occupied:
+            descendants = [ e for e in self._workspace.get_hierarchy(childseat['Entity_id']) if e != childseat['Entity_id'] and self._workspace.get_entity_type(e) == 'FixedEntity' ]
+            occupant_name = self._workspace.get_entity_name(descendants[0]) if len(descendants) > 0 else ''
+        childseat_info["occupant"] = occupant_name
 
         self.setCustomMetadata(childseat['Entity_id'], "ChildseatInfo", childseat_info)
 
