@@ -61,42 +61,49 @@ The first property `car_interior_probabilities`, allows to set different probabi
         {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
 ```
-The next property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation; and the initial position and pitch angle for every car cabin model. The `nir_at_night` property for each camera indicates if the camera should behave as a near infrared (NIR) camera for night scenes. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
+The next set of properties, allow you to configure and control the cameras in the cabin. 
+- `multiple_cameras`, when set to `False`, only one camera will be enabled in the cabin based on the cameras defined probabilities. When set to `True`, all cameras will be enabled and positioned in their correspondent locations.
+- `nir_at_night`, when set to `True` it'll set NIR sensor simulation with active illumination for all cameras in night (low light) scenes.
+- `rgb_sensor_sim`, when set to `True` it'll use RGB sensor simulation instead of default render RGB recreation.
+- `cameras`, defines the probability[^probabilities] to use the correspondent camera when `multiple_cameras`is `False`, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation; and the initial position and pitch angle for every car cabin model. 
+
+This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
 
 ```
+    "multiple-cameras": False,
+    "nir_at_night": True,
+    "rgb_sensor_sim": False,
     "cameras":{
         "RVM": {
-            "probability": 1.0,
-            "vibration_traslation": [0,0,0], # in meters
-            "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": False,
-            "cam_positions": {
-                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.52, 0.0, 1.45, 30) }, 
-                'Chevrolet_Menlo':  {'EGO': (0.41, 0.0, 1.315), 'position': (0.61, 0.0, 1.31, 30) },
-                'Lexus_UX':         {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.53, 0.005, 1.29, 30) },
-                'Porsche_Cayenne': {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.45, 25) },
-                'Unbranded_GenericSUV':    {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.52, -0.005, 1.43, 25) },
-                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.60, -0.027, 1.287, 30)},
-                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.315, 35)},
-                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.50, 0.0, 1.6, 30)},
-                'default':          {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
-            },
-        },
-        "CC": { 
             "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": True,
             "cam_positions": {
-                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.53, 0.0, 1.11, 10)}, 
-                'Chevrolet_Menlo':   {'EGO': (0.41, 0.0, 1.315), 'position': (0.64, 0.0, 1.03, 10)},
-                'Lexus_UX':          {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.505, 0.02, 0.95, 10)},
-                'Porsche_Cayenne':  {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.165, 10)},
-                'Unbranded_GenericSUV':     {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.58, 0.005, 1.085, 10)},
-                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.70, 0.027, 1.00, 10)},
-                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.09, 10)},
-                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.63, 0.0, 1.22, 10)},
-                'default':           {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
+                'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
+                'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
+                'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.53, 0.005, 1.29) },
+                'Porsche_Cayenne': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.52, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.60, -0.027, 1.287)},
+                'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.58, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.50, 0.0, 1.6)},
+                'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
+            },
+        },
+        "CC": { 
+            "probability": 1.0,
+            "vibration_traslation": [0,0,0], # in meters
+            "vibration_rotation": [0,0,0], # in degrees
+            "cam_positions": {
+                'Audi_Q5': {'rotation': (0, -10, 0), 'position': (0.53, 0.0, 1.11)}, 
+                'Chevrolet_Menlo':   {'rotation': (0, -10, 0), 'position': (0.64, 0.0, 1.03)},
+                'Lexus_UX':          {'rotation': (0, -10, 0), 'position': (0.505, 0.02, 0.95)},
+                'Porsche_Cayenne':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
+                'Unbranded_GenericSUV':     {'rotation': (0, -10, 0), 'position': (0.58, 0.005, 1.085)},
+                'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
+                'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
+                'LandRover_Autobiography': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.22)},
+                'default':           {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         }
     },
@@ -121,25 +128,29 @@ IF you need empty cabins with no occupants nor objects in you dataset, you can c
     ],
 ```
 
-The `occupancy_distribution` property is the most complex and allows you to control how every seat is occupied, what you want to do with the seat belts, if you want to place additional accessories to the characters and where are the characters looking at. 
+The `occupancy_distribution` property is the most complex and allows you to control how every seat is occupied, what you want to do with the seat belts, if you want to place additional accessories to the characters (`accessories_probabilities`), where are the characters looking at and the character's facial expression. 
 
-For the driver seat, you can set the probabilities to be empty or occupied. For all other seats you can set probabilities to be empty, have a child seat, a passenger or an object. You have control on the probabilities for different types of child seats as well.
+For the driver seat, `driver_occupancy_probabilities`, you can set the probabilities to be empty or occupied. For all other seats, `copilot_occupancy_probabilities`, `backseat_occupancy_probabilities` and `middleseat_occupancy_probabilities` you can set probabilities to be empty, have a child seat, a passenger or an object. You have control on the probabilities for different types of child seats (`childseat_type_probabilities`) and the probability that the child seat will be occupied (`childseat_occupied_probability`) as well.
 
-For seat belts, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
+For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
 
-Finally for the driver and the copilot, you can control their gaze setting the probabilities they are going to look at: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger or at the rear passengers. This is the default configuration for all the above:
+For the driver and the copilot, you can control their gaze (`gaze_probabilities`) setting the probabilities they are going to look at: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger or at the rear passengers.
+
+Finally, you can control the facial expression for every character `expression_probabilities`, by setting probabilities for 5 different preset expressions: neutral, sad, happy, angry and surprised; and the probability to have a random expression.
+
+This is the default configuration for all the above:
 
 ```
     "occupancy_distribution": {
         'driver_occupancy_probabilities': [
-            {'name': 'Empty',  'occupancy': 0, 'probability': 0.15},
-            {'name': 'Driver', 'occupancy': 1, 'probability': 0.85} 
+            {'name': 'Empty',  'occupancy': 0, 'probability': 0.0},
+            {'name': 'Driver', 'occupancy': 1, 'probability': 1.0} 
         ],
         'copilot_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.1},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.2},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.6},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.1} 
         ],
         'backseat_occupancy_probabilities': [
             {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
@@ -154,14 +165,14 @@ Finally for the driver and the copilot, you can control their gaze setting the p
             {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
         ],
         'childseat_type_probabilities': [
-            {'Type': 'BabyChild',   'Probability': 0.3},
-            {'Type': 'Convertible', 'Probability': 0.3},
-            {'Type': 'Booster',     'Probability': 0.3}
+            {'Type': 'BabyChild',   'Probability': 0.0},
+            {'Type': 'Convertible', 'Probability': 0.0},
+            {'Type': 'Booster',     'Probability': 1.0}
         ],
-        'childseat_occupied_probability':  0.3,
+        'childseat_occupied_probability':  0.5,
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
         'seatbelts_distribution': {
-            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seated on
+            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
                 'Normal': 0.80,
                 'BehindTheBack': 0.05,
@@ -188,9 +199,16 @@ Finally for the driver and the copilot, you can control their gaze setting the p
                 {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
                 {'name': 'rear', 'gaze': 5, 'probability': 0.05}
             ]
-        }
+        },
+        'expression_probabilities': [
+            {'name': 'neutral', 'expression': 0, 'probability': 0.20},
+            {'name': 'happy', 'expression': 1, 'probability': 0.20},
+            {'name': 'sad', 'expression': 2, 'probability': 0.20},
+            {'name': 'angry', 'expression': 3, 'probability': 0.15},
+            {'name': 'surprised', 'expression': 4, 'probability': 0.15},
+            {'name': 'random', 'expression': 5, 'probability': 0.1}
+        ]
     }
-}
 ```
 
 
