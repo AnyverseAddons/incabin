@@ -33,7 +33,7 @@ incabin_config = {
         {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
         {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
-    "multiple-cameras": False,
+    "multiple_cameras": False,
     "nir_at_night": True,
     "rgb_sensor_sim": False,
     "cameras":{
@@ -272,7 +272,7 @@ icu.resetCameras()
 icu.resetLights()
 cameras = incabin_config["cameras"]
 # Global camera settings
-multiple_cameras = incabin_config["multiple-cameras"]
+multiple_cameras = incabin_config["multiple_cameras"]
 nir_simulation = incabin_config["nir_at_night"]
 rgb_sensor_sim = incabin_config["rgb_sensor_sim"]
 # If multiple cameras,  
