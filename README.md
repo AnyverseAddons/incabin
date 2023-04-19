@@ -128,20 +128,24 @@ IF you need empty cabins with no occupants nor objects in you dataset, you can c
     ],
 ```
 
-The `occupancy_distribution` property is the most complex and allows you to control how every seat is occupied, what you want to do with the seat belts, if you want to place additional accessories to the characters (`accessories_probabilities`), where are the characters looking at and the character's facial expression. 
-
-For the driver seat, `driver_occupancy_probabilities`, you can set the probabilities to be empty or occupied. For all other seats, `copilot_occupancy_probabilities`, `backseat_occupancy_probabilities` and `middleseat_occupancy_probabilities` you can set probabilities to be empty, have a child seat, a passenger or an object. You have control on the probabilities for different types of child seats (`childseat_type_probabilities`) and the probability that the child seat will be occupied (`childseat_occupied_probability`) as well.
-
-For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
-
-For the driver and the copilot, you can control their gaze (`gaze_probabilities`) setting the probabilities they are going to look at: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger or at the rear passengers.
-
-Finally, you can control the facial expression for every character `expression_probabilities`, by setting probabilities for 5 different preset expressions: neutral, sad, happy, angry and surprised; and the probability to have a random expression.
-
-This is the default configuration for all the above:
+The `occupancy_distribution` property is the most complex and allows you to control how every seat is occupied, what you want to do with the child seats and seat belts, if you want to place additional accessories to the characters (`accessories_probabilities`), where are the characters looking at and the character's facial expression. 
 
 ```
     "occupancy_distribution": {
+        'driver_occupancy_probabilities': [ ...
+        'copilot_occupancy_probabilities': [ ...
+        'backseat_occupancy_probabilities': [ ...
+        'middleseat_occupancy_probabilities': [ ...
+        'childseat_config': { ...
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+        'seatbelts_distribution': { ...
+        'gaze_probabilities': { ...
+        'expression_probabilities': [ ...
+    }
+```
+For the driver seat, `driver_occupancy_probabilities`, you can set the probabilities to be empty or occupied. For all other seats, `copilot_occupancy_probabilities`, `backseat_occupancy_probabilities` and `middleseat_occupancy_probabilities` you can set probabilities to be empty, have a child seat, a passenger or an object. 
+
+```
         'driver_occupancy_probabilities': [
             {'name': 'Empty',  'occupancy': 0, 'probability': 0.0},
             {'name': 'Driver', 'occupancy': 1, 'probability': 1.0} 
@@ -164,15 +168,35 @@ This is the default configuration for all the above:
             {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
             {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
         ],
-        'childseat_type_probabilities': [
-            {'Type': 'BabyChild',   'Probability': 0.0},
-            {'Type': 'Convertible', 'Probability': 0.0},
-            {'Type': 'Booster',     'Probability': 1.0}
-        ],
-        'childseat_occupied_probability':  0.5,
-        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+```
+
+With the `childseat_config` property, you have control on the probabilities for different types of child seats (`childseat_type_probabilities`), the probability that the child seat will be occupied (`childseat_occupancy_probabilities`) with a child or an object, or just leaving it empty. There is further control on the child seat orientation (only for BabyChild type child seats) with the `childseat_orientation property`. And finally you can define a maximum rotation angle (around Z) for the child seat with `childseat_rotation_max`.
+
+```
+        'childseat_config': {
+            'childseat_type_probabilities': [
+                {'Type': 'BabyChild', 'probability': 0.75},
+                {'Type': 'Convertible', 'probability': 0.25},
+                {'Type': 'Booster', 'probability': 0.0}
+            ],
+            'childseat_occupancy_probabilities': [
+                {'name': 'Empty', 'occupancy': 0, 'probability': 0.25},
+                {'name': 'Child', 'occupancy': 1, 'probability': 0.5},
+                {'name': 'Object', 'occupancy': 2, 'probability': 0.25}
+            ],
+            'childseat_orientation_probabilities': [
+                {'Orientation': 'Forward', 'probability': 0.5},
+                {'Orientation': 'Backward', 'probability': 0.5}
+            ],
+            'childseat_rotation_max': 30
+        },
+```
+
+For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
+
+```
         'seatbelts_distribution': {
-            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
+            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seated
             'seatbelt_placement_probabilities': {
                 'Normal': 0.80,
                 'BehindTheBack': 0.05,
@@ -182,6 +206,11 @@ This is the default configuration for all the above:
             },   
             'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
         },
+```
+
+For the driver and the copilot, you can control their gaze (`gaze_probabilities`) setting the probabilities they are going to look at: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger or at the rear passengers.
+
+```
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
                 {'name': 'road', 'gaze': 0, 'probability': 0.7},
@@ -200,6 +229,11 @@ This is the default configuration for all the above:
                 {'name': 'rear', 'gaze': 5, 'probability': 0.05}
             ]
         },
+```
+
+Finally, you can control the facial expression for every character `expression_probabilities`, by setting probabilities for 5 different preset expressions: neutral, sad, happy, angry and surprised; and the probability to have a random expression.
+
+```
         'expression_probabilities': [
             {'name': 'neutral', 'expression': 0, 'probability': 0.20},
             {'name': 'happy', 'expression': 1, 'probability': 0.20},
@@ -208,9 +242,8 @@ This is the default configuration for all the above:
             {'name': 'surprised', 'expression': 4, 'probability': 0.15},
             {'name': 'random', 'expression': 5, 'probability': 0.1}
         ]
-    }
 ```
-
+All the above are the default values for all configuration properties.
 
 [^models]: There are 8 different car brands and model, for a total of 26 distinct interiors: Audi Q5, 4 different interior colors; Chevrolet Menlo, 4 different interior colors; Lexus UX, 4 different interior colors; Porsche Cayenne, 4 different interior colors; Unbranded Generic SUV, 4 different interior colors; Volkswagen Passat, 4 different interior colors; Hyundai Ioniq, 1 interior colors; Land Rover Autobiography, 1 interior colors
 
