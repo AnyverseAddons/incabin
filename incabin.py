@@ -1924,6 +1924,18 @@ class InCabinUtils:
             self.increaseCameraResolution(cam, factor)
 
     #_______________________________________________________________
+    def excludeAsset(self, asset):
+        ret = False
+        maxicosi_excluded_colors = ['Beige', 'Blue', 'Brown']
+        cybex_excluded_colors = ['Dark', 'Green', 'LightGray', 'Orange']
+
+        if 'BabyChild' == asset['kind'] and 'Maxi-Cosi' == asset['brand'] and asset['version'] in maxicosi_excluded_colors:
+            ret = True
+        if 'BabyChild' == asset['kind'] and 'Cybex' == asset['brand'] and asset['version'] in cybex_excluded_colors:
+            ret = True
+
+        return ret
+    #_______________________________________________________________
     def queryResultToDic(self, queryResult, workspaceEntityType = anyverse_platform.WorkspaceEntityType.Asset):
         result = []
         total = len(queryResult)
@@ -1937,6 +1949,11 @@ class InCabinUtils:
                 print('[WARN] Latest version of the asset above is not compatible with current Anyverse studio version, skipping it... Update Anyverse Studio to support it')
                 continue
             attrs = self._workspace.get_attribute_list_from_entity(entityId)
+            try:
+                tags = self._workspace.get_tags_from_entity(entityId)
+            except RuntimeError as rte:
+                print('Tags not supported in asset')
+                tags = []
             dic = {}
             for att in attrs:
                 dic[att.lower()] = self._workspace.get_attribute_value_as_string_from_entity(entityId, att)
@@ -1950,7 +1967,11 @@ class InCabinUtils:
 
             dic["resource_id"] = elem
             dic["resource_name"] = self._workspace.get_entity_name(entityId)
-            result.append(dic)
+            if 'childseat' in tags:
+                if not self.excludeAsset(dic):
+                    result.append(dic)
+            else:
+                result.append(dic)
             processed += 1
             # self.update_progress(processed/total)
 
@@ -2307,8 +2328,26 @@ class InCabinUtils:
 
         return selected_background, ws_bckgnd_id
 
+    # #_______________________________________________________________
+    # def selectCar(self, use_probs = False):
+    #     if use_probs:
+    #         probabilities = [ c['probability'] for c in use_probs ]
+    #         idx = self.choiceUsingProbabilities(probabilities)
+    #         car_name = use_probs[idx]['car_name']
+    #         elegible_cars = [ i for i, c in enumerate(self._workspace.cars) if c['brand'].replace(" ", "") in car_name ]
+    #         idx = elegible_cars[random.randrange(len(elegible_cars))]
+    #     else:
+    #         idx = random.randrange(len(self._workspace.cars))
+
+    #     picked_car = self._workspace.cars[idx]
+    #     new_car_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_car["resource_id"])
+    #     picked_car['Entity_id'] = new_car_id
+    #     self._car_brand = picked_car['brand'].replace(" ", "")
+    #     self._car_model = picked_car['model']
+    #     return picked_car
+
     #_______________________________________________________________
-    def selectCar(self, use_probs = False):
+    def selectCar(self, use_probs = False, car_model = None):
         if use_probs:
             probabilities = [ c['probability'] for c in use_probs ]
             idx = self.choiceUsingProbabilities(probabilities)
@@ -2318,7 +2357,17 @@ class InCabinUtils:
         else:
             idx = random.randrange(len(self._workspace.cars))
 
-        picked_car = self._workspace.cars[idx]
+        if not car_model:
+            picked_car = self._workspace.cars[idx]
+        else:
+            picked_car = self._workspace.cars[idx]
+            stop = False
+            while (car_model not in picked_car['resource_name'] and not stop):
+                idx = random.randrange(len(self._workspace.cars))
+                picked_car = self._workspace.cars[idx]
+                if car_model == 'Unbranded_GenericSUV' and 'Unbranded' in picked_car['resource_name']:
+                    stop = True
+
         new_car_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_car["resource_id"])
         picked_car['Entity_id'] = new_car_id
         self._car_brand = picked_car['brand'].replace(" ", "")
