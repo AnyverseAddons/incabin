@@ -1153,6 +1153,7 @@ class InCabinUtils:
             mu, sigma = 0, max_rotation/3.6
             yaw = random.normalvariate(mu, sigma)
             if childseat_type == 'BabyChild' and orientation == 'Forward':
+                childseat['Orientation']  = orientation
                 yaw += 180
                 pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
                 pos.x += 0.65
