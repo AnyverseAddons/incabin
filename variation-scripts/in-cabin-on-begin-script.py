@@ -465,7 +465,7 @@ occupancy_distribution = incabin_config["occupancy_distribution"]
 
 conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
 if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
-    icu.EmptyDistribution(the_car)
+    icu.EmptyDistribution(the_car, occupancy_distribution)
 elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
     # occupant_dist = icu.AllAdultsDistribution(the_car)
     occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
