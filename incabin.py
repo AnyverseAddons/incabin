@@ -3012,9 +3012,10 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
 
         if looked_at != anyverse_platform.invalid_entity_id:
-            joints = [ ent for ent in self._workspace.get_hierarchy(looked_at) if self._workspace.get_entity_type(ent) == 'SkeletonJointEntity' ]
-            nose = [ j for j in joints if self._workspace.get_entity_name(j) == 'upperleg_l' ][0] 
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', nose)
+            char_locators = [ ent for ent in self._workspace.get_hierarchy(looked_at) if self._workspace.get_entity_type(ent) == 'Locator' ]
+            if len(char_locators) >= 1:
+                lookat_locator = char_locators[0]
+                self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', lookat_locator)
 
     #_______________________________________________________________
     def LookAtInsideRearViewMirror(self, looker, the_car):
