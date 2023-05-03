@@ -810,8 +810,9 @@ class InCabinUtils:
             object['Accessory'] = 'None'
 
             # Overwriting seat info to update occupancy
-            self.setChildseatInfo(childseat)
-            self.setSeatInfo(childseat)
+            # HACK: We don't need to update this in case of objects since it is not considered occupied 
+            # self.setChildseatInfo(childseat)
+            # self.setSeatInfo(childseat)
 
         else:
             # No matching objects found returning id -1
@@ -824,7 +825,7 @@ class InCabinUtils:
     def placeObjectOnSeat(self, seat_locator, seat_id, name = None, version = None):
         print('Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
 
-        big_object = False
+        big_object = True if random.uniform(0,1) >= 0.5 else False
 
         # select a named object from resoures
         object = self.selectObject(name, version, big_object)
@@ -905,9 +906,7 @@ class InCabinUtils:
     def placeObject(self, seat_locator, name = None, version = None):
         print('Placing object in {}'.format(self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
-        big_object = False
-        if self.isLeftBackSeat(seat_locator) or self.isRightBackSeat(seat_locator):
-            big_object = None
+        big_object = True if random.uniform(0,1) >= 0.5 else False
 
         print('Big object: {}'.format(big_object))
 
@@ -1017,7 +1016,11 @@ class InCabinUtils:
                 # print('Setting animation: {}, weight: {}'.format(self._workspace.get_entity_name(animation), weight))
                 self.setAnimation(arms[arm], animation, weight, driver_id)
                 if arm == 1 and 'above' not in self._workspace.get_entity_name(animation):
-                    reach = self.reachRVM(driver_id, 'right') if random.uniform(0,1) <= 0.5 else self.reachInfotainment(driver_id, 'right')
+                    # HACK: Avoid reaching RVM if camera is placed there
+                    if 'RVM' in self.getVisibleCameras():
+                        reach = self.reachInfotainment(driver_id, 'right') if random.uniform(0,1) <= 0.5 else 'Nothing'
+                    else:
+                        reach = self.reachRVM(driver_id, 'right') if random.uniform(0,1) <= 0.5 else self.reachInfotainment(driver_id, 'right')
                     print('[DRIVER ARM] Driver reaching {}'.format(reach))
                 
 
@@ -1103,7 +1106,7 @@ class InCabinUtils:
 
         # Filter by orientation if convertible
         if key == 'kind' and value == 'Convertible' and orientation is not None:
-            filtered_childseats = [ cs for cs in filtered_childseats if cs['aim looking'] == orientation ]
+            filtered_childseats = [ cs for cs in filtered_childseats if cs['aim looking'].lower() == orientation.lower() ]
 
         # pick one randomly
         if len(filtered_childseats) > 0:
@@ -1261,8 +1264,13 @@ class InCabinUtils:
             else:
                 animation, weight = self.selectChildAnimation(seat_locator, 'base', 0, 0.6)
             self.setAnimation('base', animation, weight, child_id)
-            # Set spine animation
+            # Set spine animation. HACK: Limit the weight when leaning backward or sideward and don't allow to look up
             animation, weight = self.selectChildAnimation(seat_locator, 'spine', 0, 1)
+            not_look_up = False
+            if 'backward' in self._workspace.get_entity_name(animation) or 'side' in self._workspace.get_entity_name(animation):
+                not_look_up = True
+                if weight > 0.4:
+                    weight = 0.4
             self.setAnimation('spine', animation, weight, child_id)
             # Set arms animation
             if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
@@ -1300,6 +1308,10 @@ class InCabinUtils:
             # setting head animation
             animation, weight = self.selectChildAnimation(seat_locator, 'head', 0, 1)
             # print('Setting animation: {}, weight: {}'.format(self._workspace.get_entity_name(animation), weight))
+            # HACK: Limit the weight to look up if not_look_up (leaning backwards) 
+            if 'Up' in self._workspace.get_entity_name(animation) and not_look_up:
+                if weight > 0.35:
+                    weight = 0.35
             self.setAnimation('head', animation, weight, child_id)
 
             # Set an expression based on probabilities
@@ -1883,6 +1895,19 @@ class InCabinUtils:
         return visible_cam_id, visible_cam_name
 
     #_______________________________________________________________
+    def getVisibleCameras(self):
+        cam_ids = self._workspace.get_camera_entities()
+
+        visible_cam_names = []
+        for  cam_id in cam_ids:
+            visibility = self._workspace.get_entity_property_value(cam_id, 'VisibleComponent','visible')
+            if visibility:
+                visible_cam_name = self._workspace.get_entity_name(cam_id)
+                visible_cam_names.append(visible_cam_name)
+
+        return visible_cam_names
+
+    #_______________________________________________________________
     def reduceCameraResolution(self,cam_id, factor):
         width = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','width_resolution')
         height = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','height_resolution')
@@ -2015,9 +2040,8 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryChildSeats(self):
         query = aux.ResourceQueryManager(self._workspace)
-        query.add_tag_filter("childseat")
-        query.add_exists_attribute_filter('kind')
         query.add_attribute_filter("class", "ChildSeat")
+        query.add_attribute_filter("dynamic_material", False)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
@@ -2942,14 +2966,12 @@ class InCabinUtils:
     #_______________________________________________________________
     def createCCLocator(self, the_car):
         cc_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
-        if len(cc_locators) == 0:
-            cc_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'cc_info_locator', the_car)
-        else:
-            print('[WARN] cc_info_locator already created.')
-            cc_locator = cc_locators[0]
+        if len(cc_locators) > 0:
+            print('[INFO] Recreating CC locator')
+            self._workspace.delete_entity(cc_locators[0])
+        cc_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'cc_info_locator', the_car)
 
-        ego_position = self._workspace.get_entity_property_value(self._ego_id,'RelativeTransformToComponent','position')
-        loc_position = anyverse_platform.Vector3D(ego_position.x, ego_position.y, ego_position.z - 0.1)
+        loc_position = anyverse_platform.Vector3D(0.6, 0.0, random.uniform(1.0, 1.1))
         self._workspace.set_entity_property_value(cc_locator,'RelativeTransformToComponent','position', loc_position)
         print('CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
         return cc_locator
@@ -3157,7 +3179,7 @@ class InCabinUtils:
             eyelids_position = (0.99, 0.99)
             eyebrows_positions = (0.99, 0.99)
             mouth_positions = (0.3, 0, 0.3, 0)
-            jaw_position = 0
+            jaw_position = 0.8
         elif expression_code == 5: # random
             eyes_position = anyverse_platform.Vector3D(random.uniform(-0.13, 0.13), random.uniform(-0.13, 0.13), random.uniform(-0.13, 0.13))
             eyelids_position = (random.uniform(0, 1), random.uniform(0, 1))
