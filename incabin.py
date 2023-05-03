@@ -1276,8 +1276,8 @@ class InCabinUtils:
             if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
                 animate_left_arm = True if random.uniform(0,1) < 0.2 else False
                 animate_right_arm = True if random.uniform(0,1) < 0.5 else False
-                left_arm_max_weight = 0.4
-                right_arm_max_weight = 1.0
+                left_arm_max_weight = 0.6
+                right_arm_max_weight = 0.6
             if  self.isLeftBackSeat(seat_locator):
                 animate_left_arm = True if random.uniform(0,1) < 0.5 else False
                 animate_right_arm = True if random.uniform(0,1) < 0.2 else False
@@ -1633,6 +1633,14 @@ class InCabinUtils:
             base_pose = self._workspace.get_entity_property_value(base_animation_entity_id,'WorkspaceEntityComponent','name')
             base_pose_weight = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','base_anim_config.weight')
 
+        spine_animation_entity_id = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','spine_anim_config.animation_entity_id')
+        if spine_animation_entity_id == self._no_entry:
+            spine_pose = 'none'
+            spine_pose_weight = 1.0
+        else:
+            spine_pose = self._workspace.get_entity_property_value(spine_animation_entity_id,'WorkspaceEntityComponent','name')
+            spine_pose_weight = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','spine_anim_config.weight')
+
         head_animation_entity_id = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','head_anim_config.animation_entity_id')
         if head_animation_entity_id == self._no_entry:
             head_pose = 'none'
@@ -1662,6 +1670,8 @@ class InCabinUtils:
         pose_info={}
         pose_info["base"] = base_pose
         pose_info["base_weight"] = base_pose_weight
+        pose_info["spine"] = spine_pose
+        pose_info["spine_weight"] = spine_pose_weight
         pose_info["head"] = head_pose
         pose_info["head_weight"] = head_pose_weight
         pose_info["face"] = face_expression
