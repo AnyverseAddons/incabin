@@ -1017,8 +1017,9 @@ class InCabinUtils:
                 self.setAnimation(arms[arm], animation, weight, driver_id)
                 if arm == 1 and 'above' not in self._workspace.get_entity_name(animation):
                     # HACK: Avoid reaching RVM if camera is placed there
-                    if 'RVM' in self.getVisibleCameras():
-                        reach = self.reachInfotainment(driver_id, 'right') if random.uniform(0,1) <= 0.5 else 'Nothing'
+                    rvm_cams_visible = [ c for c in self.getVisibleCameras() if 'RVM' in c]
+                    if len(rvm_cams_visible) > 0:
+                        reach = self.reachInfotainment(driver_id, 'right') if random.uniform(0,1) <= 1 else 'Nothing'
                     else:
                         reach = self.reachRVM(driver_id, 'right') if random.uniform(0,1) <= 0.5 else self.reachInfotainment(driver_id, 'right')
                     print('[DRIVER ARM] Driver reaching {}'.format(reach))
