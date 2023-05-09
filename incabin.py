@@ -1019,11 +1019,10 @@ class InCabinUtils:
                     # HACK: Avoid reaching RVM if camera is placed there
                     rvm_cams_visible = [ c for c in self.getVisibleCameras() if 'RVM' in c]
                     if len(rvm_cams_visible) > 0:
-                        reach = self.reachInfotainment(driver_id, 'right') if random.uniform(0,1) <= 1 else 'Nothing'
+                        reach = self.reachInfotainment(driver_id, 'right') if random.uniform(0,1) <= 0.5 else 'Nothing'
                     else:
                         reach = self.reachRVM(driver_id, 'right') if random.uniform(0,1) <= 0.5 else self.reachInfotainment(driver_id, 'right')
-                    print('[DRIVER ARM] Driver reaching {}'.format(reach))
-                
+                    print('[DRIVER ARM] Driver reaching {}'.format(reach))                
 
             # setting head animation
             # If there is gaze probabilities the head position is controled by gaze
@@ -1060,8 +1059,6 @@ class InCabinUtils:
                     self.setAccessoryInfo(accessory)
             else:
                 print('Not placing accessories for driver {}'.format(driver['name']))
-
-            
             
             # Set an expression based on probabilities
             # or 'neutral' if no probabilities defined 
@@ -1430,6 +1427,9 @@ class InCabinUtils:
                 arm = 'left_arm'
                 animation, weight = self.selectAdultAnimation(arm, 0.35, left_arm_max_weight) # left arm min weight enough to avoid seatbelt collision
                 self.setAnimation(arm, animation, weight, passenger_id)
+                if 'above' not in self._workspace.get_entity_name(animation):
+                    reach = self.reachInfotainment(passenger_id, 'left') if random.uniform(0,1) <= 0.5 else 'Nothing'
+                    print('[PASSENGER ARM] Passenger reaching {}'.format(reach))
             # Animate right arm
             if animate_right_arm:
                 arm = 'right_arm'
