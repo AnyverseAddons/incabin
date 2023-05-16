@@ -2991,7 +2991,7 @@ class InCabinUtils:
             self._workspace.delete_entity(cc_locators[0])
         cc_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'cc_info_locator', the_car)
 
-        loc_position = anyverse_platform.Vector3D(0.6, 0.0, random.uniform(1.0, 1.1))
+        loc_position = anyverse_platform.Vector3D(0.6, 0.0, random.uniform(0.9, 1.0))
         self._workspace.set_entity_property_value(cc_locator,'RelativeTransformToComponent','position', loc_position)
         print('CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
         return cc_locator
