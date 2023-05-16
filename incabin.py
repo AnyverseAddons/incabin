@@ -1004,6 +1004,15 @@ class InCabinUtils:
             # Grab the steering wheel by default
             self.grabSteeringWheel(driver_id)
 
+            # setting spine animation
+            max_weight = 1
+            animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
+            spine_animation_name = self._workspace.get_entity_name(animation)
+            if 'side_ward' in spine_animation_name and weight > 0.4:
+                weight = 0.4
+
+            self.setAnimation('spine', animation, weight, driver_id)
+
             # Set one arm animation for half the samples
             animate_arms = True if random.uniform(0,1) <= 0.5 else False
             if  animate_arms:
