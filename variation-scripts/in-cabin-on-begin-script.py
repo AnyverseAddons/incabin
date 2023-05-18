@@ -209,6 +209,13 @@ if not hasattr(anyverse_platform, 'childseats'):
     print('Childseat list loaded!')
 workspace.childseats = anyverse_platform.childseats
     
+if not hasattr(anyverse_platform, 'childseatbelts'):
+    print('Loading childseatbelts...')
+    anyverse_platform.childseatbelts = icu.queryChildSeatBelts()
+    #print(anyverse_platform.childseatbelts)
+    print('Childseatbelts list loaded!')
+workspace.childseatbelts = anyverse_platform.childseatbelts
+    
 if not hasattr(anyverse_platform, 'objects'):
     print('Loading objects...')
     anyverse_platform.objects = icu.queryObjects()
@@ -230,6 +237,12 @@ if not hasattr(anyverse_platform, 'backgrounds'):
     print('Backgrounds list loaded!')
 workspace.backgrounds = anyverse_platform.backgrounds
 
+if not hasattr(anyverse_platform, 'materials'):
+    print('Loading materials...')
+    anyverse_platform.materials = icu.queryMaterials()
+    #print(anyverse_platform.materials)
+    print('Materials list loaded!')
+workspace.materials = anyverse_platform.materials
 
 #__________________________________________________________
 # Get the workspace simulation id
@@ -263,7 +276,7 @@ if incabin_config['use_car_interior_probabilities']:
 else:
     selected_car = icu.selectCar() # Uniform car interior distribution
 car_name = 'default'
-if selected_car['Entity_id'] != -1:
+if selected_car['entity_id'] != -1:
     icu.buildCar(selected_car, the_car)
 
     # Set car info from car metadata and put it as custom metadata for annotations

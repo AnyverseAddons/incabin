@@ -255,13 +255,13 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def applyCharacterOffset(self, character):
-        position = self._workspace.get_entity_property_value(character['Entity_id'], 'RelativeTransformToComponent','position')
+        position = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'RelativeTransformToComponent','position')
         position.z += float(character['root_offset'].replace(',','.'))/100
-        self._workspace.set_entity_property_value(character['Entity_id'], 'RelativeTransformToComponent','position', position)
+        self._workspace.set_entity_property_value(character['fixed_entity_id'], 'RelativeTransformToComponent','position', position)
     #_______________________________________________________________
     # def applyCharacterOffset(self, character):
     #     # Apply the  offset to the locator instead of the character
-    #     parent_id = self.getParent(character['Entity_id'])
+    #     parent_id = self.getParent(character['fixed_entity_id'])
     #     position = self._workspace.get_entity_property_value(parent_id, 'RelativeTransformToComponent','position')
     #     position.z += float(character['root_offset'].replace(',','.'))/100
     #     self._workspace.set_entity_property_value(parent_id, 'RelativeTransformToComponent','position', position)
@@ -602,7 +602,7 @@ class InCabinUtils:
                 zero_probs = True
 
 
-        character_id = character['Entity_id']
+        character_id = character['fixed_entity_id']
         can_glasses, can_cap, can_hat, can_mask = character['glasses'], character['cap'], character['hat'], character['facemask']
         can_headwear = can_cap or can_hat
 
@@ -617,7 +617,7 @@ class InCabinUtils:
                     if len(glasses_locs) > 0 and glasses['Asset_id'] != -1:
                         glasses_loc = glasses_locs[0]
                         glasses_id = self._workspace.create_fixed_entity(glasses['resource_name'], glasses_loc, glasses['Asset_id'])
-                        glasses['Entity_id'] = glasses_id
+                        glasses['fixed_entity_id'] = glasses_id
                         glasses['Character'] = character['resource_name']
                         self.setInstanceIfPossible(glasses_id, False)
                         self.setExportAlwaysExcludeOcclusion(glasses_id)
@@ -638,7 +638,7 @@ class InCabinUtils:
                     if len(hat_locs) > 0 and hat['Asset_id'] != -1:
                         hat_loc = hat_locs[0]
                         hat_id = self._workspace.create_fixed_entity(hat['resource_name'], hat_loc, hat['Asset_id'])
-                        hat['Entity_id'] = hat_id
+                        hat['fixed_entity_id'] = hat_id
                         hat['Character'] = character['resource_name']
                         self.setInstanceIfPossible(hat_id, False)
                         self.setExportAlwaysExcludeOcclusion(hat_id)
@@ -654,7 +654,7 @@ class InCabinUtils:
                     if len(mask_locs) > 0 and mask['Asset_id'] != -1:
                         mask_loc = mask_locs[0]
                         mask_id = self._workspace.create_fixed_entity(mask['resource_name'], mask_loc, mask['Asset_id'])
-                        mask['Entity_id'] = mask_id
+                        mask['fixed_entity_id'] = mask_id
                         mask['Character'] = character['resource_name']
                         self.setInstanceIfPossible(mask_id, False)
                         self.setExportAlwaysExcludeOcclusion(mask_id)
@@ -681,7 +681,7 @@ class InCabinUtils:
             if scale_factor != 1:
                 print('Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
-            object['Entity_id'] = object_entity_id
+            object['fixed_entity_id'] = object_entity_id
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
@@ -740,7 +740,7 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def placeObjectInChildseat(self, seat_locator, childseat, name = None, version = None):
-        seat_id = childseat['Entity_id']
+        seat_id = childseat['fixed_entity_id']
         print('Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
 
         big_object = False
@@ -760,7 +760,7 @@ class InCabinUtils:
             if scale_factor != 1:
                 print('Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
-            object['Entity_id'] = object_entity_id
+            object['fixed_entity_id'] = object_entity_id
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
@@ -841,7 +841,7 @@ class InCabinUtils:
             if scale_factor != 1:
                 print('Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
-            object['Entity_id'] = object_entity_id
+            object['fixed_entity_id'] = object_entity_id
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
@@ -921,7 +921,7 @@ class InCabinUtils:
             if scale_factor != 1:
                 print('Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
-            object['Entity_id'] = object_entity_id
+            object['fixed_entity_id'] = object_entity_id
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
@@ -997,7 +997,7 @@ class InCabinUtils:
         if driver_asset_id != -1:
             driver_id = self._workspace.create_fixed_entity(driver['name'], seat_locator, driver_asset_id)
 
-            driver['Entity_id'] = driver_id
+            driver['fixed_entity_id'] = driver_id
 
             # set driver pose
             animation = self.getAnimIdByName('Driving')
@@ -1087,7 +1087,7 @@ class InCabinUtils:
         else:
             # No matching drivers found returning id -1
             if driver != None:
-                driver['Entity_id'] = driver_asset_id
+                driver['fixed_entity_id'] = driver_asset_id
                 print('[ERROR] Driver {} not found in resources!'.format(driver['name']))
                 driver = None
 
@@ -1102,8 +1102,8 @@ class InCabinUtils:
             filtered_childseats = self.filterCharacters(childseats, 'name', name)
 
         # Filter by orientation if convertible
-        if key == 'kind' and value == 'Convertible' and orientation is not None:
-            filtered_childseats = [ cs for cs in filtered_childseats if cs['aim looking'] == orientation ]
+        if key == 'kind' and (value == 'Convertible' or value == 'BabyChild') and orientation is not None:
+            filtered_childseats = [ cs for cs in filtered_childseats if cs['aim looking'].lower() == orientation.lower() ]
 
         # pick one randomly
         if len(filtered_childseats) > 0:
@@ -1129,6 +1129,7 @@ class InCabinUtils:
         # Only baby child seat in copilot front seat
         if self.isCopilotSeat(seat_locator) and only_baby_in_copilot:
             childseat_type_idx = 0
+        # Only booster seat in middle back seat
         elif self.isMiddleBackSeat(seat_locator):
             childseat_type_idx = 2
         else:
@@ -1140,25 +1141,28 @@ class InCabinUtils:
         if childseat_type == 'BabyChild':
             orientation_idx = self.choiceUsingProbabilities(orientation_probabilities)
             orientation = childseat_orientation_probabilities[orientation_idx]['Orientation']
-            childseat_asset_id, childseat = self.selectChildseat('kind',childseat_type, 'Backward', name)
+            childseat_asset_id, childseat = self.selectChildseat('kind', childseat_type, orientation, name)
         else:
             orientation = 'Forward'
             childseat_asset_id, childseat = self.selectChildseat('kind',childseat_type, orientation, name)
 
         if childseat_asset_id != -1:
             childseat_id = self._workspace.create_fixed_entity(childseat['resource_name'], seat_locator, childseat_asset_id)
-            childseat['Entity_id'] = childseat_id
+            childseat['fixed_entity_id'] = childseat_id
             print('Placing Childseat {} in {}'.format(childseat['name'], self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
             mu, sigma = 0, max_rotation/3.6
             yaw = random.normalvariate(mu, sigma)
-            if childseat_type == 'BabyChild' and orientation == 'Forward':
-                yaw += 180
-                pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
-                pos.x += 0.65
-                self._workspace.set_entity_property_value(childseat_id,'RelativeTransformToComponent','position', pos)
+            # HACK: don't have to turn the babychild now
+            # if childseat_type == 'BabyChild' and orientation == 'Forward':
+            #     yaw += 180
+            #     pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
+            #     pos.x += 0.65
+            #     self._workspace.set_entity_property_value(childseat_id,'RelativeTransformToComponent','position', pos)
             print('[INFO] Rotating childseat {:.2f}º'.format(yaw))
             self.wiggleChildseatRandom(childseat_id, yaw , pitch = 0)
+
+            self.changeExposedMaterials(childseat_id, anyverse_platform.childseats)
 
             self.setExportAlwaysExcludeOcclusion(childseat_id)
             self.setChildseatInfo(childseat)
@@ -1177,10 +1181,10 @@ class InCabinUtils:
             for_backseat = True
 
         baby_asset_id, baby = self.selectBaby('suitableseat','BabyChild', for_backseat, name)
-        print('Placing baby {} in childseat {}'.format(baby['name'], self._workspace.get_entity_name(childseat['Entity_id'])))
+        print('Placing baby {} in childseat {}'.format(baby['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
-        childseat_locator = self.getEntityLocators(childseat['Entity_id'])[0]
+        childseat_locator = self.getEntityLocators(childseat['fixed_entity_id'])[0]
         if baby_asset_id != -1:
             baby_id = self._workspace.create_fixed_entity(baby['name'], childseat_locator, baby_asset_id)
         else:
@@ -1188,7 +1192,7 @@ class InCabinUtils:
             print('[ERROR]: could not find suitable baby for childseat')
             baby_id = -1
 
-        baby['Entity_id'] = baby_id
+        baby['fixed_entity_id'] = baby_id
         # Babies never have seatbelts. Set it to False for annotations
         baby['Seatbelt_on'] = False
 
@@ -1227,10 +1231,10 @@ class InCabinUtils:
             else:
                 print('Child {} not suitable for chilsseat {}. Trying a different one...'.format(child['name'], childseat['name']))
 
-        print('Placing child {} in childseat {}'.format(child['name'], self._workspace.get_entity_name(childseat['Entity_id'])))
+        print('Placing child {} in childseat {}'.format(child['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
-        childseat_locator = self.getEntityLocators(childseat['Entity_id'])[0]
+        childseat_locator = self.getEntityLocators(childseat['fixed_entity_id'])[0]
         if child_asset_id != -1:
             child_id = self._workspace.create_fixed_entity(child['name'], childseat_locator, child_asset_id)
         else:
@@ -1238,7 +1242,7 @@ class InCabinUtils:
             print('[ERROR]: could not find suitable child for childseat')
             child_id = -1
 
-        child['Entity_id'] = child_id
+        child['fixed_entity_id'] = child_id
 
         # Decide if we fasten the seat belt or not
         # Never fasten seatbelt if it's a big baby or if the convertible backwards
@@ -1332,7 +1336,7 @@ class InCabinUtils:
         if childseat['kind'] == 'Convertible':
             if fasten_seatbelt and not self._script_console:
                 print('Setting child seat belt for child {}'.format(child['name']))
-                self.createChildBelt( child_id, childseat['Entity_id'], self._clip_asset, self.getSeatPos(seat_locator), None )
+                self.createChildBelt( child_id, childseat['fixed_entity_id'], self._clip_asset, self.getSeatPos(seat_locator), None )
                 child['Seatbelt_placement'] = 'Normal'
 
         self.setExportAlwaysExcludeOcclusion(child_id)
@@ -1374,7 +1378,7 @@ class InCabinUtils:
         body_max_weight = 1
 
         if passenger_found:
-            passenger['Entity_id'] = passenger_id
+            passenger['fixed_entity_id'] = passenger_id
 
             # Decide if we faten the seat belt or not
             fasten_seatbelt = self.decideFastenSeatbelt(passenger, seatbelts_distribution['belt_on_probability'])
@@ -1543,15 +1547,15 @@ class InCabinUtils:
         childseat_info["type"] = childseat['kind']
         childseat_info["brand"] = childseat["brand"]
         childseat_info["orientation"] = childseat['Orientation']
-        occupied = self.isChildseatOccupied(childseat['Entity_id'])
+        occupied = self.isChildseatOccupied(childseat['fixed_entity_id'])
         childseat_info["occupied"] = occupied
         occupant_name = ''
         if occupied:
-            descendants = [ e for e in self._workspace.get_hierarchy(childseat['Entity_id']) if e != childseat['Entity_id'] and self._workspace.get_entity_type(e) == 'FixedEntity' ]
+            descendants = [ e for e in self._workspace.get_hierarchy(childseat['fixed_entity_id']) if e != childseat['fixed_entity_id'] and self._workspace.get_entity_type(e) == 'FixedEntity' ]
             occupant_name = self._workspace.get_entity_name(descendants[0]) if len(descendants) > 0 else ''
         childseat_info["occupant"] = occupant_name
 
-        self.setCustomMetadata(childseat['Entity_id'], "ChildseatInfo", childseat_info)
+        self.setCustomMetadata(childseat['fixed_entity_id'], "ChildseatInfo", childseat_info)
 
         return childseat_info
 
@@ -1561,7 +1565,7 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def setSeatInfo(self, character):
-        parent_id = self.getParent(character['Entity_id'])
+        parent_id = self.getParent(character['fixed_entity_id'])
         if self.isChildseatLocator(parent_id ):
             locator_id = self.getParent(self.getParent(parent_id))
         else:
@@ -1575,7 +1579,7 @@ class InCabinUtils:
         except KeyError:
             print('It is a child seat, no seatbelt_on info')
 
-        self.setCustomMetadata(character['Entity_id'], "Seat", seat_info)
+        self.setCustomMetadata(character['fixed_entity_id'], "Seat", seat_info)
 
         return seat_info
 
@@ -1584,7 +1588,7 @@ class InCabinUtils:
         accessory_info = {}
         accessory_info["character"] = accessory['Character']
 
-        self.setCustomMetadata(accessory['Entity_id'], "person", accessory_info)
+        self.setCustomMetadata(accessory['fixed_entity_id'], "person", accessory_info)
 
         return accessory_info
 
@@ -1612,37 +1616,37 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def setCharacterPoseInfo(self, character):
-        base_animation_entity_id = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','base_anim_config.animation_entity_id')
+        base_animation_entity_id = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','base_anim_config.animation_entity_id')
         if base_animation_entity_id == self._no_entry:
             base_pose = 'none'
             base_pose_weight = 1.0
         else:
             base_pose = self._workspace.get_entity_property_value(base_animation_entity_id,'WorkspaceEntityComponent','name')
-            base_pose_weight = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','base_anim_config.weight')
+            base_pose_weight = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','base_anim_config.weight')
 
-        head_animation_entity_id = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','head_anim_config.animation_entity_id')
+        head_animation_entity_id = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','head_anim_config.animation_entity_id')
         if head_animation_entity_id == self._no_entry:
             head_pose = 'none'
             head_pose_weight = 1.0
         else:
             head_pose = self._workspace.get_entity_property_value(head_animation_entity_id,'WorkspaceEntityComponent','name')
-            head_pose_weight = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','head_anim_config.weight')
+            head_pose_weight = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','head_anim_config.weight')
 
-        r_arm_animation_entity_id = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','arm_r_anim_config.animation_entity_id')
+        r_arm_animation_entity_id = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','arm_r_anim_config.animation_entity_id')
         if r_arm_animation_entity_id == self._no_entry:
             r_arm_pose = 'none'
             r_arm_pose_weight = 1.0
         else:
             r_arm_pose = self._workspace.get_entity_property_value(r_arm_animation_entity_id,'WorkspaceEntityComponent','name')
-            r_arm_pose_weight = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','arm_r_anim_config.weight')
+            r_arm_pose_weight = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','arm_r_anim_config.weight')
 
-        l_arm_animation_entity_id = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','arm_l_anim_config.animation_entity_id')
+        l_arm_animation_entity_id = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','arm_l_anim_config.animation_entity_id')
         if l_arm_animation_entity_id == self._no_entry:
             l_arm_pose = 'none'
             l_arm_pose_weight = 1.0
         else:
             l_arm_pose = self._workspace.get_entity_property_value(l_arm_animation_entity_id,'WorkspaceEntityComponent','name')
-            l_arm_pose_weight = self._workspace.get_entity_property_value(character['Entity_id'], 'CharacterAnimationConfigurationComponent','arm_l_anim_config.weight')
+            l_arm_pose_weight = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','arm_l_anim_config.weight')
 
         face_expression = character['Face']
 
@@ -1657,7 +1661,7 @@ class InCabinUtils:
         pose_info["left_arm"] = l_arm_pose
         pose_info["left_arm_weight"] = l_arm_pose_weight
 
-        self.setCustomMetadata(character['Entity_id'], "Pose", pose_info)
+        self.setCustomMetadata(character['fixed_entity_id'], "Pose", pose_info)
 
         return pose_info
 
@@ -1669,7 +1673,7 @@ class InCabinUtils:
         object_info["version"] = object['version'] if 'version' in object else ''
         object_info["color"] = object['Dominant color'] if 'Dominant color' in object else ''
 
-        self.setCustomMetadata(object['Entity_id'], "Info", object_info)
+        self.setCustomMetadata(object['fixed_entity_id'], "Info", object_info)
 
         return object_info
 
@@ -1682,7 +1686,7 @@ class InCabinUtils:
         personal_info["age"] = character['agegroup']
         personal_info["height"] = character['height']
 
-        self.setCustomMetadata(character['Entity_id'], "Info", personal_info)
+        self.setCustomMetadata(character['fixed_entity_id'], "Info", personal_info)
 
         return personal_info
 
@@ -1949,6 +1953,7 @@ class InCabinUtils:
                 #     dic[att.lower()] = float(dic[att.lower()])
 
             dic["resource_id"] = elem
+            dic["entity_id"] = entityId
             dic["resource_name"] = self._workspace.get_entity_name(entityId)
             result.append(dic)
             processed += 1
@@ -1993,12 +1998,19 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryChildSeats(self):
         query = aux.ResourceQueryManager(self._workspace)
-        query.add_tag_filter("childseat")
         query.add_exists_attribute_filter('kind')
         query.add_attribute_filter("class", "ChildSeat")
+        query.add_attribute_filter("dynamic_material", True)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
+    #_______________________________________________________________
+    def queryChildSeatBelts(self):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_attribute_filter('kind', 'BabyChild')
+        query.add_attribute_filter("class", "seat_belt")
+
+        return self.queryResultToDic(query.execute_query_on_assets())
 
     #_______________________________________________________________
     def queryObjects(self):
@@ -2030,6 +2042,42 @@ class InCabinUtils:
         query.add_exists_attribute_filter('Scattering')
 
         return self.queryResultToDic(query.execute_query_on_backgrounds(), anyverse_platform.WorkspaceEntityType.Background)
+
+    #_______________________________________________________________
+    def queryMaterials(self):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_exists_attribute_filter('compatibility')
+        # query.add_attribute_filter('compatibility', 'plain_fabric')
+
+        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+    #_______________________________________________________________
+    def getAssetExposedMaterials(self, fixed_id):
+        exposed_materials = [ m for m in self._workspace.get_hierarchy(fixed_id) if 'MaterialPartEntity' == self._workspace.get_entity_type(m) ]
+
+        return exposed_materials
+    
+    #_______________________________________________________________
+    def changeExposedMaterials(self, fixed_id, asset_set):
+        # Get the asset tha correspond to the fixed entity that expose the materials
+        asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
+        asset = [ a for a in asset_set if a['entity_id'] == asset_id ][0]
+
+        # Get Fixed entity exposed materials
+        exposed_materials = self.getAssetExposedMaterials(fixed_id)
+        for material in exposed_materials:
+            material_name = self._workspace.get_entity_name(material)
+            # Get compatible materials from asset
+            if material_name in asset:
+                compatible_materials = [ cm['entity_id'] for cm in anyverse_platform.materials if asset[material_name] == cm['compatibility'] ]
+                selected_material = compatible_materials[random.randrange(len(compatible_materials))]
+                # Take into account an equal probability to use the default material
+                change_material = False if random.uniform(0,1) < 1/(len(compatible_materials)+1) else True
+                if change_material:
+                    self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
+                    print('Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
+            else:
+                print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
 
     #_______________________________________________________________
     def filterCharacters(self, characters, key, value):
@@ -2216,7 +2264,7 @@ class InCabinUtils:
 
             background_weight = 1
             if background != None:
-                self._workspace.set_entity_property_value(background['Entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
+                self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
             return background_weight, ibl_light_intensity
 
     #_______________________________________________________________
@@ -2277,15 +2325,15 @@ class InCabinUtils:
     #_______________________________________________________________
     def setBackground(self, background, simulation_id, dawn = False):
         if not dawn:
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',background['Entity_id'])
-            self._workspace.set_entity_property_value(background['Entity_id'], 'BackgroundContentComponent','environment_weight', background['background_intensity'])
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',background['entity_id'])
+            self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background['background_intensity'])
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',self._no_entry)
 
         # Dump the background info in the simulation custom metadata
         bkg_info = {}
         bkg_info['background'] = background['name']
-        bkg_info['env-weight'] = self._workspace.get_entity_property_value(background['Entity_id'], 'BackgroundContentComponent','environment_weight')
+        bkg_info['env-weight'] = self._workspace.get_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight')
 
         self.setCustomMetadata(simulation_id, "backgroundInfo", bkg_info)
 
@@ -2303,7 +2351,7 @@ class InCabinUtils:
         selected_background = backgrounds[selected_background_idx]
 
         ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
-        selected_background['Entity_id'] = ws_bckgnd_id
+        selected_background['entity_id'] = ws_bckgnd_id
 
         return selected_background, ws_bckgnd_id
 
@@ -2320,14 +2368,14 @@ class InCabinUtils:
 
         picked_car = self._workspace.cars[idx]
         new_car_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_car["resource_id"])
-        picked_car['Entity_id'] = new_car_id
+        picked_car['entity_id'] = new_car_id
         self._car_brand = picked_car['brand'].replace(" ", "")
         self._car_model = picked_car['model']
         return picked_car
 
     #_______________________________________________________________
     def buildCar(self, picked_car, the_car):
-        self._workspace.set_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id', picked_car['Entity_id'])
+        self._workspace.set_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id', picked_car['entity_id'])
         print('Using car: {}_{}_{}'.format(picked_car['brand'], picked_car['model'], picked_car['version']))
 
         self.setCarSeatbeltsOff(picked_car)
@@ -2670,7 +2718,7 @@ class InCabinUtils:
                         child = self.placeBabyInChildseat(childseat, seat_locator)
                     ret = [childseat, child]
                 elif childseat_occupancy == 2: # Object
-                    childseat_locator = self.getEntityLocators(childseat['Entity_id'])[0]
+                    childseat_locator = self.getEntityLocators(childseat['fixed_entity_id'])[0]
                     object = self.placeObjectInChildseat(childseat_locator, childseat)
                     ret = [childseat, object]
             else:
