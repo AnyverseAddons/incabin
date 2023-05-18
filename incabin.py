@@ -1175,7 +1175,7 @@ class InCabinUtils:
         return childseat
 
     #_______________________________________________________________
-    def placeBabyInChildseat(self, childseat, seat_locator, name = None):
+    def placeBabyInChildseat(self, childseat, seat_locator, name = None, seatbelts_distribution = None):
         for_backseat = False
         if self.isLeftBackSeat(seat_locator) or self.isRightBackSeat(seat_locator):
             for_backseat = True
@@ -1193,8 +1193,12 @@ class InCabinUtils:
             baby_id = -1
 
         baby['fixed_entity_id'] = baby_id
-        # Babies never have seatbelts. Set it to False for annotations
-        baby['Seatbelt_on'] = False
+        # Babies now can have seatblets on the new child seat assets
+        fasten_seatbelt = self.decideFastenSeatbelt(baby, seatbelts_distribution['belt_on_probability'])
+        if fasten_seatbelt:
+            self.createBabyBelt(childseat)
+        baby['Seatbelt_on'] = fasten_seatbelt
+        baby['Seatbelt_placement'] = 'Normal' if fasten_seatbelt else 'Off'
 
         if 'Cybex-CloudZ' in childseat['name']:
             updown = random.uniform(0,5)
@@ -2007,7 +2011,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryChildSeatBelts(self):
         query = aux.ResourceQueryManager(self._workspace)
-        query.add_attribute_filter('kind', 'BabyChild')
+        query.add_exists_attribute_filter('kind')
         query.add_attribute_filter("class", "seat_belt")
 
         return self.queryResultToDic(query.execute_query_on_assets())
@@ -2445,6 +2449,23 @@ class InCabinUtils:
             self.setCustomMetadata(beltoff_id, "Seat", seat_info)
 
     #_______________________________________________________________
+    def setChildSeatSeatbeltOff(self, childseat):
+        # Get the belt off asset for the specific child seat
+        belts_off = [ b for b in anyverse_platform.childseatbelts if 'off' in b['version'].lower() and b['brand'].lower() == childseat['brand'].lower() and b['model'].lower() == childseat['model'].lower() and b['aim looking'].lower() == childseat['aim looking'].lower() ]
+
+        if len(belts_off) == 1:
+            belt_off = belts_off[0]
+        else:
+            print('[ERROR] No belt OFF found for child seat brand {} model {}'.format(childseat['brand'], childseat['model']))
+            return False
+        
+        belt_off_id = self._workspace.create_fixed_entity( belt_off['name'], childseat['fixed_entity_id'], belt_off['entity_id'] )
+        self._workspace.set_entity_property_value(belt_off_id, 'ExportConfigurationComponent', 'export_always', True)
+        self._workspace.set_entity_property_value(belt_off_id, 'ExportConfigurationComponent', 'exclude_from_occlusion_tests', True)
+
+        return True
+    
+    #_______________________________________________________________
     def createBeltFor(self, seat_pos, beltUserEntityId, car_brand, car_model, seatbelts_distribution ):
         print("Setting belt on in position {}".format(seat_pos))
         seatId = str(seat_pos).zfill(2)
@@ -2467,7 +2488,6 @@ class InCabinUtils:
         self.setCustomMetadata(belt_id, "Seat", seat_info)
 
         return belt_placement
-
 
     #_______________________________________________________________
     def createBelt( self, beltUserEntityId, clipAsset, seatId="01", joints_to_remove=[], seatbelts_distribution = None ):
@@ -2656,6 +2676,24 @@ class InCabinUtils:
         self.setCustomMetadata(beltId, "Placement", "Normal")
 
         return beltId
+
+    #_______________________________________________________________
+    def createBabyBelt( self, childseat ):
+        # Get the belt on asset for the specific child seat
+        belts_on = [ b for b in anyverse_platform.childseatbelts if 'on' in b['version'].lower() and b['brand'].lower() == childseat['brand'].lower() and b['model'].lower() == childseat['model'].lower() and b['aim looking'].lower() == childseat['aim looking'].lower() ]
+
+        if len(belts_on) == 1:
+            belt_on = belts_on[0]
+        else:
+            print('[ERROR] No belt ON found for child seat brand {} model {}'.format(childseat['brand'], childseat['model']))
+            return False
+        
+        belt_on_id = self._workspace.create_fixed_entity( belt_on['name'], childseat['fixed_entity_id'], belt_on['entity_id'] )
+        self._workspace.set_entity_property_value(belt_on_id, 'ExportConfigurationComponent', 'export_always', True)
+        self._workspace.set_entity_property_value(belt_on_id, 'ExportConfigurationComponent', 'exclude_from_occlusion_tests', True)
+        
+        return True
+    
     #_______________________________________________________________
     def selectConditions(self, conditions):
         probabilities = [ float(c['probability']) for c in conditions ]
@@ -2709,13 +2747,14 @@ class InCabinUtils:
                 childseat_occupancy = self.decideChildSeatOccupancy(childseat_occupancy_probabilities)
                 if childseat_occupancy == 0: # Empty
                     child = None
+                    self.setChildSeatSeatbeltOff(childseat)
                     print('[INFO]: Leaving childseat empty')
                     ret = [childseat, child]
                 elif childseat_occupancy == 1: # Child
                     if childseat['kind'] != 'BabyChild':
                         child = self.placeChildInChildseat(childseat, seat_locator, seatbelts_distribution = seatbelts_distribution, expression_probabilities = expression_probabilities)
                     else:
-                        child = self.placeBabyInChildseat(childseat, seat_locator)
+                        child = self.placeBabyInChildseat(childseat, seat_locator, seatbelts_distribution = seatbelts_distribution)
                     ret = [childseat, child]
                 elif childseat_occupancy == 2: # Object
                     childseat_locator = self.getEntityLocators(childseat['fixed_entity_id'])[0]
