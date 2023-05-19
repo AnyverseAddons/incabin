@@ -11,6 +11,22 @@ To this Anyverse add-on (or any other Anyverse add-on for that matter) you need:
 
 Clone this repo to your local machine, or if you want to contribute, fork the repo to your github account (you will be able to send pull requests with your contributions) and then clone it to your local machine.
 
+## What's new
+**March 2023**
+- New configuration for multi-camera datasets with more than one camera enabled at the same time
+- New configuration to simulate a pseudo-NIR sensor at night
+- New configuration to simulate any RGB sensor
+
+**April 2023**
+- New configuration to control character's face expressions
+- More advanced child seat configuration capabilities
+
+**May 2023**
+- Access to new child seats available in the Anyverse Platform resource database
+- Allow variability by dynamically changing the asset's exposed materials
+- The add-on randomly picks a suitable material for every child seat it places in the cabin
+- The seat belt configuration applies to baby child seat with babies as well (only normal placement)
+
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
 
