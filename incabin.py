@@ -252,6 +252,21 @@ class InCabinUtils:
         return seat_locators
 
     #_______________________________________________________________
+    def getChildLocatorInChildSeat(self, entity_id):
+        locators_list = self._workspace.get_hierarchy(entity_id)
+        seat_locators = [ l for l in locators_list if 'child' in self._workspace.get_entity_name(l).lower() and '_locator' in self._workspace.get_entity_name(l).lower() ]
+        seat_locator = -1
+        if len(seat_locators) == 0:
+            print('[ERROR] No locators found for child in child seat {}'.format(self._workspace.get_entity_name(entity_id)))
+        elif len(seat_locators) > 1:
+            print('[WARN] Found more than 1 child locator in child seat {}. Using the first one found.'.format(self._workspace.get_entity_name(entity_id)))
+            seat_locator = seat_locators[0]
+        else:
+            seat_locator = seat_locators[0]
+            
+        return seat_locator
+
+    #_______________________________________________________________
     def applyCharacterOffset(self, character):
         position = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'RelativeTransformToComponent','position')
         position.z += float(character['root_offset'].replace(',','.'))/100
@@ -1159,43 +1174,46 @@ class InCabinUtils:
         print('[INFO] Placing baby {} in childseat {}'.format(baby['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
-        childseat_locator = self.getEntityLocators(childseat['fixed_entity_id'])[0]
-        if baby_asset_id != -1:
+        childseat_locator = self.getChildLocatorInChildSeat(childseat['fixed_entity_id'])
+        if baby_asset_id != -1 and childseat_locator != -1:
             baby_id = self._workspace.create_fixed_entity(baby['name'], childseat_locator, baby_asset_id)
-        else:
+            baby['fixed_entity_id'] = baby_id
+            # Babies now can have seatblets on the new child seat assets
+            fasten_seatbelt = self.decideFastenSeatbelt(baby, seatbelts_distribution['belt_on_probability'])
+            if fasten_seatbelt:
+                self.createBabyBelt(childseat)
+            baby['Seatbelt_on'] = fasten_seatbelt
+            baby['Seatbelt_placement'] = 'Normal' if fasten_seatbelt else 'Off'
+
+            if 'Cybex-CloudZ' in childseat['name']:
+                updown = random.uniform(0,5)
+            else:
+                updown = random.uniform(-3,0)
+
+            if self.isLeftBackSeat(seat_locator):
+                self.wiggleBabyRandom(baby_id, updown, random.uniform(0, 5),random.uniform(0, 15) )
+            if self.isRightBackSeat(seat_locator):
+                self.wiggleBabyRandom(baby_id, updown, random.uniform(-5, 0), random.uniform(-15, 0))
+
+            self.setInstanceIfPossible(baby_id, False)
+            self.setExportAlwaysExcludeOcclusion(baby_id)
+            self.setCharacterInfo(baby)
+            self.setSeatInfo(baby)
+
+            # Because of the occupancy we have to overwrite the child seat custom metadata
+            self.setChildseatInfo(childseat)
+            self.setSeatInfo(childseat)
+
+            # We don't allow the same childseat repeated
+            self._already_used_characters.append(baby['name'])
+        elif baby_asset_id == -1:
             # No matching children found returning id -1
             print('[ERROR]: could not find suitable baby for childseat')
             baby_id = -1
-
-        baby['fixed_entity_id'] = baby_id
-        # Babies now can have seatblets on the new child seat assets
-        fasten_seatbelt = self.decideFastenSeatbelt(baby, seatbelts_distribution['belt_on_probability'])
-        if fasten_seatbelt:
-            self.createBabyBelt(childseat)
-        baby['Seatbelt_on'] = fasten_seatbelt
-        baby['Seatbelt_placement'] = 'Normal' if fasten_seatbelt else 'Off'
-
-        if 'Cybex-CloudZ' in childseat['name']:
-            updown = random.uniform(0,5)
+            baby['fixed_entity_id'] = baby_id
         else:
-            updown = random.uniform(-3,0)
-
-        if self.isLeftBackSeat(seat_locator):
-            self.wiggleBabyRandom(baby_id, updown, random.uniform(0, 5),random.uniform(0, 15) )
-        if self.isRightBackSeat(seat_locator):
-            self.wiggleBabyRandom(baby_id, updown, random.uniform(-5, 0), random.uniform(-15, 0))
-
-        self.setInstanceIfPossible(baby_id, False)
-        self.setExportAlwaysExcludeOcclusion(baby_id)
-        self.setCharacterInfo(baby)
-        self.setSeatInfo(baby)
-
-        # Because of the occupancy we have to overwrite the child seat custom metadata
-        self.setChildseatInfo(childseat)
-        self.setSeatInfo(childseat)
-
-        # We don't allow the same childseat repeated
-        self._already_used_characters.append(baby['name'])
+            # No child locator in child seat
+            print('[WARN] Cannot place child without a locator in child seat.')
 
         return baby
 
@@ -1213,119 +1231,123 @@ class InCabinUtils:
         print('[INFO] Placing child {} in childseat {}'.format(child['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
-        childseat_locator = self.getEntityLocators(childseat['fixed_entity_id'])[0]
-        if child_asset_id != -1:
+        childseat_locator = self.getChildLocatorInChildSeat(childseat['fixed_entity_id'])
+        if child_asset_id != -1 and childseat_locator != -1:
             child_id = self._workspace.create_fixed_entity(child['name'], childseat_locator, child_asset_id)
-        else:
+
+            child['fixed_entity_id'] = child_id
+
+            # Decide if we fasten the seat belt or not
+            # Never fasten seatbelt if it's a big baby or if the convertible backwards
+            # For the other children in convertibles we always fasten the seatbelts to have a 50/50
+            # considering the re are 4 big babies and 4 children characters suitable for convertibles.
+            # Fastening seat belts affect what base animation we set: only sitting straight when seat belts fastened
+            if 'Baby' in child['name'] or childseat['Orientation'] == 'Backward':
+                fasten_seatbelt = False
+            else:
+                fasten_seatbelt = self.decideFastenSeatbelt(child, seatbelts_distribution['belt_on_probability'])
+
+            child['Seatbelt_on'] = fasten_seatbelt
+            child['Seatbelt_placement'] = 'Normal' if fasten_seatbelt else 'Off'
+
+            # set child pose if not a big baby
+            if 'Baby' not in child['name']:
+                if fasten_seatbelt:
+                    animation, weight = self.getChildSittingStraightAnimation(seat_locator)
+                else:
+                    animation, weight = self.selectChildAnimation(seat_locator, 'base', 0, 0.6)
+                self.setAnimation('base', animation, weight, child_id)
+                # Set spine animation
+                animation, weight = self.selectChildAnimation(seat_locator, 'spine', 0, 1)
+                self.setAnimation('spine', animation, weight, child_id)
+                # Set arms animation
+                if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
+                    animate_left_arm = True if random.uniform(0,1) < 0.2 else False
+                    animate_right_arm = True if random.uniform(0,1) < 0.5 else False
+                    left_arm_max_weight = 0.4
+                    right_arm_max_weight = 1.0
+                if  self.isLeftBackSeat(seat_locator):
+                    animate_left_arm = True if random.uniform(0,1) < 0.5 else False
+                    animate_right_arm = True if random.uniform(0,1) < 0.2 else False
+                    left_arm_max_weight = 1.0
+                    right_arm_max_weight = 0.4
+                if  self.isMiddleBackSeat(seat_locator):
+                    animate_left_arm = True if random.uniform(0,1) < 0.5 else False
+                    animate_right_arm = True if random.uniform(0,1) < 0.5 else False
+                    left_arm_max_weight = 0.5
+                    right_arm_max_weight = 0.5
+
+                arms_min_weight = 0.2
+                if self.isLeftBackSeat(seat_locator) or self.isRightBackSeat(seat_locator):
+                    arms_min_weight = 0.75
+
+                if animate_left_arm:
+                    arm = 'left_arm'
+                    animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, left_arm_max_weight)
+                    self.setAnimation(arm, animation, weight, child_id)
+                # Animate right arm
+                if animate_right_arm:
+                    arm = 'right_arm'
+                    animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, right_arm_max_weight)
+                    self.setAnimation(arm, animation, weight, child_id)
+
+                # setting head animation
+                animation, weight = self.selectChildAnimation(seat_locator, 'head', 0, 1)
+                self.setAnimation('head', animation, weight, child_id)
+
+                # Set an expression based on probabilities
+                # or 'neutral' if no probabilities defined 
+                if expression_probabilities != None:
+                    expression_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in expression_probabilities ])
+                    picked_expression = expression_probabilities[expression_idx]
+                    self.setNamedFaceExpression(child_id, picked_expression['expression'])
+                    child['Face'] = picked_expression['name']
+                else:
+                    # Set Neutral facial expression
+                    self.setNamedFaceExpression(child_id, 0)
+                    child['Face'] = 'neutral'
+                
+                # Set the pose info only if it is not a baby
+                self.setCharacterPoseInfo(child)
+            # If a Big Baby wiggle them a little bit and set the flag to not treat them as instances
+            else:
+                if self.isLeftBackSeat(seat_locator):
+                    self.wiggleBabyRandom(child_id, 0, random.uniform(-10, 3),random.uniform(-15, 15) )
+                if self.isRightBackSeat(seat_locator):
+                    self.wiggleBabyRandom(child_id, 0, random.uniform(0, 10), random.uniform(-15, 15))
+                self.setInstanceIfPossible(child_id, False)
+
+            if childseat['kind'] == 'Booster':
+                if fasten_seatbelt and not self._script_console:
+                    print('[INFO] Setting seat belt for booster...')
+                    belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), child_id, self._car_brand, self._car_model, seatbelts_distribution)
+                    child['Seatbelt_placement'] = belt_placement
+
+            if childseat['kind'] == 'Convertible':
+                if fasten_seatbelt and not self._script_console:
+                    print('[INFO] Setting child seat belt for child {}'.format(child['name']))
+                    self.createChildBelt( child_id, childseat['fixed_entity_id'], self._clip_asset, self.getSeatPos(seat_locator), None )
+                    child['Seatbelt_placement'] = 'Normal'
+
+            self.setExportAlwaysExcludeOcclusion(child_id)
+            self.setAvoidArmsAutoCollision(child_id)
+            self.removeMotionBlur(child_id)
+            self.setCharacterInfo(child)
+            self.setSeatInfo(child)
+
+            # Because of the occupancy we have to overwrite the child seat custom metadata
+            self.setChildseatInfo(childseat)
+            self.setSeatInfo(childseat)
+
+            self._already_used_characters.append(child['name'])
+        elif child_asset_id == -1:
             # No matching children found returning id -1
             print('[ERROR]: could not find suitable child for childseat')
             child_id = -1
-
-        child['fixed_entity_id'] = child_id
-
-        # Decide if we fasten the seat belt or not
-        # Never fasten seatbelt if it's a big baby or if the convertible backwards
-        # For the other children in convertibles we always fasten the seatbelts to have a 50/50
-        # considering the re are 4 big babies and 4 children characters suitable for convertibles.
-        # Fastening seat belts affect what base animation we set: only sitting straight when seat belts fastened
-        if 'Baby' in child['name'] or childseat['Orientation'] == 'Backward':
-            fasten_seatbelt = False
+            child['fixed_entity_id'] = child_id
         else:
-            fasten_seatbelt = self.decideFastenSeatbelt(child, seatbelts_distribution['belt_on_probability'])
-
-        child['Seatbelt_on'] = fasten_seatbelt
-        child['Seatbelt_placement'] = 'Normal' if fasten_seatbelt else 'Off'
-
-        # set child pose if not a big baby
-        if 'Baby' not in child['name']:
-            if fasten_seatbelt:
-                animation, weight = self.getChildSittingStraightAnimation(seat_locator)
-            else:
-                animation, weight = self.selectChildAnimation(seat_locator, 'base', 0, 0.6)
-            self.setAnimation('base', animation, weight, child_id)
-            # Set spine animation
-            animation, weight = self.selectChildAnimation(seat_locator, 'spine', 0, 1)
-            self.setAnimation('spine', animation, weight, child_id)
-            # Set arms animation
-            if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
-                animate_left_arm = True if random.uniform(0,1) < 0.2 else False
-                animate_right_arm = True if random.uniform(0,1) < 0.5 else False
-                left_arm_max_weight = 0.4
-                right_arm_max_weight = 1.0
-            if  self.isLeftBackSeat(seat_locator):
-                animate_left_arm = True if random.uniform(0,1) < 0.5 else False
-                animate_right_arm = True if random.uniform(0,1) < 0.2 else False
-                left_arm_max_weight = 1.0
-                right_arm_max_weight = 0.4
-            if  self.isMiddleBackSeat(seat_locator):
-                animate_left_arm = True if random.uniform(0,1) < 0.5 else False
-                animate_right_arm = True if random.uniform(0,1) < 0.5 else False
-                left_arm_max_weight = 0.5
-                right_arm_max_weight = 0.5
-
-            arms_min_weight = 0.2
-            if self.isLeftBackSeat(seat_locator) or self.isRightBackSeat(seat_locator):
-                arms_min_weight = 0.75
-
-            if animate_left_arm:
-                arm = 'left_arm'
-                animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, left_arm_max_weight)
-                self.setAnimation(arm, animation, weight, child_id)
-            # Animate right arm
-            if animate_right_arm:
-                arm = 'right_arm'
-                animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, right_arm_max_weight)
-                self.setAnimation(arm, animation, weight, child_id)
-
-            # setting head animation
-            animation, weight = self.selectChildAnimation(seat_locator, 'head', 0, 1)
-            self.setAnimation('head', animation, weight, child_id)
-
-            # Set an expression based on probabilities
-            # or 'neutral' if no probabilities defined 
-            if expression_probabilities != None:
-                expression_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in expression_probabilities ])
-                picked_expression = expression_probabilities[expression_idx]
-                self.setNamedFaceExpression(child_id, picked_expression['expression'])
-                child['Face'] = picked_expression['name']
-            else:
-                # Set Neutral facial expression
-                self.setNamedFaceExpression(child_id, 0)
-                child['Face'] = 'neutral'
-            
-            # Set the pose info only if it is not a baby
-            self.setCharacterPoseInfo(child)
-        # If a Big Baby wiggle them a little bit and set the flag to not treat them as instances
-        else:
-            if self.isLeftBackSeat(seat_locator):
-                self.wiggleBabyRandom(child_id, 0, random.uniform(-10, 3),random.uniform(-15, 15) )
-            if self.isRightBackSeat(seat_locator):
-                self.wiggleBabyRandom(child_id, 0, random.uniform(0, 10), random.uniform(-15, 15))
-            self.setInstanceIfPossible(child_id, False)
-
-        if childseat['kind'] == 'Booster':
-            if fasten_seatbelt and not self._script_console:
-                print('[INFO] Setting seat belt for booster...')
-                belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), child_id, self._car_brand, self._car_model, seatbelts_distribution)
-                child['Seatbelt_placement'] = belt_placement
-
-        if childseat['kind'] == 'Convertible':
-            if fasten_seatbelt and not self._script_console:
-                print('[INFO] Setting child seat belt for child {}'.format(child['name']))
-                self.createChildBelt( child_id, childseat['fixed_entity_id'], self._clip_asset, self.getSeatPos(seat_locator), None )
-                child['Seatbelt_placement'] = 'Normal'
-
-        self.setExportAlwaysExcludeOcclusion(child_id)
-        self.setAvoidArmsAutoCollision(child_id)
-        self.removeMotionBlur(child_id)
-        self.setCharacterInfo(child)
-        self.setSeatInfo(child)
-
-        # Because of the occupancy we have to overwrite the child seat custom metadata
-        self.setChildseatInfo(childseat)
-        self.setSeatInfo(childseat)
-
-        self._already_used_characters.append(child['name'])
+            # No child locator in child seat
+            print('[WARN] Cannot place child without a locator in child seat.')
 
         return child
 
@@ -2721,8 +2743,12 @@ class InCabinUtils:
                         child = self.placeBabyInChildseat(childseat, seat_locator, seatbelts_distribution = seatbelts_distribution)
                     ret = [childseat, child]
                 elif childseat_occupancy == 2: # Object
-                    childseat_locator = self.getEntityLocators(childseat['fixed_entity_id'])[0]
-                    object = self.placeObjectInChildseat(childseat_locator, childseat)
+                    childseat_locator = self.getChildLocatorInChildSeat(childseat['fixed_entity_id'])
+                    if childseat_locator != -1:
+                        object = self.placeObjectInChildseat(childseat_locator, childseat)
+                    else:
+                        print('[WARN] Cannot place object without a locator in child seat.')
+                        object = None
                     ret = [childseat, object]
             else:
                 print('[WARN]: Could not find a childseat to place')
