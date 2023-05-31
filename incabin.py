@@ -30,6 +30,8 @@ class InCabinUtils:
                 'UnderShoulder': anyverse_platform.SeatBeltPlacement.UnderShoulder,
                 'WrongSideOfHead': anyverse_platform.SeatBeltPlacement.WrongSideOfHead,
                 'CharacterOverSeatbelt': anyverse_platform.SeatBeltPlacement.WithoutCharacter,
+                'LapBeltUnder': anyverse_platform.SeatBeltPlacement.LapBeltUnder,
+                'UnderShoulderLapBeltUnder': anyverse_platform.SeatBeltPlacement.UnderShoulderLapBeltUnder
             }
 
     #________________________________________________________________________________________
@@ -1002,6 +1004,15 @@ class InCabinUtils:
             # Grab the steering wheel by default
             self.grabSteeringWheel(driver_id)
 
+            # setting spine animation
+            max_weight = 1
+            animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
+            spine_animation_name = self._workspace.get_entity_name(animation)
+            if 'side_ward' in spine_animation_name and weight > 0.4:
+                weight = 0.4
+
+            self.setAnimation('spine', animation, weight, driver_id)
+
             # Set one arm animation for half the samples
             animate_arms = True if random.uniform(0,1) <= 0.5 else False
             if  animate_arms:
@@ -1016,7 +1027,6 @@ class InCabinUtils:
                     reach = self.reachRVM(driver_id, 'right') if random.uniform(0,1) <= 0.5 else self.reachInfotainment(driver_id, 'right')
                     print('[INFO][DRIVER ARM] Driver reaching {}'.format(reach))
                 
-
             # setting head animation
             # If there is gaze probabilities the head position is controled by gaze
             if gaze_probabilities is not None:
@@ -1617,6 +1627,14 @@ class InCabinUtils:
             base_pose = self._workspace.get_entity_property_value(base_animation_entity_id,'WorkspaceEntityComponent','name')
             base_pose_weight = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','base_anim_config.weight')
 
+        spine_animation_entity_id = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','spine_anim_config.animation_entity_id')
+        if spine_animation_entity_id == self._no_entry:
+            spine_pose = 'none'
+            spine_pose_weight = 1.0
+        else:
+            spine_pose = self._workspace.get_entity_property_value(spine_animation_entity_id,'WorkspaceEntityComponent','name')
+            spine_pose_weight = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','spine_anim_config.weight')
+
         head_animation_entity_id = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'CharacterAnimationConfigurationComponent','head_anim_config.animation_entity_id')
         if head_animation_entity_id == self._no_entry:
             head_pose = 'none'
@@ -1646,6 +1664,8 @@ class InCabinUtils:
         pose_info={}
         pose_info["base"] = base_pose
         pose_info["base_weight"] = base_pose_weight
+        pose_info["spine"] = spine_pose
+        pose_info["spine_weight"] = spine_pose_weight
         pose_info["head"] = head_pose
         pose_info["head_weight"] = head_pose_weight
         pose_info["face"] = face_expression
@@ -2052,7 +2072,7 @@ class InCabinUtils:
     
     #_______________________________________________________________
     def changeExposedMaterials(self, fixed_id, asset_set):
-        # Get the asset tha correspond to the fixed entity that expose the materials
+        # Get the asset that correspond to the fixed entity that expose the materials
         asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
         asset = [ a for a in asset_set if a['entity_id'] == asset_id ][0]
 
@@ -2967,7 +2987,7 @@ class InCabinUtils:
         return ret
 
     #_______________________________________________________________
-    def createCCLocator(self, the_car):
+    def createCCLocator(self, the_car, multi_cam = False, cc_cam_name = None):
         cc_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
         if len(cc_locators) == 0:
             cc_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'cc_info_locator', the_car)
@@ -2975,8 +2995,16 @@ class InCabinUtils:
             cc_locator = cc_locators[0]
             print('[WARN] cc_info_locator already created: {}'.format(self._workspace.get_entity_name(cc_locator)))
 
-        ego_position = self._workspace.get_entity_property_value(self._ego_id,'RelativeTransformToComponent','position')
-        loc_position = anyverse_platform.Vector3D(ego_position.x, ego_position.y, ego_position.z - 0.1)
+        if not multi_cam:
+            # get the ego position
+            orig_position = self._workspace.get_entity_property_value(self._ego_id,'RelativeTransformToComponent','position')
+        else:
+            if cc_cam_name is not None:
+                cc_cam_id = [ ci for ci in self._workspace.get_camera_entities() if self._workspace.get_entity_name(ci) == cc_cam_name]
+                print('[DEBUG] cc_cam_id: {}'.format(cc_cam_id))
+                cc_cam_id = cc_cam_id[0] if len(cc_cam_id) > 0 else self._ego_id
+                orig_position = self._workspace.get_entity_property_value(cc_cam_id,'RelativeTransformToComponent','position')
+        loc_position = anyverse_platform.Vector3D(orig_position.x, orig_position.y, orig_position.z - 0.1)
         self._workspace.set_entity_property_value(cc_locator,'RelativeTransformToComponent','position', loc_position)
         print('[INFO] CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
         return cc_locator
@@ -3119,11 +3147,12 @@ class InCabinUtils:
     def LookAtInfotainment(self, the_car, looker):
         cc_locator = self.getCCLocator(the_car)
 
+        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
+        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
+        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
         if cc_locator is not None:
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
-
+            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', cc_locator)
+        else:
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', self._ego_id)
 
     #_______________________________________________________________

@@ -124,11 +124,13 @@ incabin_config = {
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
-                'Normal': 0.80,
+                'Normal': 0.70,
                 'BehindTheBack': 0.05,
                 'UnderShoulder': 0.05,
                 'WrongSideOfHead': 0.05,
-                'CharacterOverSeatbelt': 0.05
+                'CharacterOverSeatbelt': 0.05,
+                'LapBeltUnder': 0.05,
+                'UnderShoulderLapBeltUnder': 0.05
             },   
             'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
         },

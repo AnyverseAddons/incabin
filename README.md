@@ -26,6 +26,7 @@ Clone this repo to your local machine, or if you want to contribute, fork the re
 - Allow variability by dynamically changing the asset's exposed materials
 - The add-on randomly picks a suitable material for every child seat it places in the cabin
 - The seat belt configuration applies to baby child seat with babies as well (only normal placement)
+- New wrong seatbelt place positions: `LapBeltUnder` and `UnderShoulderLapBeltUnder`
 
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
@@ -214,11 +215,13 @@ For seat belts, `seatbelts_distribution`, on one hand, you can decide the probab
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seated
             'seatbelt_placement_probabilities': {
-                'Normal': 0.80,
+                'Normal': 0.70,
                 'BehindTheBack': 0.05,
                 'UnderShoulder': 0.05,
                 'WrongSideOfHead': 0.05,
-                'CharacterOverSeatbelt': 0.05
+                'CharacterOverSeatbelt': 0.05,
+                'LapBeltUnder': 0.05,
+                'UnderShoulderLapBeltUnder': 0.05
             },   
             'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
         },
