@@ -2502,7 +2502,7 @@ class InCabinUtils:
         print('Using car: {}_{}_{}'.format(picked_car['brand'], picked_car['model'], picked_car['version']))
 
         # Change car interior materials following a color scheme
-        color_scheme = self._car_color_schemes[random.randrange(len(self._color_schemes))]
+        color_scheme = self._car_color_schemes[random.randrange(len(self._car_color_schemes))]
         print('Color scheme: {}'.format(color_scheme))
         
         self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
