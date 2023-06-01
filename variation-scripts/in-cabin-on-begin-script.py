@@ -185,7 +185,7 @@ workspace.icu = icu
 
 if not hasattr(anyverse_platform, 'cars'):
     print('Loading car interiors...')
-    anyverse_platform.cars = icu.queryCars()
+    anyverse_platform.cars = icu.queryCars(dynamic_material = True)
     #print(anyverse_platform.cars)
     print('Car list loaded!')
 workspace.cars = anyverse_platform.cars
@@ -279,7 +279,7 @@ else:
     selected_car = icu.selectCar() # Uniform car interior distribution
 car_name = 'default'
 if selected_car['entity_id'] != -1:
-    icu.buildCar(selected_car, the_car)
+    icu.buildCar(selected_car, the_car, dynamic_materials = True)
 
     # Set car info from car metadata and put it as custom metadata for annotations
     car_info = icu.setCarInfo(selected_car,the_car)
@@ -288,8 +288,14 @@ else:
     print('[ERROR] Could not find {} in resources'.format(selected_car))
 # Set Eport Always and exclude from occlusion test properties to the car
 icu.setExportAlwaysExcludeOcclusion(the_car)
-# Set split action to Split to get the seats segmented
-icu.setSplitAction(the_car, 'Split')
+# Set split action to Split to get the seats segmented for non v0 cabins
+# If the assets have the compound tag this would not be necessary 
+if selected_car['version'].lower() != 'v0':
+    icu.setSplitAction(the_car, 'Split')
+# We do the split on all cabins v0 dynamic 
+# to segment windows, steering wheel and dashboard 
+elif selected_car['dynamic_material']:
+    icu.setSplitAction(the_car, 'Split')
 
 #__________________________________________________________
 # Reset Ego, cameras and light position at origin with rotations 
