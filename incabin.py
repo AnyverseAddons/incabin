@@ -17,6 +17,7 @@ class InCabinUtils:
         self._car_brand = ""
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
+        self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -2012,6 +2013,7 @@ class InCabinUtils:
                 #     dic[att.lower()] = float(dic[att.lower()])
 
             dic["resource_id"] = elem
+            dic["entity_id"] = entityId
             dic["resource_name"] = self._workspace.get_entity_name(entityId)
             if 'childseat' in tags:
                 if not self.excludeAsset(dic):
@@ -2024,13 +2026,16 @@ class InCabinUtils:
         return result
 
     #_______________________________________________________________
-    def queryCars(self):
+    def queryCars(self, dynamic_material = False):
         query = aux.ResourceQueryManager(self._workspace)
         # query.add_tag_filter("compound")
         query.add_tag_filter("car-interior")
         query.add_exists_attribute_filter('brand')
         query.add_exists_attribute_filter('model')
         query.add_exists_attribute_filter('version')
+
+        if dynamic_material:
+            query.add_attribute_filter('dynamic_material', True)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
@@ -2082,11 +2087,14 @@ class InCabinUtils:
         return self.queryResultToDic(query.execute_query_on_assets())
 
     #_______________________________________________________________
-    def queryCarSeats(self, picked_car):
+    def queryCarSeats(self, picked_car, dynamic_material = False):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_attribute_filter("brand", picked_car['brand'])
         query.add_attribute_filter("model", picked_car['model'])
         query.add_attribute_filter("type", "Seat")
+
+        if dynamic_material:
+            query.add_attribute_filter('dynamic_material', True)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
@@ -2096,6 +2104,93 @@ class InCabinUtils:
         query.add_exists_attribute_filter('Scattering')
 
         return self.queryResultToDic(query.execute_query_on_backgrounds(), anyverse_platform.WorkspaceEntityType.Background)
+
+    #_______________________________________________________________
+    def queryMaterials(self, color_scheme = False):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_exists_attribute_filter('compatibility')
+
+        if color_scheme:
+            query.add_exists_attribute_filter('color_scheme')
+
+        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+    #_______________________________________________________________
+    def getAssetExposedMaterials(self, fixed_id):
+        exposed_materials = [ m for m in self._workspace.get_hierarchy(fixed_id) if 'MaterialPartEntity' == self._workspace.get_entity_type(m) ]
+
+        return exposed_materials
+    
+    #_______________________________________________________________
+    def changeExposedMaterials(self, fixed_id, asset_set, color_scheme = None):
+        # Get the asset that correspond to the fixed entity that expose the materials
+        asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
+        if type(asset_set) is list: 
+            asset = [ a for a in asset_set if a['entity_id'] == asset_id ][0]
+        else: 
+            asset = asset_set
+
+        if color_scheme is None:
+            materials_list = anyverse_platform.materials
+        else:
+            materials_list = [ m for m in anyverse_platform.materials if 'color_scheme' in m ]
+            # print('Scheme {} materials: {}'.format(color_scheme, materials_list))
+
+        # Get Fixed entity exposed materials
+        exposed_materials = self.getAssetExposedMaterials(fixed_id)
+        for material in exposed_materials:
+            material_name = self._workspace.get_entity_name(material)
+            # Get compatible materials from asset
+            if material_name in asset:
+                compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ]
+                if len(compatible_materials) != 0:
+                    selected_material = compatible_materials[random.randrange(len(compatible_materials))]
+                    # Take into account an equal probability to use the default material
+                    self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
+                    print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
+                else:
+                    print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+            else:
+                print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
+
+    #_______________________________________________________________
+    def changeExposedMaterialsList(self, fixed_ids_list, asset_set, color_scheme = None):
+        cached_materials = {}
+        for fixed_id in fixed_ids_list:
+            print('[INFO] Changing materials for {}'.format(self._workspace.get_entity_name(fixed_id)))
+            # Get the asset that correspond to the fixed entity that expose the materials
+            asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
+            if type(asset_set) is list: 
+                asset = [ a for a in asset_set if a['entity_id'] == asset_id ][0]
+            else: 
+                asset = asset_set
+
+            if color_scheme is None:
+                materials_list = anyverse_platform.materials
+            else:
+                materials_list = [ m for m in anyverse_platform.materials if 'color_scheme' in m ]
+                # print('Scheme {} materials: {}'.format(color_scheme, materials_list))
+
+            # Get Fixed entity exposed materials
+            exposed_materials = self.getAssetExposedMaterials(fixed_id)
+            for material in exposed_materials:
+                material_name = self._workspace.get_entity_name(material)
+                # Get compatible materials from asset
+                if material_name in asset:
+                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ]
+                    if len(compatible_materials) != 0:
+                        if material_name in cached_materials:
+                            selected_material = cached_materials[material_name]
+                        else:
+                            selected_material = compatible_materials[random.randrange(len(compatible_materials))]
+                            cached_materials[material_name] = selected_material
+                        # Take into account an equal probability to use the default material
+                        self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
+                        print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
+                    else:
+                        print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+                else:
+                    print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
 
     #_______________________________________________________________
     def filterCharacters(self, characters, key, value):
@@ -2373,24 +2468,6 @@ class InCabinUtils:
 
         return selected_background, ws_bckgnd_id
 
-    # #_______________________________________________________________
-    # def selectCar(self, use_probs = False):
-    #     if use_probs:
-    #         probabilities = [ c['probability'] for c in use_probs ]
-    #         idx = self.choiceUsingProbabilities(probabilities)
-    #         car_name = use_probs[idx]['car_name']
-    #         elegible_cars = [ i for i, c in enumerate(self._workspace.cars) if c['brand'].replace(" ", "") in car_name ]
-    #         idx = elegible_cars[random.randrange(len(elegible_cars))]
-    #     else:
-    #         idx = random.randrange(len(self._workspace.cars))
-
-    #     picked_car = self._workspace.cars[idx]
-    #     new_car_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_car["resource_id"])
-    #     picked_car['Entity_id'] = new_car_id
-    #     self._car_brand = picked_car['brand'].replace(" ", "")
-    #     self._car_model = picked_car['model']
-    #     return picked_car
-
     #_______________________________________________________________
     def selectCar(self, use_probs = False, car_model = None):
         if use_probs:
@@ -2420,15 +2497,21 @@ class InCabinUtils:
         return picked_car
 
     #_______________________________________________________________
-    def buildCar(self, picked_car, the_car):
+    def buildCar(self, picked_car, the_car, dynamic_materials = False):
         self._workspace.set_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id', picked_car['Entity_id'])
         print('Using car: {}_{}_{}'.format(picked_car['brand'], picked_car['model'], picked_car['version']))
 
+        # Change car interior materials following a color scheme
+        color_scheme = self._car_color_schemes[random.randrange(len(self._color_schemes))]
+        print('Color scheme: {}'.format(color_scheme))
+        
+        self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
+
         self.setCarSeatbeltsOff(picked_car)
-        self.setSeats(picked_car, the_car)
+        self.setSeats(picked_car, the_car, dynamic_materials, color_scheme)
 
     #_______________________________________________________________
-    def setSeat(self, the_car, seats, seat_locators, seat_pos):
+    def setSeat(self, the_car, seats, seat_locators, seat_pos, color_scheme = None):
         locator = next( (x for x in seat_locators if seat_pos in self._workspace.get_entity_name(x).lower()), None )
         if locator != None:
             # There is a specific locator por this seat
@@ -2439,18 +2522,21 @@ class InCabinUtils:
                 # self.setSplitAction(seat_id, 'Split') # If the assets does not have the the 'compound' tag
             else:
                 print("Locator {} exists but not its seat".format(self._workspace.get_entity_name(locator)) )
+                seat_id = anyverse_platform.invalid_entity_id
         else:
             # There is not a specific locator por this seat. Create it under the car directly
             seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
             if seat != None:
                 seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat_asset)
-                # self.setSplitAction(seat_id, 'Split') # If the assets does not have the the 'compound' tag
             else:
                 print("No exists locator neither seat for position {}".format(seat_pos) )
+                seat_id = anyverse_platform.invalid_entity_id
+
+        return seat_id
 
     #_______________________________________________________________
-    def setSeats(self, picked_car, the_car):
+    def setSeats(self, picked_car, the_car, dynamic_materials = False, color_scheme = None):
         if (not 'adjustable_seats' in picked_car) or (not picked_car['adjustable_seats'] ):
             return
 
@@ -2461,20 +2547,22 @@ class InCabinUtils:
             seven_seater = True
 
         # Get seats from DDBB and get only the conventional ones for a seven seater
-        seats = self.queryCarSeats(picked_car)
+        seats = self.queryCarSeats(picked_car, dynamic_materials)
         if seven_seater:
             seat_locators = [ sl for sl in seat_locators if 'conventional' in self._workspace.get_entity_name(sl) ]
             seats  = [ s for s in seats if 'conventional' in s['resource_name'] ]
-            
-        self.setSeat(the_car, seats, seat_locators, "seat01")
-        self.setSeat(the_car, seats, seat_locators, "seat02")
-        self.setSeat(the_car, seats, seat_locators, "seat03")
-        self.setSeat(the_car, seats, seat_locators, "seat04")
-        self.setSeat(the_car, seats, seat_locators, "seat05")
-        if seven_seater:
-            self.setSeat(the_car, seats, seat_locators, "seat06")
-            self.setSeat(the_car, seats, seat_locators, "seat07")
 
+        seat_ids_list = []  
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat01", color_scheme))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat02", color_scheme))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat03", color_scheme))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat04", color_scheme))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat05", color_scheme))
+        if seven_seater:
+            seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat06", color_scheme))
+            seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat07", color_scheme))
+        
+        self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         
     #_______________________________________________________________
     def setCarSeatbeltsOff(self, picked_car):
