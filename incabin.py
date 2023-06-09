@@ -886,9 +886,9 @@ class InCabinUtils:
             # place the object in the in the region and land it in the car seat
             # For for animals make sure the are vertical but random rotated on z
             if is_animal:
-                animal_pos = self._workspace.get_entity_property_value(object_entity_id, 'RelativeTransformToComponent','position')
-                animal_pos.z = random.randrange(360)
-                self._workspace.set_entity_property_value(object_entity_id, 'RelativeTransformToComponent','position',animal_pos)
+                animal_rot = self._workspace.get_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation')
+                animal_rot.z = random.randrange(360)
+                self._workspace.set_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation', animal_rot)
                 self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 15)
             else:
                 self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
