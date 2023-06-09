@@ -830,7 +830,7 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def placeObjectOnSeat(self, seat_locator, seat_id, name = None, version = None):
-        big_object = False
+        big_object = True if random.uniform(0,1) >= 0.75 else False
 
         # select a named object from resoures
         object = self.selectObject(name, version, big_object)
@@ -848,6 +848,8 @@ class InCabinUtils:
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
             object['fixed_entity_id'] = object_entity_id
 
+            is_animal = True if object['class'].lower() == 'dog' else False
+
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
             if len(existing_landing_region) > 0:
@@ -859,18 +861,22 @@ class InCabinUtils:
             # Resize the region to 70x70x70 cm
             width = 0.5
             depth = 0.4
+            if big_object:
+                width = 0.70
+                depth = 0.70
             height = 1
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','width', width)
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','height', height)
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','depth', depth)
 
             # Apply position offset to separate from the back of the seat to avoid "flying" objects
-            # pos_offset_y = 0
-            # pos_offset_x = 0.25
-            # landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
-            # landing_region_pos.x += pos_offset_x
-            # landing_region_pos.y += pos_offset_y
-            # self._workspace.set_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position',landing_region_pos)
+            if big_object:
+                pos_offset_y = 0
+                pos_offset_x = 0.15
+                landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
+                landing_region_pos.x += pos_offset_x
+                landing_region_pos.y += pos_offset_y
+                self._workspace.set_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position',landing_region_pos)
 
             # Get the car id and insert it in the set of port entities
             # The car is goign to be the only one for the time being
@@ -878,9 +884,14 @@ class InCabinUtils:
             port_entities.insert(seat_id)
 
             # place the object in the in the region and land it in the car seat
-            # For next version to control lander orientation and position 
-            # self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 30)
-            self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
+            # For for animals make sure the are vertical but random rotated on z
+            if is_animal:
+                animal_pos = self._workspace.get_entity_property_value(object_entity_id, 'RelativeTransformToComponent','position')
+                animal_pos.z = random.randrange(360)
+                self._workspace.set_entity_property_value(object_entity_id, 'RelativeTransformToComponent','position',animal_pos)
+                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 15)
+            else:
+                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
             self._workspace.set_entity_property_value(object_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
 
             # WORKAROUND: Set instance if possible ALWAYS to False so custom metadata
@@ -1154,12 +1165,6 @@ class InCabinUtils:
 
             mu, sigma = 0, max_rotation/3.6
             yaw = random.normalvariate(mu, sigma)
-            # HACK: don't have to turn the babychild now
-            # if childseat_type == 'BabyChild' and orientation == 'Forward':
-            #     yaw += 180
-            #     pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
-            #     pos.x += 0.65
-            #     self._workspace.set_entity_property_value(childseat_id,'RelativeTransformToComponent','position', pos)
             print('[INFO] Rotating childseat {:.2f}º'.format(yaw))
             self.wiggleChildseatRandom(childseat_id, yaw , pitch = 0)
 

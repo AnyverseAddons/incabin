@@ -28,6 +28,9 @@ Clone this repo to your local machine, or if you want to contribute, fork the re
 - The seat belt configuration applies to baby child seat with babies as well (only normal placement)
 - New wrong seatbelt place positions: `LapBeltUnder` and `UnderShoulderLapBeltUnder`
 
+**June 2023**
+- More car cabin variability: Support for dynamic material in car cabins following a color scheme. No need of specific car cabin assets for different interior colors
+
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
 
