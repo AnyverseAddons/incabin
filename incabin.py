@@ -555,7 +555,7 @@ class InCabinUtils:
             if big_object == None:
                 picked_object = objects[random.randrange(len(objects))]
             elif big_object:
-                big_objects = [ o for o in objects if 'big_object' in o and o['big_object']]
+                big_objects = [ o for o in objects if 'big_object' in o and o['big_object']  ]
                 picked_object = big_objects[random.randrange(len(big_objects))]
             else:
                 small_objects = [ o for o in objects if 'big_object' in o and not o['big_object']]
@@ -828,7 +828,7 @@ class InCabinUtils:
 
         big_object = True if random.uniform(0,1) >= 0.5 else False
 
-        # select a named object from resoures
+        # select a named object from resources
         object = self.selectObject(name, version, big_object)
         print('Object to place {}'.format(object['resource_name']))
         if object['Asset_id'] != -1:
@@ -844,30 +844,35 @@ class InCabinUtils:
                 print('Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
             object['Entity_id'] = object_entity_id
+            is_animal = True if object['class'].lower() == 'dog' else False
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
             if len(existing_landing_region) > 0:
                 self._workspace.delete_entity(existing_landing_region[0])
 
-            # Create a reagion around the seat locator. Default 1x1x1 meters
+            # Create a region around the seat locator. Default 1x1x1 meters
             landing_region_id = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Region, 'landing_region', seat_locator)
 
             # Resize the region to 70x70x70 cm
             width = 0.5
             depth = 0.4
             height = 1
+            if big_object:
+                width = 0.70
+                depth = 0.70
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','width', width)
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','height', height)
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','depth', depth)
 
             # Apply position offset to separate from the back of the seat to avoid "flying" objects
-            # pos_offset_y = 0
-            # pos_offset_x = 0.25
-            # landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
-            # landing_region_pos.x += pos_offset_x
-            # landing_region_pos.y += pos_offset_y
-            # self._workspace.set_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position',landing_region_pos)
+            if big_object:
+                pos_offset_y = 0
+                pos_offset_x = 0.15
+                landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
+                landing_region_pos.x += pos_offset_x
+                landing_region_pos.y += pos_offset_y
+                self._workspace.set_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position',landing_region_pos)
 
             # Get the car id and insert it in the set of port entities
             # The car is goign to be the only one for the time being
@@ -875,9 +880,14 @@ class InCabinUtils:
             port_entities.insert(seat_id)
 
             # place the object in the in the region and land it in the car seat
-            # For next version to control lander orientation and position 
-            # self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 30)
-            self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
+            # For next version to control lander orientation and position
+            if is_animal: 
+                animal_rot = self._workspace.get_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation')
+                animal_rot.z = random.randrange(360)
+                self._workspace.set_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation', animal_rot)
+                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 15)
+            else:
+                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
             self._workspace.set_entity_property_value(object_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
 
             # WORKAROUND: Set instance if possible ALWAYS to False so custom metadata
@@ -1999,7 +2009,6 @@ class InCabinUtils:
             try:
                 tags = self._workspace.get_tags_from_entity(entityId)
             except RuntimeError as rte:
-                print('Tags not supported in asset')
                 tags = []
             dic = {}
             for att in attrs:
