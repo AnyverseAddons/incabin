@@ -762,6 +762,7 @@ class InCabinUtils:
                 print('Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
             object['Entity_id'] = object_entity_id
+            is_animal = True if object['class'].lower() == 'dog' else False
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
@@ -794,8 +795,13 @@ class InCabinUtils:
 
             # place the object in the in the region and land it in the car seat
             # For next version to control lander orientation and position 
-            # self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 30)
-            self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
+            if is_animal: 
+                animal_rot = self._workspace.get_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation')
+                animal_rot.z = random.randrange(360)
+                self._workspace.set_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation', animal_rot)
+                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 15)
+            else:
+                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
             self._workspace.set_entity_property_value(object_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
 
             # WORKAROUND: Set instance if possible ALWAYS to False so custom metadata
