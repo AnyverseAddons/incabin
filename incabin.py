@@ -132,7 +132,7 @@ class InCabinUtils:
                 self._workspace.delete_entity(fixed_entity_id)
 
     #_______________________________________________________________
-    def getCameraDelta(self, center, interval, normal = True):
+    def getDelta(self, center, interval, normal = True):
         if normal:
             mu, sigma = center, interval/3.6
             delta = random.normalvariate(mu, sigma)
@@ -467,7 +467,7 @@ class InCabinUtils:
             else:
                 filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in ['sitting_straight_child', 'arms_on_the_body'] ]
         elif anim_type == 'spine':
-            filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() ]
+            filtered_animations = [ ba for ba in animations if 'leaning_for' in self._workspace.get_entity_name(ba).lower() ]
         elif anim_type == 'left_arm':
             filtered_animations = [ laa for laa in animations if re.search("^Arms_.*_L_Child$", self._workspace.get_entity_name(laa)) ]
         elif anim_type == 'right_arm':
@@ -1573,6 +1573,16 @@ class InCabinUtils:
         return self._workspace.get_entity_name(locator_id).lower() == 'childseat_locator' or self._workspace.get_entity_name(locator_id).lower() == 'babychildseat_locator' or self._workspace.get_entity_name(locator_id).lower() == 'child_locator'
 
     #_______________________________________________________________
+    def setAdjustableSeatInfo(self, seat_id, depth, tilt):
+        seat_info = {}
+        seat_info["depth"] = depth
+        seat_info["tilt"] = tilt
+
+        self.setCustomMetadata(seat_id, "Position", seat_info)
+
+        return seat_info
+
+    #_______________________________________________________________
     def setSeatInfo(self, character):
         parent_id = self.getParent(character['fixed_entity_id'])
         if self.isChildseatLocator(parent_id ):
@@ -1838,13 +1848,13 @@ class InCabinUtils:
         ego_position = self._workspace.get_entity_property_value(ego_id, 'RelativeTransformToComponent','position')
         ego_rotation = self._workspace.get_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation')
 
-        left_right_delta = self.getCameraDelta(center, pos_intervals[y], normal)    # pos.y
-        up_down_delta = self.getCameraDelta(center, pos_intervals[z], normal)       # pos.z
-        front_back_delta = self.getCameraDelta(center, pos_intervals[x], normal)    # pos.x
+        left_right_delta = self.getDelta(center, pos_intervals[y], normal)    # pos.y
+        up_down_delta = self.getDelta(center, pos_intervals[z], normal)       # pos.z
+        front_back_delta = self.getDelta(center, pos_intervals[x], normal)    # pos.x
         pos_delta = (front_back_delta, left_right_delta, up_down_delta)
-        roll_delta = self.getCameraDelta(center, rot_intervals[x], normal)  # rot.x
-        pitch_delta = self.getCameraDelta(center, rot_intervals[y], normal) # rot.y
-        yaw_delta = self.getCameraDelta(center, rot_intervals[z], normal)   # rot.z
+        roll_delta = self.getDelta(center, rot_intervals[x], normal)  # rot.x
+        pitch_delta = self.getDelta(center, rot_intervals[y], normal) # rot.y
+        yaw_delta = self.getDelta(center, rot_intervals[z], normal)   # rot.z
         rot_delta = (roll_delta, pitch_delta, yaw_delta)
 
         ego_position.x += front_back_delta / 100
@@ -1867,13 +1877,13 @@ class InCabinUtils:
         cam_position = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','position')
         cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
 
-        left_right_delta = self.getCameraDelta(center, pos_intervals[y], normal)    # pos.y
-        up_down_delta = self.getCameraDelta(center, pos_intervals[z], normal)       # pos.z
-        front_back_delta = self.getCameraDelta(center, pos_intervals[x], normal)    # pos.x
+        left_right_delta = self.getDelta(center, pos_intervals[y], normal)    # pos.y
+        up_down_delta = self.getDelta(center, pos_intervals[z], normal)       # pos.z
+        front_back_delta = self.getDelta(center, pos_intervals[x], normal)    # pos.x
         pos_delta = (front_back_delta, left_right_delta, up_down_delta)
-        roll_delta = self.getCameraDelta(center, rot_intervals[x], normal)  # rot.x
-        pitch_delta = self.getCameraDelta(center, rot_intervals[y], normal) # rot.y
-        yaw_delta = self.getCameraDelta(center, rot_intervals[z], normal)   # rot.z
+        roll_delta = self.getDelta(center, rot_intervals[x], normal)  # rot.x
+        pitch_delta = self.getDelta(center, rot_intervals[y], normal) # rot.y
+        yaw_delta = self.getDelta(center, rot_intervals[z], normal)   # rot.z
         rot_delta = (roll_delta, pitch_delta, yaw_delta)
 
         cam_position.x += front_back_delta / 100
@@ -2449,7 +2459,7 @@ class InCabinUtils:
         return picked_car
 
     #_______________________________________________________________
-    def buildCar(self, picked_car, the_car, dynamic_materials = False):
+    def buildCar(self, picked_car, the_car, dynamic_materials = False, move_seats_conf = None):
         self._workspace.set_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id', picked_car['entity_id'])
         print('Using car: {}_{}_{}'.format(picked_car['brand'], picked_car['model'], picked_car['version']))
 
@@ -2460,10 +2470,10 @@ class InCabinUtils:
         self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
 
         self.setCarSeatbeltsOff(picked_car)
-        self.setSeats(picked_car, the_car, dynamic_materials, color_scheme)
+        self.setSeats(picked_car, the_car, dynamic_materials, color_scheme, move_seats_conf)
 
     #_______________________________________________________________
-    def setSeat(self, the_car, seats, seat_locators, seat_pos, color_scheme = None):
+    def setSeat(self, the_car, seats, seat_locators, seat_pos, move_seat_conf = None):
         locator = next( (x for x in seat_locators if seat_pos in self._workspace.get_entity_name(x).lower()), None )
         if locator != None:
             # There is a specific locator por this seat
@@ -2485,10 +2495,25 @@ class InCabinUtils:
                 print("No exists locator neither seat for position {}".format(seat_pos) )
                 seat_id = anyverse_platform.invalid_entity_id
 
+        # If change seat position True get a random depth and tilt to apply only to front seats
+        if move_seat_conf and move_seat_conf['move_seats'] and seat_id != anyverse_platform.invalid_entity_id:
+            normal = move_seat_conf['normal_dist']
+            max_depth = move_seat_conf['max_depth']
+            max_tilt = move_seat_conf['max_tilt']
+            depth = self.getDelta(0, max_depth, normal)
+            tilt = self.getDelta(0, max_tilt, normal)
+            seat_pos = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','position')
+            seat_rot = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','rotation')
+            seat_pos.x += depth
+            seat_rot.y += tilt
+            seat_pos = self._workspace.set_entity_property_value(seat_id,'RelativeTransformToComponent','position', seat_pos)
+            seat_rot = self._workspace.set_entity_property_value(seat_id,'RelativeTransformToComponent','rotation', seat_rot)
+            self.setAdjustableSeatInfo(seat_id, depth, tilt)
+
         return seat_id
 
     #_______________________________________________________________
-    def setSeats(self, picked_car, the_car, dynamic_materials = False, color_scheme = None):
+    def setSeats(self, picked_car, the_car, dynamic_materials = False, color_scheme = None, move_seats_conf = None):
         if (not 'adjustable_seats' in picked_car) or (not picked_car['adjustable_seats'] ):
             return
 
@@ -2505,14 +2530,14 @@ class InCabinUtils:
             seats  = [ s for s in seats if 'conventional' in s['resource_name'] ]
 
         seat_ids_list = []  
-        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat01", color_scheme))
-        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat02", color_scheme))
-        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat03", color_scheme))
-        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat04", color_scheme))
-        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat05", color_scheme))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat01", move_seats_conf))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat02", move_seats_conf))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat03"))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat04"))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat05"))
         if seven_seater:
-            seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat06", color_scheme))
-            seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat07", color_scheme))
+            seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat06"))
+            seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat07"))
         
         self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         

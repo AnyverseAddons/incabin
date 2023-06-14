@@ -30,6 +30,7 @@ Clone this repo to your local machine, or if you want to contribute, fork the re
 
 **June 2023**
 - More car cabin variability: Support for dynamic material in car cabins following a color scheme. No need of specific car cabin assets for different interior colors
+- New configuration parameters to adjust front seats in depth and tilt
 
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
@@ -66,19 +67,22 @@ Check the tutorials for a step-by-step explanation of the process.
 ## In-cabin variability configuration
 At the beginning of the on-begin-iteration script we define the **`incabin_config`** dictionary with all the variables you can use to configure the variability of the resulting dataset. It has 5 configuration properties: `car_interior_probabilities`, `cameras`, `conditions`, `occupant_confs_probabilities` and `occupancy_distribution`.
 
-The first property `car_interior_probabilities`, allows to set different probabilities to the different car models[^models]. For models with different interior colors we pick one of the interior colors randomly. These property is used in with the `use_car_interior_probabilities`. If set to True, the `selectCar` method is called passing the `car_interior_probabilities` probabilities list. If set to False, the `selectCar` is called without parameters for the default behavior selecting a car interior randomly using a uniform distribution: 
+The first set of properties, allows to set different probabilities to the different car models[^models] with the `car_interior_probabilities` property. This property is used in with the `use_car_interior_probabilities`. If set to True, the `selectCar` method is called passing the `car_interior_probabilities` probabilities list. If set to False, the `selectCar` is called without parameters for the default behavior selecting a car interior randomly using a uniform distribution.
+
+With the `adjust_front_seats` you control if you want to change the adjust the depth and tilt of the front seats. If set to `True` we will apply a random depth (in meters) and tilt angle (in degrees), specified per car model in the `car_interior_probabilities` properties `max_depth` and `max_tilt`. The randomization will be based on a normal distribution or a uniform distribution in the interval [-value, value] depending if the property `normal_dist` is set to `True` or `False`: 
 
 ```
-    "use_car_interior_probabilities": False,
+    "use_car_interior_probabilities": True,
+    "adjust_front_seats": True,
     "car_interior_probabilities": [
-        {'car_name': 'Audi_Q5', 'probability': 0.125 }, 
-        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125 },
-        {'car_name': 'Lexus_UX', 'probability': 0.125 },
-        {'car_name': 'Porsche_Cayenne', 'probability': 0.125 },
-        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125 },
-        {'car_name': 'Volkswagen_Passat', 'probability': 0.125 },
-        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
-        {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
+        {'car_name': 'Audi_Q5', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Lexus_UX', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Porsche_CayenneS', 'probability': 0.5, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.5, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Hyundai_Ioniq', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'LandRover_Autobiography', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True }
     ],
 ```
 The next set of properties, allow you to configure and control the cameras in the cabin. 
