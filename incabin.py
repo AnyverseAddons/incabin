@@ -399,9 +399,11 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(character_id, 'CharacterAnimationConfigurationComponent', anim_config + '.weight',weight)
 
     #_______________________________________________________________
-    def selectAdultAnimation(self, anim_type, min_weight, max_weight):
+    def selectAdultAnimation(self, anim_type, min_weight, max_weight, name = None):
         animations = [ a for a in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation) if 'child' not in self._workspace.get_entity_name(a).lower() ]
-        if anim_type == 'base':
+        if name is not None:
+            filtered_animations = [ a for a in animations if name in self._workspace.get_entity_name(a).lower() ]
+        elif anim_type == 'base':
             filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in ['sitting_straight', 'arms_on_the_body']]
         elif anim_type == 'spine':
             filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
@@ -1291,10 +1293,12 @@ class InCabinUtils:
             # Set spine animation. HACK: Limit the weight when leaning backward or sideward and don't allow to look up
             animation, weight = self.selectChildAnimation(seat_locator, 'spine', 0, 1)
             not_look_up = False
+            max_weight = 0
             if 'backward' in self._workspace.get_entity_name(animation) or 'side' in self._workspace.get_entity_name(animation):
                 not_look_up = True
-                if weight > 0.4:
-                    weight = 0.4
+                max_weight = 0.3 if 'backward' in self._workspace.get_entity_name(animation) else 0.4
+                if weight > max_weight:
+                    weight = max_weight
             self.setAnimation('spine', animation, weight, child_id)
             # Set arms animation
             if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
@@ -1433,8 +1437,9 @@ class InCabinUtils:
             else:
                 max_weight = 0.5
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
-            self.setAnimation('spine', animation, weight, passenger_id)
             spine_animation_name = self._workspace.get_entity_name(animation)
+
+            self.setAnimation('spine', animation, weight, passenger_id)
 
             # Set arms animation: only if not arms on the body
             animate_left_arm, animate_right_arm = True, True
@@ -3181,6 +3186,13 @@ class InCabinUtils:
         return cc_locator
 
     #_______________________________________________________________
+    def letGoWheel(self, looker, side):
+        if side == 'right':
+            self._workspace.set_entity_property_value(looker, 'CharacterHandAttachmentComponent','right_hand_config.locator_entity_id', anyverse_platform.invalid_entity_id)
+        if side == 'left':
+            self._workspace.set_entity_property_value(looker, 'CharacterHandAttachmentComponent','left_hand_config.locator_entity_id', anyverse_platform.invalid_entity_id)
+
+    #_______________________________________________________________
     def LookAtRearSeat(self, looker, the_car, side):
         self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
         self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
@@ -3189,8 +3201,17 @@ class InCabinUtils:
         seat_number = '01'
         if side == 'right':
             seat_number = '05'
+            self.letGoWheel(looker, side)
+            animation, weight = self.selectAdultAnimation('right_arm', 0.75, 0.75, 'above_the_head_r')
+            self.setAnimation('right_arm', animation, weight, looker)
         elif side == 'left':
             seat_number = '03'
+            animation, weight = self.selectAdultAnimation('right_arm', 0.25, 0.35, 'above_the_head_r')
+            self.setAnimation('right_arm', animation, weight, looker)
+
+        # Make the character lean forward to some extent
+        animation, weight = self.selectAdultAnimation('spine', 0, 1, 'leaning_forward')
+        self.setAnimation('spine', animation, weight, looker)
 
         seat_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seat'+seat_number in self._workspace.get_entity_name(ent).lower() ]
         if len(seat_locators) > 0:
