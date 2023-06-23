@@ -3202,7 +3202,7 @@ class InCabinUtils:
         if side == 'right':
             seat_number = '05'
             self.letGoWheel(looker, side)
-            animation, weight = self.selectAdultAnimation('right_arm', 0.75, 0.75, 'above_the_head_r')
+            animation, weight = self.selectAdultAnimation('right_arm', 0.25, 0.75, 'above_the_head_r')
             self.setAnimation('right_arm', animation, weight, looker)
         elif side == 'left':
             seat_number = '03'
