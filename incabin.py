@@ -2980,7 +2980,7 @@ class InCabinUtils:
         # We consider the passenger what ever is placed in the copilot seat:
         # (character, object, child seat, child on child seat, object on child seat or the seat itself if empty)
         passenger_seat = self.getParent([ ent for ent in seat_locators if 'seat02' in self._workspace.get_entity_name(ent).lower() ][0])
-        passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) ]
+        passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'clipEntity' not in self._workspace.get_entity_name(ent) ]
         if len(passenger_l) > 0:
             passenger = passenger_l[len(passenger_l)-1]
         else:
