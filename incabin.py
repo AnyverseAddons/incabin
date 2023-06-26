@@ -1053,13 +1053,10 @@ class InCabinUtils:
                     print('[DRIVER ARM] Driver reaching {}'.format(reach))                
 
             # setting head animation
-            # If there is gaze probabilities the head position is controled by gaze
-            if gaze_probabilities is not None:
-                self.setDriverGaze(gaze_probabilities)
-            else:
-                animation, weight = self.selectAdultAnimation('head', 0, 1)
-                # print('Setting animation: {}, weight: {}'.format(self._workspace.get_entity_name(animation), weight))
-                self.setAnimation('head', animation, weight, driver_id)
+            # we cannot set the driver gaze here in case it has to look at the passenger that is not there yet 
+            animation, weight = self.selectAdultAnimation('head', 0, 1)
+            # print('Setting animation: {}, weight: {}'.format(self._workspace.get_entity_name(animation), weight))
+            self.setAnimation('head', animation, weight, driver_id)
 
             # Decide if we fasten the seat belt or not
             fasten_seatbelt = self.decideFastenSeatbelt(driver, seatbelts_distribution['belt_on_probability'])
@@ -2850,9 +2847,7 @@ class InCabinUtils:
             ret['isEmpty'] = True
             ret['Seatbelt_on'] = set_seatbel_on
         elif occupancy == 1:
-            if gaze_probabilities is not None:
-                gaze = gaze_probabilities['driver_gaze_probabilities']
-            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, gaze_probabilities = gaze, expression_probabilities = expression_probabilities)
+            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, gaze_probabilities = None, expression_probabilities = expression_probabilities)
             if driver == None:
                 print('[WARN]: Couldnot find a driver to place')
             ret = driver
@@ -2897,6 +2892,12 @@ class InCabinUtils:
             ret = object
         else:
             print('Invalid filling seat action')
+
+        # Set the driver gaze if filling copilot seat to take into account what
+        # was just placed in it
+        if self.isCopilotSeat(seat_locator) and gaze_probabilities is not None:
+            gaze = gaze_probabilities['driver_gaze_probabilities']
+            self.setDriverGaze(gaze) 
 
         return ret
 
@@ -2974,48 +2975,52 @@ class InCabinUtils:
         the_car = self.getCars()[0]
         seat_locators = self.getSeatLocators(the_car)
         driver_seat = [ ent for ent in seat_locators if 'seat01' in self._workspace.get_entity_name(ent).lower() ][0]
-        driver = [ ent for ent in self._workspace.get_hierarchy(driver_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)][0]
-        passenger_seat = [ ent for ent in seat_locators if 'seat02' in self._workspace.get_entity_name(ent).lower() ][0]
-        passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        driver_l = [ ent for ent in self._workspace.get_hierarchy(driver_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        driver = driver_l[0] if len(driver_l) > 0 else anyverse_platform.invalid_entity_id
+        # We consider the passenger what ever is placed in the copilot seat:
+        # (character, object, child seat, child on child seat, object on child seat or the seat itself if empty)
+        passenger_seat = self.getParent([ ent for ent in seat_locators if 'seat02' in self._workspace.get_entity_name(ent).lower() ][0])
+        passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) ]
         if len(passenger_l) > 0:
-            passenger = passenger_l[0]
+            passenger = passenger_l[len(passenger_l)-1]
         else:
-            passenger = anyverse_platform.invalid_entity_id
+            passenger = passenger_seat
 
         gaze_info = {}
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
-        if passenger == anyverse_platform.invalid_entity_id and idx == 4:
-            idx = 0
         gaze = gaze_probabilities[idx]['gaze']
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze
         print('Setting the driver to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
-        if gaze == 1:
-            side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
-            self.LookAtExteriorRearViewMirror(driver, the_car, side)
-            gaze_info['side'] = side
-        elif gaze == 2:
-            self.LookAtInsideRearViewMirror(driver, the_car)
-        elif gaze == 3:
-            self.LookAtInfotainment(the_car, driver)
-        elif gaze == 4:
-            self.LookAtOtherCharacter(driver, passenger)
-        elif gaze == 5:
-            self.LookAtRearSeat(driver,the_car, 'right')
+        if driver != anyverse_platform.invalid_entity_id:
+            if gaze == 1:
+                side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
+                self.LookAtExteriorRearViewMirror(driver, the_car, side)
+                gaze_info['side'] = side
+            elif gaze == 2:
+                self.LookAtInsideRearViewMirror(driver, the_car)
+            elif gaze == 3:
+                self.LookAtInfotainment(the_car, driver)
+            elif gaze == 4:
+                self.LookAtOtherCharacter(driver, passenger)
+            elif gaze == 5:
+                self.LookAtRearSeat(driver,the_car, 'right')
 
-        self.setCustomMetadata(driver, 'gaze', gaze_info)
+            self.setCustomMetadata(driver, 'gaze', gaze_info)
 
     #_______________________________________________________________
     def setPassengerGaze(self, gaze_probabilities):
         the_car = self.getCars()[0]
         seat_locators = self.getSeatLocators(the_car)
         childseat_locators = self.getChildseatLocators(the_car)
-        driver_seat = [ ent for ent in seat_locators if 'seat01' in self._workspace.get_entity_name(ent).lower() ][0]
+        # We consider the driver what ever is placed in the driver seat:
+        # (character or the seat itself if empty)
+        driver_seat = self.getParent([ ent for ent in seat_locators if 'seat01' in self._workspace.get_entity_name(ent).lower() ][0])
         driver_l = [ ent for ent in self._workspace.get_hierarchy(driver_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
         if len(driver_l) > 0:
-            driver = driver_l[0]
+            driver = driver_l[len(driver_l)-1]
         else:
-            driver = anyverse_platform.invalid_entity_id
+            driver = driver_seat
         passenger_seats = [ ent for ent in seat_locators + childseat_locators if 'seat02' in self._workspace.get_entity_name(ent).lower() ]
         for passenger_seat in passenger_seats:
             passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
@@ -3025,8 +3030,6 @@ class InCabinUtils:
 
         gaze_info = {}
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
-        if driver == anyverse_platform.invalid_entity_id and idx == 4:
-            idx = 0
         gaze = gaze_probabilities[idx]['gaze']
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze
@@ -3227,11 +3230,17 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 2)
         self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
 
-        if looked_at != anyverse_platform.invalid_entity_id:
+        looked_at_name = self._workspace.get_entity_name(looked_at)
+        print('Driver looking at ' + looked_at_name)
+
+        if looked_at != anyverse_platform.invalid_entity_id and 'rp_' in looked_at_name:
             char_locators = [ ent for ent in self._workspace.get_hierarchy(looked_at) if self._workspace.get_entity_type(ent) == 'Locator' ]
             if len(char_locators) >= 1:
                 lookat_locator = char_locators[0]
-                self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', lookat_locator)
+        else:
+            lookat_locator = looked_at
+
+        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', lookat_locator)
 
     #_______________________________________________________________
     def LookAtInsideRearViewMirror(self, looker, the_car):
