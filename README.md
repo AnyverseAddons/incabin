@@ -11,6 +11,27 @@ To this Anyverse add-on (or any other Anyverse add-on for that matter) you need:
 
 Clone this repo to your local machine, or if you want to contribute, fork the repo to your github account (you will be able to send pull requests with your contributions) and then clone it to your local machine.
 
+## What's new
+**March 2023**
+- New configuration for multi-camera datasets with more than one camera enabled at the same time
+- New configuration to simulate a pseudo-NIR sensor at night
+- New configuration to simulate any RGB sensor
+
+**April 2023**
+- New configuration to control character's face expressions
+- More advanced child seat configuration capabilities
+
+**May 2023**
+- Access to new child seats available in the Anyverse Platform resource database
+- Allow variability by dynamically changing the asset's exposed materials
+- The add-on randomly picks a suitable material for every child seat it places in the cabin
+- The seat belt configuration applies to baby child seat with babies as well (only normal placement)
+- New wrong seatbelt place positions: `LapBeltUnder` and `UnderShoulderLapBeltUnder`
+
+**June 2023**
+- More car cabin variability: Support for dynamic material in car cabins following a color scheme. No need of specific car cabin assets for different interior colors
+- New configuration parameters to adjust front seats in depth and tilt
+
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
 
@@ -46,57 +67,67 @@ Check the tutorials for a step-by-step explanation of the process.
 ## In-cabin variability configuration
 At the beginning of the on-begin-iteration script we define the **`incabin_config`** dictionary with all the variables you can use to configure the variability of the resulting dataset. It has 5 configuration properties: `car_interior_probabilities`, `cameras`, `conditions`, `occupant_confs_probabilities` and `occupancy_distribution`.
 
-The first property `car_interior_probabilities`, allows to set different probabilities to the different car models[^models]. For models with different interior colors we pick one of the interior colors randomly. These property is used in with the `use_car_interior_probabilities`. If set to True, the `selectCar` method is called passing the `car_interior_probabilities` probabilities list. If set to False, the `selectCar` is called without parameters for the default behavior selecting a car interior randomly using a uniform distribution: 
+The first set of properties, allows to set different probabilities to the different car models[^models] with the `car_interior_probabilities` property. This property is used in with the `use_car_interior_probabilities`. If set to True, the `selectCar` method is called passing the `car_interior_probabilities` probabilities list. If set to False, the `selectCar` is called without parameters for the default behavior selecting a car interior randomly using a uniform distribution.
+
+With the `adjust_front_seats` you control if you want to change the adjust the depth and tilt of the front seats. If set to `True` we will apply a random depth (in meters) and tilt angle (in degrees), specified per car model in the `car_interior_probabilities` properties `max_depth` and `max_tilt`. The randomization will be based on a normal distribution or a uniform distribution in the interval [-value, value] depending if the property `normal_dist` is set to `True` or `False`: 
 
 ```
-    "use_car_interior_probabilities": False,
+    "use_car_interior_probabilities": True,
+    "adjust_front_seats": True,
     "car_interior_probabilities": [
-        {'car_name': 'Audi_Q5', 'probability': 0.125 }, 
-        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125 },
-        {'car_name': 'Lexus_UX', 'probability': 0.125 },
-        {'car_name': 'Porsche_Cayenne', 'probability': 0.125 },
-        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125 },
-        {'car_name': 'Volkswagen_Passat', 'probability': 0.125 },
-        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
-        {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
+        {'car_name': 'Audi_Q5', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Lexus_UX', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Porsche_CayenneS', 'probability': 0.5, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.5, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'Hyundai_Ioniq', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
+        {'car_name': 'LandRover_Autobiography', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True }
     ],
 ```
-The next property, `cameras` allow you to configure as many cameras you want in the cabin. You can set the probability[^probabilities] for the correspondent camera to be used in the dataset, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation; and the initial position and pitch angle for every car cabin model. The `nir_at_night` property for each camera indicates if the camera should behave as a near infrared (NIR) camera for night scenes. This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
+The next set of properties, allow you to configure and control the cameras in the cabin. 
+- `multiple_cameras`, when set to `False`, only one camera will be enabled in the cabin based on the cameras defined probabilities. When set to `True`, all cameras will be enabled and positioned in their correspondent locations.
+- `nir_at_night`, when set to `True` it'll set NIR sensor simulation with active illumination for all cameras in night (low light) scenes.
+- `rgb_sensor_sim`, when set to `True` it'll use RGB sensor simulation instead of default render RGB recreation.
+- `cameras`, defines the probability[^probabilities] to use the correspondent camera when `multiple_cameras`is `False`, a couple of vibration vectors move the camera using a normal or uniform distribution around its initial position and orientation; and the initial position and pitch angle for every car cabin model. 
+
+This is the default configuration for 2 cameras RVM for a rear view mirror position and CC for central console position:
 
 ```
+    "multiple-cameras": False,
+    "nir_at_night": True,
+    "rgb_sensor_sim": False,
     "cameras":{
         "RVM": {
-            "probability": 1.0,
-            "vibration_traslation": [0,0,0], # in meters
-            "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": False,
-            "cam_positions": {
-                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.52, 0.0, 1.45, 30) }, 
-                'Chevrolet_Menlo':  {'EGO': (0.41, 0.0, 1.315), 'position': (0.61, 0.0, 1.31, 30) },
-                'Lexus_UX':         {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.53, 0.005, 1.29, 30) },
-                'Porsche_Cayenne': {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.45, 25) },
-                'Unbranded_GenericSUV':    {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.52, -0.005, 1.43, 25) },
-                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.60, -0.027, 1.287, 30)},
-                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.315, 35)},
-                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.50, 0.0, 1.6, 30)},
-                'default':          {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
-            },
-        },
-        "CC": { 
             "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": True,
             "cam_positions": {
-                'Audi_Q5': {'EGO': (0.385, 0.0, 1.44), 'position': (0.53, 0.0, 1.11, 10)}, 
-                'Chevrolet_Menlo':   {'EGO': (0.41, 0.0, 1.315), 'position': (0.64, 0.0, 1.03, 10)},
-                'Lexus_UX':          {'EGO': (0.3198521, 0.0, 1.3166237), 'position': (0.505, 0.02, 0.95, 10)},
-                'Porsche_Cayenne':  {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.165, 10)},
-                'Unbranded_GenericSUV':     {'EGO': (0.3510127, 0.0, 1.46), 'position': (0.58, 0.005, 1.085, 10)},
-                'Volkswagen_Passat': {'EGO': (0.45, 0.025, 1.3), 'position': (0.70, 0.027, 1.00, 10)},
-                'Hyundai_Ioniq': {'EGO': (0.45, 0.025, 1.3), 'position': (0.58, -0.02, 1.09, 10)},
-                'LandRover_Autobiography': {'EGO': (0.45, 0.025, 1.3), 'position': (0.63, 0.0, 1.22, 10)},
-                'default':           {'EGO': (0.39, 0.0, 1.495), 'position': (0.60, 0.0, 1.75, 25)}
+                'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
+                'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
+                'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.53, 0.005, 1.29) },
+                'Porsche_Cayenne': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.52, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.60, -0.027, 1.287)},
+                'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.58, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.50, 0.0, 1.6)},
+                'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
+            },
+        },
+        "CC": { 
+            "probability": 1.0,
+            "vibration_traslation": [0,0,0], # in meters
+            "vibration_rotation": [0,0,0], # in degrees
+            "cam_positions": {
+                'Audi_Q5': {'rotation': (0, -10, 0), 'position': (0.53, 0.0, 1.11)}, 
+                'Chevrolet_Menlo':   {'rotation': (0, -10, 0), 'position': (0.64, 0.0, 1.03)},
+                'Lexus_UX':          {'rotation': (0, -10, 0), 'position': (0.505, 0.02, 0.95)},
+                'Porsche_Cayenne':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
+                'Unbranded_GenericSUV':     {'rotation': (0, -10, 0), 'position': (0.58, 0.005, 1.085)},
+                'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
+                'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
+                'LandRover_Autobiography': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.22)},
+                'default':           {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         }
     },
@@ -121,25 +152,33 @@ IF you need empty cabins with no occupants nor objects in you dataset, you can c
     ],
 ```
 
-The `occupancy_distribution` property is the most complex and allows you to control how every seat is occupied, what you want to do with the seat belts, if you want to place additional accessories to the characters and where are the characters looking at. 
-
-For the driver seat, you can set the probabilities to be empty or occupied. For all other seats you can set probabilities to be empty, have a child seat, a passenger or an object. You have control on the probabilities for different types of child seats as well.
-
-For seat belts, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
-
-Finally for the driver and the copilot, you can control their gaze setting the probabilities they are going to look at: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger or at the rear passengers. This is the default configuration for all the above:
+The `occupancy_distribution` property is the most complex and allows you to control how every seat is occupied, what you want to do with the child seats and seat belts, if you want to place additional accessories to the characters (`accessories_probabilities`), where are the characters looking at and the character's facial expression. 
 
 ```
     "occupancy_distribution": {
+        'driver_occupancy_probabilities': [ ...
+        'copilot_occupancy_probabilities': [ ...
+        'backseat_occupancy_probabilities': [ ...
+        'middleseat_occupancy_probabilities': [ ...
+        'childseat_config': { ...
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+        'seatbelts_distribution': { ...
+        'gaze_probabilities': { ...
+        'expression_probabilities': [ ...
+    }
+```
+For the driver seat, `driver_occupancy_probabilities`, you can set the probabilities to be empty or occupied. For all other seats, `copilot_occupancy_probabilities`, `backseat_occupancy_probabilities` and `middleseat_occupancy_probabilities` you can set probabilities to be empty, have a child seat, a passenger or an object. 
+
+```
         'driver_occupancy_probabilities': [
-            {'name': 'Empty',  'occupancy': 0, 'probability': 0.15},
-            {'name': 'Driver', 'occupancy': 1, 'probability': 0.85} 
+            {'name': 'Empty',  'occupancy': 0, 'probability': 0.0},
+            {'name': 'Driver', 'occupancy': 1, 'probability': 1.0} 
         ],
         'copilot_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.1},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.2},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.6},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.1} 
         ],
         'backseat_occupancy_probabilities': [
             {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
@@ -153,24 +192,51 @@ Finally for the driver and the copilot, you can control their gaze setting the p
             {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
             {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
         ],
-        'childseat_type_probabilities': [
-            {'Type': 'BabyChild',   'Probability': 0.3},
-            {'Type': 'Convertible', 'Probability': 0.3},
-            {'Type': 'Booster',     'Probability': 0.3}
-        ],
-        'childseat_occupied_probability':  0.3,
-        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+```
+
+With the `childseat_config` property, you have control on the probabilities for different types of child seats (`childseat_type_probabilities`), the probability that the child seat will be occupied (`childseat_occupancy_probabilities`) with a child or an object, or just leaving it empty. There is further control on the child seat orientation (only for BabyChild type child seats) with the `childseat_orientation property`. And finally you can define a maximum rotation angle (around Z) for the child seat with `childseat_rotation_max`.
+
+```
+        'childseat_config': {
+            'childseat_type_probabilities': [
+                {'Type': 'BabyChild', 'probability': 0.75},
+                {'Type': 'Convertible', 'probability': 0.25},
+                {'Type': 'Booster', 'probability': 0.0}
+            ],
+            'childseat_occupancy_probabilities': [
+                {'name': 'Empty', 'occupancy': 0, 'probability': 0.25},
+                {'name': 'Child', 'occupancy': 1, 'probability': 0.5},
+                {'name': 'Object', 'occupancy': 2, 'probability': 0.25}
+            ],
+            'childseat_orientation_probabilities': [
+                {'Orientation': 'Forward', 'probability': 0.5},
+                {'Orientation': 'Backward', 'probability': 0.5}
+            ],
+            'childseat_rotation_max': 30
+        },
+```
+
+For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
+
+```
         'seatbelts_distribution': {
-            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seated on
+            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seated
             'seatbelt_placement_probabilities': {
-                'Normal': 0.80,
+                'Normal': 0.70,
                 'BehindTheBack': 0.05,
                 'UnderShoulder': 0.05,
                 'WrongSideOfHead': 0.05,
-                'CharacterOverSeatbelt': 0.05
+                'CharacterOverSeatbelt': 0.05,
+                'LapBeltUnder': 0.05,
+                'UnderShoulderLapBeltUnder': 0.05
             },   
             'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
         },
+```
+
+For the driver and the copilot, you can control their gaze (`gaze_probabilities`) setting the probabilities they are going to look at: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger or at the rear passengers.
+
+```
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
                 {'name': 'road', 'gaze': 0, 'probability': 0.7},
@@ -188,11 +254,22 @@ Finally for the driver and the copilot, you can control their gaze setting the p
                 {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
                 {'name': 'rear', 'gaze': 5, 'probability': 0.05}
             ]
-        }
-    }
-}
+        },
 ```
 
+Finally, you can control the facial expression for every character `expression_probabilities`, by setting probabilities for 5 different preset expressions: neutral, sad, happy, angry and surprised; and the probability to have a random expression.
+
+```
+        'expression_probabilities': [
+            {'name': 'neutral', 'expression': 0, 'probability': 0.20},
+            {'name': 'happy', 'expression': 1, 'probability': 0.20},
+            {'name': 'sad', 'expression': 2, 'probability': 0.20},
+            {'name': 'angry', 'expression': 3, 'probability': 0.15},
+            {'name': 'surprised', 'expression': 4, 'probability': 0.15},
+            {'name': 'random', 'expression': 5, 'probability': 0.1}
+        ]
+```
+All the above are the default values for all configuration properties.
 
 [^models]: There are 8 different car brands and model, for a total of 26 distinct interiors: Audi Q5, 4 different interior colors; Chevrolet Menlo, 4 different interior colors; Lexus UX, 4 different interior colors; Porsche Cayenne, 4 different interior colors; Unbranded Generic SUV, 4 different interior colors; Volkswagen Passat, 4 different interior colors; Hyundai Ioniq, 1 interior colors; Land Rover Autobiography, 1 interior colors
 

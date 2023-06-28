@@ -27,24 +27,25 @@ incabin_config = {
         {'car_name': 'Audi_Q5', 'probability': 0.125 }, 
         {'car_name': 'Chevrolet_Menlo', 'probability': 0.125 },
         {'car_name': 'Lexus_UX', 'probability': 0.125 },
-        {'car_name': 'Porsche_Cayenne', 'probability': 0.125 },
+        {'car_name': 'Porsche_CayenneS', 'probability': 0.125 },
         {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125 },
         {'car_name': 'Volkswagen_Passat', 'probability': 0.125 },
         {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
         {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
     ],
-    "multiple-cameras": True,
+    "multiple_cameras": False,
+    "nir_at_night": True,
+    "rgb_sensor_sim": False,
     "cameras":{
         "RVM": {
-            "probability": 1.0,
+            "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": False,
             "cam_positions": {
                 'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
                 'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
                 'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.53, 0.005, 1.29) },
-                'Porsche_Cayenne': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
+                'Porsche_CayenneS': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
                 'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.52, -0.005, 1.43) },
                 'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.60, -0.027, 1.287)},
                 'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.58, -0.02, 1.315)},
@@ -53,15 +54,14 @@ incabin_config = {
             },
         },
         "CC": { 
-            "probability": 0.0,
+            "probability": 1.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
-            "nir_at_night": True,
             "cam_positions": {
                 'Audi_Q5': {'rotation': (0, -10, 0), 'position': (0.53, 0.0, 1.11)}, 
                 'Chevrolet_Menlo':   {'rotation': (0, -10, 0), 'position': (0.64, 0.0, 1.03)},
                 'Lexus_UX':          {'rotation': (0, -10, 0), 'position': (0.505, 0.02, 0.95)},
-                'Porsche_Cayenne':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
+                'Porsche_CayenneS':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
                 'Unbranded_GenericSUV':     {'rotation': (0, -10, 0), 'position': (0.58, 0.005, 1.085)},
                 'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
                 'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
@@ -71,14 +71,14 @@ incabin_config = {
         }
     },
     "conditions": [ 
-        {'Day': True,  'Cond':'sunny',          'Probability': 0.25},
-        {'Day': True,  'Cond':'scattered',      'Probability': 0.25},
-        {'Day': True,  'Cond':'overcast',       'Probability': 0.25},
-        {'Day': False, 'Cond':'interior-lights','Probability': 0.25}
+        {'Day': True,  'Cond':'sunny',          'probability': 0.25},
+        {'Day': True,  'Cond':'scattered',      'probability': 0.25},
+        {'Day': True,  'Cond':'overcast',       'probability': 0.25},
+        {'Day': False, 'Cond':'interior-lights','probability': 0.25}
     ],
     "occupant_confs_probabilities": [ 
-        {'Conf': 'Empty', 'Probability': 0.0},
-        {'Conf': 'Normal', 'Probability': 1.0}
+        {'Conf': 'Empty', 'probability': 0.0},
+        {'Conf': 'Normal', 'probability': 1.0}
     ],
     "occupancy_distribution": {
         'driver_occupancy_probabilities': [
@@ -103,21 +103,34 @@ incabin_config = {
             {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
             {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
         ],
-        'childseat_type_probabilities': [
-            {'Type': 'BabyChild',   'Probability': 0.0},
-            {'Type': 'Convertible', 'Probability': 0.0},
-            {'Type': 'Booster',     'Probability': 1.0}
-        ],
-        'childseat_occupied_probability':  0.5,
-        'accessories_probabilities': { 'global': 0.0, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
+        'childseat_config': {
+            'childseat_type_probabilities': [
+                {'Type': 'BabyChild', 'probability': 0.75},
+                {'Type': 'Convertible', 'probability': 0.25},
+                {'Type': 'Booster', 'probability': 0.0}
+            ],
+            'childseat_occupancy_probabilities': [
+                {'name': 'Empty', 'occupancy': 0, 'probability': 0.25},
+                {'name': 'Child', 'occupancy': 1, 'probability': 0.5},
+                {'name': 'Object', 'occupancy': 2, 'probability': 0.25}
+            ],
+            'childseat_orientation_probabilities': [
+                {'Orientation': 'Forward', 'probability': 0.5},
+                {'Orientation': 'Backward', 'probability': 0.5}
+            ],
+            'childseat_rotation_max': 30
+        },
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
-                'Normal': 0.80,
+                'Normal': 0.70,
                 'BehindTheBack': 0.05,
                 'UnderShoulder': 0.05,
                 'WrongSideOfHead': 0.05,
-                'CharacterOverSeatbelt': 0.05
+                'CharacterOverSeatbelt': 0.05,
+                'LapBeltUnder': 0.05,
+                'UnderShoulderLapBeltUnder': 0.05
             },   
             'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
         },
@@ -138,7 +151,15 @@ incabin_config = {
                 {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
                 {'name': 'rear', 'gaze': 5, 'probability': 0.05}
             ]
-        }
+        },
+        'expression_probabilities': [
+            {'name': 'neutral', 'expression': 0, 'probability': 0.20},
+            {'name': 'happy', 'expression': 1, 'probability': 0.20},
+            {'name': 'sad', 'expression': 2, 'probability': 0.20},
+            {'name': 'angry', 'expression': 3, 'probability': 0.15},
+            {'name': 'surprised', 'expression': 4, 'probability': 0.15},
+            {'name': 'random', 'expression': 5, 'probability': 0.1}
+        ]
     }
 }
 
@@ -164,7 +185,7 @@ workspace.icu = icu
 
 if not hasattr(anyverse_platform, 'cars'):
     print('Loading car interiors...')
-    anyverse_platform.cars = icu.queryCars()
+    anyverse_platform.cars = icu.queryCars(dynamic_material = True)
     #print(anyverse_platform.cars)
     print('Car list loaded!')
 workspace.cars = anyverse_platform.cars
@@ -190,6 +211,13 @@ if not hasattr(anyverse_platform, 'childseats'):
     print('Childseat list loaded!')
 workspace.childseats = anyverse_platform.childseats
     
+if not hasattr(anyverse_platform, 'childseatbelts'):
+    print('Loading childseatbelts...')
+    anyverse_platform.childseatbelts = icu.queryChildSeatBelts()
+    #print(anyverse_platform.childseatbelts)
+    print('Childseatbelts list loaded!')
+workspace.childseatbelts = anyverse_platform.childseatbelts
+    
 if not hasattr(anyverse_platform, 'objects'):
     print('Loading objects...')
     anyverse_platform.objects = icu.queryObjects()
@@ -211,6 +239,12 @@ if not hasattr(anyverse_platform, 'backgrounds'):
     print('Backgrounds list loaded!')
 workspace.backgrounds = anyverse_platform.backgrounds
 
+if not hasattr(anyverse_platform, 'materials'):
+    print('Loading materials...')
+    anyverse_platform.materials = icu.queryMaterials()
+    #print(anyverse_platform.materials)
+    print('Materials list loaded!')
+workspace.materials = anyverse_platform.materials
 
 #__________________________________________________________
 # Get the workspace simulation id
@@ -244,8 +278,8 @@ if incabin_config['use_car_interior_probabilities']:
 else:
     selected_car = icu.selectCar() # Uniform car interior distribution
 car_name = 'default'
-if selected_car['Entity_id'] != -1:
-    icu.buildCar(selected_car, the_car)
+if selected_car['entity_id'] != -1:
+    icu.buildCar(selected_car, the_car, dynamic_materials = True)
 
     # Set car info from car metadata and put it as custom metadata for annotations
     car_info = icu.setCarInfo(selected_car,the_car)
@@ -254,8 +288,14 @@ else:
     print('[ERROR] Could not find {} in resources'.format(selected_car))
 # Set Eport Always and exclude from occlusion test properties to the car
 icu.setExportAlwaysExcludeOcclusion(the_car)
-# Set split action to Split to get the seats segmented
-icu.setSplitAction(the_car, 'Split')
+# Set split action to Split to get the seats segmented for non v0 cabins
+# If the assets have the compound tag this would not be necessary 
+if selected_car['version'].lower() != 'v0':
+    icu.setSplitAction(the_car, 'Split')
+# We do the split on all cabins v0 dynamic 
+# to segment windows, steering wheel and dashboard 
+elif selected_car['dynamic_material']:
+    icu.setSplitAction(the_car, 'Split')
 
 #__________________________________________________________
 # Reset Ego, cameras and light position at origin with rotations 
@@ -263,18 +303,21 @@ icu.resetEgo()
 icu.resetCameras()
 icu.resetLights()
 cameras = incabin_config["cameras"]
-multiple_cameras = incabin_config["multiple-cameras"]
+# Global camera settings
+multiple_cameras = incabin_config["multiple_cameras"]
+nir_simulation = incabin_config["nir_at_night"]
+rgb_sensor_sim = incabin_config["rgb_sensor_sim"]
 # If multiple cameras,  
-# place each camera in its position relative to the ego
-# move the active light to the CC camera
-# TODO: Figure out a way to use several active lights 
+# place each camera in its position relative to the ego.
+# The workspace needs to have an active light associated to each camera for NIR
+# To associate lights to cameras we use a naming convention:
+# Each active light has to have the same prefix as the correspondent camera.   
+# We try to find each active light and move them to the correspondent cam position.
+# If an active light is missing, we log a [WARN] 
+# and there will be no active illumination for that camera 
 if multiple_cameras:
-    nir_simulation = False
     # place each cameras in its position
     for camera in cameras:
-        # if there is a camera configured for NIR at night we do NIR sim for all
-        if cameras[camera]["nir_at_night"]:
-            nir_simulation = True
         cam_positions = cameras[camera]["cam_positions"]
         if car_name in cam_positions:
             cam_pos = cam_positions[car_name]['position']
@@ -288,17 +331,28 @@ if multiple_cameras:
         cam_ids = [ ci for ci in workspace.get_camera_entities() if camera in workspace.get_entity_name(ci) ]
         cam_id = cam_ids[0] if len(cam_ids) == 1 else 0
         if cam_id != 0:
-            icu.setCameraInPosition(cam_id, cam_rotation, cam_position)
+            cam_pos, cam_rot = icu.setCameraInPosition(cam_id, cam_rotation, cam_position)
+            print('{} initial position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
+            print('{} initial rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
+            pos_intervals = cameras[camera]["vibration_traslation"]
+            rot_intervals = cameras[camera]["vibration_rotation"]
+            cam_pos, cam_rot, _, _ = icu.setCameraVibration(cam_id, pos_intervals, rot_intervals)
+            print('{} final position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
+            print('{} final rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
             workspace.set_entity_property_value(cam_id, 'VisibleComponent','visible', True)
         else:
             print('[ERROR] Missing {} camera in workspace'.format(camera))
-    # place active light in the CC cam position
-    light_id = workspace.get_entities_by_type('Light')[0]
-    cc_pos = cameras["CC"]["cam_positions"][car_name]["position"]
-    cc_rot = cameras["CC"]["cam_positions"][car_name]["rotation"]
-    light_pos = anyverse_platform.Vector3D(cc_pos[0], cc_pos[1], cc_pos[2])
-    light_rot = anyverse_platform.Vector3D(cc_rot[0], cc_rot[1], cc_rot[2])
-    icu.setActiveLightInPosition(light_id, light_rot, light_pos)
+        # place active light in the cam position
+        light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
+        light_id = light_ids[0] if len(light_ids) == 1 else 0
+        if light_id != 0:
+            light_pos, _ = icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
+            if camera == 'RVM':
+                # Advance the light 10 cm to avoid rvm casted shadows
+                light_pos.x += 0.1
+                workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
+        else:
+            print('[WARN] Missing light for {} camera in workspace'.format(camera))
 # If not multiple cameras,  
 # Randomly select the camera to use and place the ego in the camera position,
 # apply vibration as configured and set the visibility to a single camera
@@ -306,8 +360,6 @@ else:
     names, probabilities = getCameraProbabilityList(incabin_config)
     cam_ids_idx = icu.choiceUsingProbabilities(probabilities)
     camera_selected = names[cam_ids_idx]
-
-    nir_simulation = cameras[camera_selected]["nir_at_night"]
 
     cam_positions = cameras[camera_selected]["cam_positions"]
 
@@ -323,6 +375,13 @@ else:
     ego_pos, ego_rot = icu.setEgoInPosition(cam_rotation, cam_position)
     print('Ego initial position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
     print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
+
+    # Advance the light 10 cm to avoid rvm casted shadows
+    light_pos = anyverse_platform.Vector3D(0.1, 0, 0)
+    incabin_lights = workspace.get_entities_by_type('Light')
+    if len(incabin_lights) > 0:
+        incabin_light = incabin_lights[0]
+    workspace.set_entity_property_value(incabin_light, 'RelativeTransformToComponent','position', light_pos)
 
     # Apply camera vibration simulation with normal distribution
     pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
@@ -382,6 +441,11 @@ if multiple_cameras:
             icu.setIsp(camera_id, 'NIR-ISP')
             active_light = True
             sensor_enabled = True
+        elif rgb_sensor_sim:
+            icu.setSensor(camera_id, 'RGB-Sensor')
+            icu.setIsp(camera_id, 'RGB-ISP')
+            active_light = False
+            sensor_enabled = True
         else:
             icu.setSensor(camera_id, None)
             icu.setIsp(camera_id, None)
@@ -393,15 +457,20 @@ else:
         icu.setIsp(camera_id, 'NIR-ISP')
         active_light = True
         sensor_enabled = True
+    elif rgb_sensor_sim:
+        icu.setSensor(camera_id, 'RGB-Sensor')
+        icu.setIsp(camera_id, 'RGB-ISP')
+        active_light = False
+        sensor_enabled = True
     else:
         icu.setSensor(camera_id, None)
         icu.setIsp(camera_id, None)
         active_light = False
         sensor_enabled = False
 
-print('Sensor enabled? {}. Setting active light to {}'.format(sensor_enabled, active_light))
+print('Sensor enabled? {}. Setting active lights to {}'.format(sensor_enabled, active_light))
 # set the illumination depending on day/night and conditions
-intensity = icu.setIllumination(day, cond, background, simulation_id, active_light = active_light)
+intensity = icu.setIllumination(day, cond, background, simulation_id, multiple_cameras, active_light = active_light)
 if day:
     print('Sun intensity: {}'.format(intensity))
 else:
@@ -415,7 +484,7 @@ occupant_confs_probabilities = incabin_config["occupant_confs_probabilities"]
 # Production occupancy settings
 occupancy_distribution = incabin_config["occupancy_distribution"]
 
-conf_idx = icu.choiceUsingProbabilities([ float(c['Probability']) for c in occupant_confs_probabilities])
+conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
 if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
     icu.EmptyDistribution(the_car)
 elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
