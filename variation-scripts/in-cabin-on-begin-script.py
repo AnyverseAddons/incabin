@@ -23,15 +23,16 @@ print('Script Console: {}'.format(script_console))
 # Global config: Cameras, environmental conditions, Occupant distribution, childseats, seat belts, additional props, gaze
 incabin_config = {
     "use_car_interior_probabilities": False,
+    "adjust_front_seats": True,
     "car_interior_probabilities": [
-        {'car_name': 'Audi_Q5', 'probability': 0.125 }, 
-        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125 },
-        {'car_name': 'Lexus_UX', 'probability': 0.125 },
-        {'car_name': 'Porsche_CayenneS', 'probability': 0.125 },
-        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125 },
-        {'car_name': 'Volkswagen_Passat', 'probability': 0.125 },
-        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
-        {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
+        {'car_name': 'Audi_Q5', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Lexus_UX', 'probability': 0.125, 'front_seat_max_depth': 0.05, 'front_seat_max_tilt': 0, 'normal_dist': False },
+        {'car_name': 'Porsche_CayenneS', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125, 'front_seat_max_depth': 0.07, 'front_seat_max_tilt': 2, 'normal_dist': False },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'LandRover_Autobiography', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
     ],
     "multiple_cameras": False,
     "nir_at_night": True,
@@ -272,6 +273,7 @@ icu.deleteAllOnBelts()
 # resources, log an error and keep the current car in the workspace
 # To use a uniform distribution of cars instead of probabilities,
 # set the 'use_car_interior_probabilities' in the config to False
+car_list = incabin_config['car_interior_probabilities']
 if incabin_config['use_car_interior_probabilities']:
     car_probabilities = incabin_config['car_interior_probabilities']
     selected_car = icu.selectCar(car_probabilities)
@@ -279,7 +281,16 @@ else:
     selected_car = icu.selectCar() # Uniform car interior distribution
 car_name = 'default'
 if selected_car['entity_id'] != -1:
-    icu.buildCar(selected_car, the_car, dynamic_materials = True)
+    for idx, car in enumerate(car_list):
+        if selected_car['brand'].split(' ')[0] in car['car_name']:
+            normal_dist = car['normal_dist']
+            max_depth = car['front_seat_max_depth']
+            max_tilt = car['front_seat_max_tilt']
+    move_seats_conf = {'move_seats': incabin_config['adjust_front_seats'],
+                       'normal_dist' : normal_dist,
+                       'max_depth': max_depth,
+                       'max_tilt': max_tilt }
+    icu.buildCar(selected_car, the_car, dynamic_materials = True, move_seats_conf = move_seats_conf)
 
     # Set car info from car metadata and put it as custom metadata for annotations
     car_info = icu.setCarInfo(selected_car,the_car)
