@@ -1739,18 +1739,6 @@ class InCabinUtils:
         return personal_info
 
     #_______________________________________________________________
-    def getCamerasDict(self):
-        cam_ids = self._workspace.get_camera_entities()
-        cams = {}
-        for cam_id in cam_ids:
-            camera_name = self._workspace.get_entity_name(cam_id)
-            if 'nir' in camera_name.lower():
-                cams['nir'] = cam_id
-            else:
-                cams['rgb'] = cam_id
-        return cams
-
-    #_______________________________________________________________
     def resetLight(self, light_id):
         light_position = self._workspace.get_entity_property_value(light_id, 'RelativeTransformToComponent','position')
         light_rotation = self._workspace.get_entity_property_value(light_id, 'RelativeTransformToComponent','rotation')
@@ -1948,18 +1936,20 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def reduceCameraResolution(self,cam_id, factor):
-        width = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','width_resolution')
-        height = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','height_resolution')
-        self._workspace.set_entity_property_value(cam_id, 'CameraPropertiesComponent','width_resolution', width/factor)
-        self._workspace.set_entity_property_value(cam_id, 'CameraPropertiesComponent','height_resolution', height/factor)
+        sensor_id = self.workspace.get_entity_property_value(cam_id, 'CameraReferencesComponent','sensor')
+        width = self._workspace.get_entity_property_value(sensor_id, 'SensorContentComponent','size.width_resolution')
+        height = self._workspace.get_entity_property_value(sensor_id, 'SensorContentComponent','size.height_resolution')
+        self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','size.width_resolution', width/factor)
+        self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','size.height_resolution', height/factor)
 
-        lens_name = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','lens_type')
+        lens_id = self._workspace.get_entity_property_value(cam_id, 'CameraReferencesComponent','camera_lens')
+        lens_name = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.lens_type')
 
         if 'OPENCV' in lens_name:
-            cx = self._workspace.get_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cx')
-            cy = self._workspace.get_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cy')
-            self._workspace.set_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cx', cx/factor)
-            self._workspace.set_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cy', cy/factor)
+            cx = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx')
+            cy = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy')
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx', cx/factor)
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy', cy/factor)
 
     #_______________________________________________________________
     def reduceAllCameraResolution(self, factor):
@@ -1969,18 +1959,20 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def increaseCameraResolution(self,cam_id, factor):
-        width = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','width_resolution')
-        height = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','height_resolution')
-        self._workspace.set_entity_property_value(cam_id, 'CameraPropertiesComponent','width_resolution', width*factor)
-        self._workspace.set_entity_property_value(cam_id, 'CameraPropertiesComponent','height_resolution', height*factor)
+        sensor_id = self.workspace.get_entity_property_value(cam_id, 'CameraReferencesComponent','sensor')
+        width = self._workspace.get_entity_property_value(sensor_id, 'SensorContentComponent','size.width_resolution')
+        height = self._workspace.get_entity_property_value(sensor_id, 'SensorContentComponent','size.height_resolution')
+        self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','size.width_resolution', width*factor)
+        self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','size.height_resolution', height*factor)
 
-        lens_name = self._workspace.get_entity_property_value(cam_id, 'CameraPropertiesComponent','lens_type')
+        lens_id = self._workspace.get_entity_property_value(cam_id, 'CameraReferencesComponent','camera_lens')
+        lens_name = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.lens_type')
 
         if 'OPENCV' in lens_name:
-            cx = self._workspace.get_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cx')
-            cy = self._workspace.get_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cy')
-            self._workspace.set_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cx', cx*factor)
-            self._workspace.set_entity_property_value(cam_id, 'CameraIntrinsicsComponent','camera-intrinsics-cy', cy*factor)
+            cx = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx')
+            cy = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy')
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx', cx*factor)
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy', cy*factor)
 
     #_______________________________________________________________
     def increaseAllCameraResolution(self, factor):
