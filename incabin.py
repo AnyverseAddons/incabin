@@ -758,7 +758,7 @@ class InCabinUtils:
                 scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
-                if 'version' in ke:
+                if 'version' in str(ke):
                     object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
                     scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
 
@@ -848,7 +848,7 @@ class InCabinUtils:
                 scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
-                if 'version' in ke:
+                if 'version' in str(ke):
                     object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
                     scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
 
