@@ -36,7 +36,7 @@ incabin_config = {
     ],
     "multiple_cameras": False,
     "nir_at_night": True,
-    "rgb_sensor_sim": False,
+    "rgb_sensor_sim": True,
     "cameras":{
         "RVM": {
             "probability": 0.0,
