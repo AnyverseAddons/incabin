@@ -815,6 +815,7 @@ class InCabinUtils:
             # Set custom meta data for the object
             self.setExportAlwaysExcludeOcclusion(object_entity_id)
             object['Seatbelt_on'] = False
+            object['Seatbelt_placement'] = 'Off'
             object['Face'] = ''
             self.setObjectInfo(object)
             self.setSeatInfo(object)
@@ -909,6 +910,7 @@ class InCabinUtils:
             # Set custom meta data for the object
             self.setExportAlwaysExcludeOcclusion(object_entity_id)
             object['Seatbelt_on'] = False
+            object['Seatbelt_placement'] = 'Off'
             object['Face'] = ''
             self.setObjectInfo(object)
             self.setSeatInfo(object)
