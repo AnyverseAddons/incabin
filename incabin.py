@@ -764,7 +764,9 @@ class InCabinUtils:
                 scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
-                scale_factor = -1
+                if 'version' in str(ke):
+                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
+                    scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
 
             if scale_factor != 1:
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
@@ -812,6 +814,7 @@ class InCabinUtils:
             # Set custom meta data for the object
             self.setExportAlwaysExcludeOcclusion(object_entity_id)
             object['Seatbelt_on'] = False
+            object['Seatbelt_placement'] = 'Off'
             object['Face'] = ''
             self.setObjectInfo(object)
             self.setSeatInfo(object)
@@ -842,7 +845,9 @@ class InCabinUtils:
                 scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
-                scale_factor = -1
+                if 'version' in str(ke):
+                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
+                    scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
 
             if scale_factor != 1:
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
@@ -901,6 +906,7 @@ class InCabinUtils:
             # Set custom meta data for the object
             self.setExportAlwaysExcludeOcclusion(object_entity_id)
             object['Seatbelt_on'] = False
+            object['Seatbelt_placement'] = 'Off'
             object['Face'] = ''
             self.setObjectInfo(object)
             self.setSeatInfo(object)
@@ -2961,7 +2967,7 @@ class InCabinUtils:
                 ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': seat_occupant['Seatbelt_on']})
             else:
                 if type(seat_occupant) != list:
-                    ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': seat_occupant['name'], 'Seatbelt_on': seat_occupant['Seatbelt_on'], 'Accessory': seat_occupant['Accessory']})
+                    ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': seat_occupant['name'], 'Seatbelt_on': seat_occupant['Seatbelt_on'], 'Seatbelt_mode': seat_occupant['Seatbelt_placement'], 'Accessory': seat_occupant['Accessory']})
                 else:
                     if seat_occupant[1] != None:
                         ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': seat_occupant[1]['name'], 'Seatbelt_on': seat_occupant[1]['Seatbelt_on']})
