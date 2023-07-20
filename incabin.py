@@ -2016,8 +2016,7 @@ class InCabinUtils:
         query.add_exists_attribute_filter('model')
         query.add_exists_attribute_filter('version')
 
-        if dynamic_material:
-            query.add_exists_attribute_filter('dynamic_material')
+        query.add_attribute_filter('dynamic_material', dynamic_material)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
