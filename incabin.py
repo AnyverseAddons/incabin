@@ -1089,7 +1089,10 @@ class InCabinUtils:
 
             if fasten_seatbelt and not self._script_console:
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), driver_id, self._car_brand, self._car_model, seatbelts_distribution = seatbelts_distribution)
-                driver['Seatbelt_placement'] = belt_placement
+                if belt_placement is None:
+                    print('[ERROR] Cannot create belt')                    
+                else:
+                    driver['Seatbelt_placement'] = belt_placement     
 
             self.setExportAlwaysExcludeOcclusion(driver_id)
             self.setAvoidArmsAutoCollision(driver_id)
@@ -1341,7 +1344,10 @@ class InCabinUtils:
                 if fasten_seatbelt and not self._script_console:
                     print('[INFO] Setting seat belt for booster...')
                     belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), child_id, self._car_brand, self._car_model, seatbelts_distribution)
-                    child['Seatbelt_placement'] = belt_placement
+                    if belt_placement is None:
+                        print('[ERROR] Cannot create belt')
+                    else:
+                        child['Seatbelt_placement'] = belt_placement
 
             if childseat['kind'] == 'Convertible':
                 if fasten_seatbelt and not self._script_console:
@@ -1486,11 +1492,14 @@ class InCabinUtils:
             if fasten_seatbelt and not self._script_console:
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), passenger_id, self._car_brand, self._car_model, seatbelts_distribution = seatbelts_distribution)
                 # Move the children 7 cm forward when sitting on the seatbelt
-                if belt_placement == 'CharacterOverSeatbelt' and passenger['kind'] == 'Child':
-                    pass_pos = self._workspace.get_entity_property_value(passenger_id, 'RelativeTransformToComponent', 'position')
-                    pass_pos.x += 0.07
-                    self._workspace.set_entity_property_value(passenger_id, 'RelativeTransformToComponent', 'position', pass_pos)
-                passenger['Seatbelt_placement'] = belt_placement
+                if belt_placement is None:
+                    print('[ERROR] Cannot create belt')
+                else:
+                    if belt_placement == 'CharacterOverSeatbelt' and passenger['kind'] == 'Child':
+                        pass_pos = self._workspace.get_entity_property_value(passenger_id, 'RelativeTransformToComponent', 'position')
+                        pass_pos.x += 0.07
+                        self._workspace.set_entity_property_value(passenger_id, 'RelativeTransformToComponent', 'position', pass_pos)
+                    passenger['Seatbelt_placement'] = belt_placement
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
             self.setAvoidArmsAutoCollision(passenger_id)
@@ -2107,7 +2116,10 @@ class InCabinUtils:
         # Get the asset that correspond to the fixed entity that expose the materials
         asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
         if type(asset_set) is list: 
-            asset = [ a for a in asset_set if a['entity_id'] == asset_id ][0]
+            asset = [ a for a in asset_set if a['entity_id'] == asset_id ]
+            if len(asset) == 0:
+                return
+            asset = asset[0]
         else: 
             asset = asset_set
 
@@ -2137,6 +2149,9 @@ class InCabinUtils:
     def changeExposedMaterialsList(self, fixed_ids_list, asset_set, color_scheme = None):
         cached_materials = {}
         for fixed_id in fixed_ids_list:
+            if fixed_id == anyverse_platform.invalid_entity_id:
+                continue
+            
             print('[INFO] Changing materials for {}'.format(self._workspace.get_entity_name(fixed_id)))
             # Get the asset that correspond to the fixed entity that expose the materials
             asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
@@ -2574,7 +2589,12 @@ class InCabinUtils:
             print('[ERROR] No belt OFF found for child seat brand {} model {}'.format(childseat['brand'], childseat['model']))
             return False
         
-        belt_off_id = self._workspace.create_fixed_entity( belt_off['name'], childseat['fixed_entity_id'], belt_off['entity_id'] )
+        try:
+            belt_off_id = self._workspace.create_fixed_entity( belt_off['name'], childseat['fixed_entity_id'], belt_off['entity_id'] )
+        except RuntimeError as rte:
+            # TODO: show warning message here
+            return False       
+
         self._workspace.set_entity_property_value(belt_off_id, 'ExportConfigurationComponent', 'export_always', True)
         self._workspace.set_entity_property_value(belt_off_id, 'ExportConfigurationComponent', 'exclude_from_occlusion_tests', True)
 
@@ -2587,12 +2607,17 @@ class InCabinUtils:
         clip = self.getClipAssetForCar(car_brand, car_model, self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset))
         if clip == None:
             print("[ERROR] Cannot find clip for brand " + car_brand)
+            return None
+        
         clip_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, clip.name, clip.id, anyverse_platform.invalid_entity_id )
         assert clip_asset != anyverse_platform.invalid_entity_id
 
         jointsToRemove = None  # For the moment just use the default: both arms
 
         belt_id, belt_placement = self.createBelt( beltUserEntityId, clip_asset, seatId, jointsToRemove, seatbelts_distribution )
+        if belt_id == anyverse_platform.invalid_entity_id:
+            return None
+        
         belt_name = self._workspace.get_entity_name(belt_id)
         self._workspace.set_entity_name(belt_id, 'SeatBelt0{}_On'.format(seat_pos))
         print('[INFO] Placed belt name: {}'.format(self._workspace.get_entity_name(belt_id)))
@@ -2606,8 +2631,12 @@ class InCabinUtils:
     #_______________________________________________________________
     def createBelt( self, beltUserEntityId, clipAsset, seatId="01", joints_to_remove=[], seatbelts_distribution = None ):
         clipLocatorName = "clipOn{}_locator".format( seatId )
-        clipLocator = self._workspace.get_entities_by_name( clipLocatorName )[0]
+        clipLocator = self._workspace.get_entities_by_name( clipLocatorName )
+        if len(clipLocator) == 0:
+            print( "[ERROR] Cannot find clip locator " + clipLocatorName )
+            return anyverse_platform.invalid_entity_id, None
 
+        clipLocator = clipLocator[0]
         clipName = "clipEntity" + seatId
         clipEntityId = self._workspace.create_fixed_entity( clipName, clipLocator, clipAsset )
         assert clipEntityId != anyverse_platform.invalid_entity_id
