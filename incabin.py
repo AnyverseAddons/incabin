@@ -2076,14 +2076,22 @@ class InCabinUtils:
         return self.queryResultToDic(query.execute_query_on_assets())
 
     #_______________________________________________________________
+    def queryCarBeltsOff(self, picked_car):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_attribute_filter("brand", picked_car['brand'])
+        query.add_attribute_filter("model", picked_car['model'])
+        query.add_attribute_filter("type", "Belt")
+
+        return self.queryResultToDic(query.execute_query_on_assets())
+
+    #_______________________________________________________________
     def queryCarSeats(self, picked_car, dynamic_material = False):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_attribute_filter("brand", picked_car['brand'])
         query.add_attribute_filter("model", picked_car['model'])
         query.add_attribute_filter("type", "Seat")
 
-        if dynamic_material:
-            query.add_exists_attribute_filter('dynamic_material')
+        query.add_attribute_filter('dynamic_material', dynamic_material)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
@@ -2501,8 +2509,7 @@ class InCabinUtils:
             # There is a specific locator por this seat
             seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
             if seat != None:
-                seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
-                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat_asset)
+                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat['entity_id'])
                 # self.setSplitAction(seat_id, 'Split') # If the assets does not have the the 'compound' tag
             else:
                 print("Locator {} exists but not its seat".format(self._workspace.get_entity_name(locator)) )
@@ -2511,8 +2518,7 @@ class InCabinUtils:
             # There is not a specific locator por this seat. Create it under the car directly
             seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
             if seat != None:
-                seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
-                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat_asset)
+                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat['entity_id'])
             else:
                 print("No exists locator neither seat for position {}".format(seat_pos) )
                 seat_id = anyverse_platform.invalid_entity_id
@@ -2567,10 +2573,9 @@ class InCabinUtils:
     def setCarSeatbeltsOff(self, picked_car):
         belt_locator = self._workspace.get_entities_by_name('belt_locator')[0]
         self.deleteChildren(belt_locator)
-        belts = self.getBeltAssetsForCar(picked_car['brand'], picked_car['model'], self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset))
+        belts = self.queryCarBeltsOff(picked_car)
         for belt in belts:
-            belt_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, belt.name, belt.id, anyverse_platform.invalid_entity_id )
-            beltoff_id = self._workspace.create_fixed_entity(belt.name, belt_locator, belt_asset)
+            beltoff_id = self._workspace.create_fixed_entity(belt['resource_name'], belt_locator, belt['entity_id'])
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
             seat_info = {}
