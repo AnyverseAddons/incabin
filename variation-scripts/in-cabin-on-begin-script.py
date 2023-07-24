@@ -388,11 +388,13 @@ else:
     print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
 
     # Advance the light 10 cm to avoid rvm casted shadows
-    light_pos = anyverse_platform.Vector3D(0.1, 0, 0)
-    incabin_lights = workspace.get_entities_by_type('Light')
-    if len(incabin_lights) > 0:
-        incabin_light = incabin_lights[0]
-    workspace.set_entity_property_value(incabin_light, 'RelativeTransformToComponent','position', light_pos)
+    light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera_selected in workspace.get_entity_name(li) ]
+    light_id = light_ids[0] if len(light_ids) == 1 else 0
+    if light_id != 0:
+        light_pos = anyverse_platform.Vector3D(-0.1, 0, 0) if camera_selected =='RVM' else anyverse_platform.Vector3D(0, 0, 0)
+    else:
+        print('[WARN] Missing light for {} camera in workspace'.format(camera_selected))
+    workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
 
     # Apply camera vibration simulation with normal distribution
     pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]

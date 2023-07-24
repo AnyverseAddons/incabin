@@ -1758,6 +1758,7 @@ class InCabinUtils:
 
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_position)
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','rotation', light_rotation)
+        self._workspace.set_entity_property_value(light_id, 'VisibleComponent','visible', False)
 
         return light_position, light_rotation
     
@@ -1841,12 +1842,12 @@ class InCabinUtils:
         return position, cam_rotation
 
     #_______________________________________________________________
-    def setActiveLightInPosition(self, light_id, rotation, position):
+    def setActiveLightInPosition(self, light_id, position, rotation):
         light_rotation = self._workspace.get_entity_property_value(light_id, 'RelativeTransformToComponent','rotation')
 
         light_rotation.x += rotation.x
         light_rotation.y += rotation.y
-        light_rotation.z += rotation.z
+        light_rotation.z += -rotation.z
     
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', position)
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','rotation', light_rotation)
