@@ -1027,7 +1027,7 @@ class InCabinUtils:
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
             if 'side_ward' in spine_animation_name and weight > 0.4:
-                weight = 0.4
+                weight = 0.3
 
             self.setAnimation('spine', animation, weight, driver_id)
 
@@ -1102,7 +1102,7 @@ class InCabinUtils:
             self.setCharacterPoseInfo(driver)
             self.setSeatInfo(driver)
 
-            self._already_used_characters.append(driver['name'])
+            self._already_used_characters.append(driver['model'])
         else:
             # No matching drivers found returning id -1
             if driver != None:
@@ -1181,7 +1181,7 @@ class InCabinUtils:
             self.setChildseatInfo(childseat)
             self.setSeatInfo(childseat)
 
-            self._already_used_characters.append(childseat['name'])
+            # self._already_used_characters.append(childseat['name'])
         else:
             print('[WARN]: Could not find a {} childseat with orientation {}'.format(childseat_type, orientation))
 
@@ -1228,7 +1228,7 @@ class InCabinUtils:
             self.setSeatInfo(childseat)
 
             # We don't allow the same childseat repeated
-            self._already_used_characters.append(baby['name'])
+            self._already_used_characters.append(baby['model'])
         elif baby_asset_id == -1:
             # No matching children found returning id -1
             print('[ERROR]: could not find suitable baby for childseat')
@@ -1365,7 +1365,7 @@ class InCabinUtils:
             self.setChildseatInfo(childseat)
             self.setSeatInfo(childseat)
 
-            self._already_used_characters.append(child['name'])
+            self._already_used_characters.append(child['model'])
         elif child_asset_id == -1:
             # No matching children found returning id -1
             print('[ERROR]: could not find suitable child for childseat')
@@ -1509,7 +1509,7 @@ class InCabinUtils:
             self.setCharacterPoseInfo(passenger)
             self.setSeatInfo(passenger)
 
-            self._already_used_characters.append(passenger['name'])
+            self._already_used_characters.append(passenger['model'])
 
         return passenger
 
@@ -2202,7 +2202,7 @@ class InCabinUtils:
         elegible_chars = filtered_characters.copy()
         # Discard the characters already used
         for character in filtered_characters:
-            if character['resource_name'] in self._already_used_characters:
+            if character['model'] in self._already_used_characters:
                 print('[WARN]: Character {} used. Removing from elegible...'.format(character['resource_name']))
                 elegible_chars.remove(character)
         return elegible_chars
