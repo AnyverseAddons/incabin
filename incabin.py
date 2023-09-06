@@ -217,7 +217,7 @@ class InCabinUtils:
     def getAnimIdByName(self, anim_name):
         anims = self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation)
         for anim in anims:
-            if self._workspace.get_entity_name(anim) == anim_name:
+            if self._workspace.get_entity_name(anim) == anim_name or anim_name in self._workspace.get_entity_name(anim):
                 return anim
         return -1
 
