@@ -139,6 +139,11 @@ class InCabinUtils:
         else:
             delta = random.uniform(center - interval,center + interval)
 
+        if delta > interval:
+            delta = interval
+        if delta < -interval:
+            delta = -interval
+        
         return delta
 
     #_______________________________________________________________
@@ -1115,7 +1120,7 @@ class InCabinUtils:
             self.setCharacterPoseInfo(driver)
             self.setSeatInfo(driver)
 
-            self._already_used_characters.append(driver['name'])
+            self._already_used_characters.append(driver['model'])
         else:
             # No matching drivers found returning id -1
             if driver != None:
@@ -1197,7 +1202,7 @@ class InCabinUtils:
             self.setChildseatInfo(childseat)
             self.setSeatInfo(childseat)
 
-            self._already_used_characters.append(childseat['name'])
+            self._already_used_characters.append(childseat['model'])
         else:
             print('[WARN]: Could not find a {} childseat with orientation {}'.format(childseat_type, orientation))
 
@@ -1245,7 +1250,7 @@ class InCabinUtils:
         self.setSeatInfo(childseat)
 
         # We don't allow the same childseat repeated
-        self._already_used_characters.append(baby['name'])
+        self._already_used_characters.append(baby['model'])
 
         return baby
 
@@ -1389,7 +1394,7 @@ class InCabinUtils:
         self.setChildseatInfo(childseat)
         self.setSeatInfo(childseat)
 
-        self._already_used_characters.append(child['name'])
+        self._already_used_characters.append(child['model'])
 
         return child
 
@@ -1530,7 +1535,7 @@ class InCabinUtils:
             self.setCharacterPoseInfo(passenger)
             self.setSeatInfo(passenger)
 
-            self._already_used_characters.append(passenger['name'])
+            self._already_used_characters.append(passenger['model'])
 
         return passenger
 
@@ -1880,6 +1885,10 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','position', ego_position)
         self._workspace.set_entity_property_value(ego_id, 'RelativeTransformToComponent','rotation', ego_rotation)
 
+        pos_delta_info = {'x': front_back_delta / 100, 'y': left_right_delta / 100, 'z': up_down_delta / 100}
+        rot_delta_info = {'x': roll_delta, 'y': pitch_delta, 'z': yaw_delta}
+        self.setCustomMetadata(ego_id, 'pos-delta', pos_delta_info)
+        self.setCustomMetadata(ego_id, 'rot-delta', rot_delta_info)
         return ego_position, ego_rotation, pos_delta, rot_delta
 
     #_______________________________________________________________
@@ -2214,7 +2223,7 @@ class InCabinUtils:
         elegible_chars = filtered_characters.copy()
         # Discard the characters already used
         for character in filtered_characters:
-            if character['resource_name'] in self._already_used_characters:
+            if character['model'] in self._already_used_characters:
                 print('[WARN]: Character {} used. Removing from elegible...'.format(character['resource_name']))
                 elegible_chars.remove(character)
         return elegible_chars
@@ -2448,6 +2457,8 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','time_of_day', time_of_day)
         self.setGroundRotation(ground_rotation, simulation_id)
 
+        self.setCustomMetadata(simulation_id, 'ground-rotation', ground_rotation)
+
         return time_of_day, ground_rotation
 
     #_______________________________________________________________
@@ -2548,6 +2559,9 @@ class InCabinUtils:
                 print("No exists locator neither seat for position {}".format(seat_pos) )
                 seat_id = anyverse_platform.invalid_entity_id
 
+        seat_info = {}
+        seat_info['number'] = seat_pos
+        self.setCustomMetadata(seat_id, "Seat", seat_info)
         return seat_id
 
     #_______________________________________________________________
@@ -2590,7 +2604,7 @@ class InCabinUtils:
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
             seat_info = {}
-            seat_info['number'] = 'seat{}'.format(belt_name.split('_')[2][-2:])
+            seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
             self.setCustomMetadata(beltoff_id, "Seat", seat_info)
 
     #_______________________________________________________________
