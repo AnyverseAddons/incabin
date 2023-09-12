@@ -1056,14 +1056,6 @@ class InCabinUtils:
                     animation, weight = self.selectAdultAnimation(arms[arm], 0, 1)
                 # print('Setting animation: {}, weight: {}'.format(self._workspace.get_entity_name(animation), weight))
                 self.setAnimation(arms[arm], animation, weight, driver_id)
-                if arm == 1 and 'above' not in self._workspace.get_entity_name(animation):
-                    # HACK: Avoid reaching RVM if camera is placed there
-                    rvm_cams_visible = [ c for c in self.getVisibleCameras() if 'RVM' in c]
-                    if len(rvm_cams_visible) > 0:
-                        reach = self.reachInfotainment(driver_id, 'right') if random.uniform(0,1) <= 0.5 else 'Nothing'
-                    else:
-                        reach = self.reachRVM(driver_id, 'right') if random.uniform(0,1) <= 0.5 else self.reachInfotainment(driver_id, 'right')
-                    print('[DRIVER ARM] Driver reaching {}'.format(reach))                
 
             # setting head animation
             # we cannot set the driver gaze here in case it has to look at the passenger that is not there yet 
@@ -1465,14 +1457,11 @@ class InCabinUtils:
                 left_arm_max_weight = 1.0
                 right_arm_max_weight = 0.2
 
-            arms_min_weight = 0.2
+            arms_min_weight = 0.2 if 'extreme' not in spine_animation_name else 0.5
             if animate_left_arm:
                 arm = 'left_arm'
                 animation, weight = self.selectAdultAnimation(arm, 0.35, left_arm_max_weight) # left arm min weight enough to avoid seatbelt collision
                 self.setAnimation(arm, animation, weight, passenger_id)
-                if 'above' not in self._workspace.get_entity_name(animation):
-                    reach = self.reachInfotainment(passenger_id, 'left') if random.uniform(0,1) <= 0.5 else 'Nothing'
-                    print('[PASSENGER ARM] Passenger reaching {}'.format(reach))
             # Animate right arm
             if animate_right_arm:
                 arm = 'right_arm'
@@ -3005,22 +2994,43 @@ class InCabinUtils:
         gaze_info = {}
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
         gaze = gaze_probabilities[idx]['gaze']
+        reach = gaze_probabilities[idx]['reach']
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze
         print('Setting the driver to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
         if driver != anyverse_platform.invalid_entity_id:
-            if gaze == 1:
+            if gaze == 1: # exterior rear view mirror (50% each side)
                 side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
                 self.LookAtExteriorRearViewMirror(driver, the_car, side)
                 gaze_info['side'] = side
-            elif gaze == 2:
+            elif gaze == 2: # inside rear view mirror
                 self.LookAtInsideRearViewMirror(driver, the_car)
-            elif gaze == 3:
-                self.LookAtInfotainment(the_car, driver)
-            elif gaze == 4:
+                if reach:
+                    self.reachRVM(driver, 'right')
+            elif gaze == 3: # infotaintment
+                self.LookAtInfotainment(driver, the_car)
+                if reach:
+                    self.reachInfotainment(driver, 'right')
+            elif gaze == 4: # passenger
                 self.LookAtOtherCharacter(driver, passenger)
-            elif gaze == 5:
-                self.LookAtRearSeat(driver,the_car, 'right')
+            elif gaze == 5: # rear seat
+                self.LookAtRearSeat(driver, the_car, 'right')
+            elif gaze == 6: # headrest
+                self.LookAtHeadrest(driver, the_car, 'right')
+                if reach:
+                    self.reachHeadrest(driver, 'right')
+            elif gaze == 7: # glove compartment
+                self.LookAtGloveCompartment(driver, the_car)
+                if reach:
+                    self.reachGloveCompartment(driver, 'right')
+            elif gaze == 8: # seat belt
+                self.LookAtSeatbelt(driver, the_car, 'left')
+                if reach:
+                    self.reachSeatbelt(driver, 'right')
+            elif gaze == 9: # floor own side
+                self.LookAtFloor(driver, the_car, 'left')
+                if reach:
+                    self.reachFloor(driver, 'left')
 
             self.setCustomMetadata(driver, 'gaze', gaze_info)
 
@@ -3047,21 +3057,42 @@ class InCabinUtils:
         gaze_info = {}
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
         gaze = gaze_probabilities[idx]['gaze']
+        reach = gaze_probabilities[idx]['reach']
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze
         print('Setting the passenger to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
-        if gaze == 1:
+        if gaze == 1: # exterior rear view mirror (50% each side)
             side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
             self.LookAtExteriorRearViewMirror(passenger, the_car, side)
             gaze_info['side'] = side
-        elif gaze == 2:
+        elif gaze == 2: # inside rear view mirror
             self.LookAtInsideRearViewMirror(passenger, the_car)
-        elif gaze == 3:
+            if reach:
+                self.reachRVM(driver, 'right')
+        elif gaze == 3: #  infotaintment
             self.LookAtInfotainment(the_car, passenger)
-        elif gaze == 4:
+            if reach:
+                self.reachInfotainment(passenger, 'left')
+        elif gaze == 4: #passenger
             self.LookAtOtherCharacter(passenger, driver)
-        elif gaze == 5:
+        elif gaze == 5: # rear seat
             self.LookAtRearSeat(passenger,the_car, 'left')
+        elif gaze == 6: # headrest
+            self.LookAtHeadrest(passenger, the_car, 'left')
+            if reach:
+                self.reachHeadrest(passenger, 'left')
+        elif gaze == 7: # glove compartment
+            self.LookAtGloveCompartment(passenger, the_car)
+            if reach:
+                self.reachGloveCompartment(passenger, 'right')
+        elif gaze == 8: # seat belt
+            self.LookAtSeatbelt(passenger, the_car, 'right')
+            if reach:
+                self.reachSeatbelt(passenger, 'left')
+        elif gaze == 9: # floor own side
+            self.LookAtFloor(passenger, the_car, 'right')
+            if reach:
+                self.reachFloor(passenger, 'right')
 
         self.setCustomMetadata(passenger, 'gaze', gaze_info)
 
@@ -3111,54 +3142,71 @@ class InCabinUtils:
         return ret
 
     #_______________________________________________________________
-    def createCCLocator(self, the_car):
-        cc_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
-        if len(cc_locators) > 0:
-            print('[INFO] Recreating CC locator')
-            self._workspace.delete_entity(cc_locators[0])
-        cc_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'cc_info_locator', the_car)
+    def createGloveCompLocator(self, the_car):
+        glove_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'glove_' in self._workspace.get_entity_name(ent) ]
+        if len(glove_locators) > 0:
+            print('[INFO] Recreating glove compartment locator')
+            self._workspace.delete_entity(glove_locators[0])
+        glove_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'glove_locator', the_car)
 
-        loc_position = anyverse_platform.Vector3D(0.6, 0.0, random.uniform(0.9, 1.0))
-        self._workspace.set_entity_property_value(cc_locator,'RelativeTransformToComponent','position', loc_position)
-        print('CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
-        return cc_locator
-
-    #_______________________________________________________________
-    def reachInfotainment(self, character_id, hand):
-        the_car = self.getCars()[0]
-        cc_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
-        if len(cc_locators) > 0:
-            cc_locator = cc_locators[0]
-            hand_config = 'left_hand_config.locator_entity_id'
-            if hand == 'right':
-                hand_config = 'right_hand_config.locator_entity_id'
-            self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent',hand_config, cc_locator)
-        else:
-            print('[WARN] Could not find CC infotainment locator.')
-        return self._workspace.get_entity_name(cc_locator)
+        loc_position = anyverse_platform.Vector3D(0.55, -0.38, 0.95)
+        self._workspace.set_entity_property_value(glove_locator,'RelativeTransformToComponent','position', loc_position)
+        print('Glove compartment locator: {}'.format(self._workspace.get_entity_name(glove_locator)))
+        return glove_locator
 
     #_______________________________________________________________
-    def reachRVM(self, character_id, hand):
-        the_car = self.getCars()[0]
-        rvm_inside_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and "rvm_inside_locator" == self._workspace.get_entity_name(ent) ]
-        num_locs = len(rvm_inside_locators)
-        if num_locs > 0:
-            rvm_inside_locator = rvm_inside_locators[0]
-            hand_config = 'right_hand_config'
-            if hand == 'left':
-                hand_config = 'left_hand_config'
-            loc_rot = self._workspace.get_entity_property_value(rvm_inside_locator, 'RelativeTransformToComponent','rotation')
-            loc_rot.z += 90
-            loc_rot.y += 0
-            loc_rot.x += 45
-            self._workspace.set_entity_property_value(rvm_inside_locator, 'RelativeTransformToComponent','rotation', loc_rot)
-            self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent',hand_config+'.locator_entity_id', rvm_inside_locator)
-            offset_value = random.uniform(-0.4,0.1)
-            offset = anyverse_platform.Vector3D(0,0,offset_value)
-            self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent',hand_config+'.offset', offset)
+    def createFloorLocator(self, the_car, side):
+        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'floor_'+side in self._workspace.get_entity_name(ent) ]
+        if len(locators) == 0:
+            floorlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'floor_' + side + '_locator', the_car)
+            loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
+            if side == 'right':
+                loc_position = anyverse_platform.Vector3D(0.68, -0.38, 0.36)
+            elif side == 'left':
+                loc_position = anyverse_platform.Vector3D(0.68, 0.23, 0.36)
+            self._workspace.set_entity_property_value(floorlocator,'RelativeTransformToComponent','position', loc_position)
         else:
-            print('[WARN] Could not find RVM locator.')
-        return self._workspace.get_entity_name(rvm_inside_locator)+'({})'.format(offset_value)
+            print('[WARN] floor{}_locator already created.'.format(side))
+            floorlocator = locators[0]
+
+        print('Floor locator: {}'.format(self._workspace.get_entity_name(floorlocator)))
+        return floorlocator
+
+    #_______________________________________________________________
+    def createHeadrestLocator(self, the_car, side):
+        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'headrest_'+side in self._workspace.get_entity_name(ent) ]
+        if len(locators) == 0:
+            headrest_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'headrest_' + side + '_locator', the_car)
+            loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
+            if side == 'right':
+                loc_position = anyverse_platform.Vector3D(-0.35, -0.28, 1.3)
+            elif side == 'left':
+                loc_position = anyverse_platform.Vector3D(-0.35, 0.28, 1.3)
+            self._workspace.set_entity_property_value(headrest_locator,'RelativeTransformToComponent','position', loc_position)
+        else:
+            print('[WARN] headrest_{}_locator already created.'.format(side))
+            headrest_locator = locators[0]
+
+        print('Headrest locator: {}'.format(self._workspace.get_entity_name(headrest_locator)))
+        return headrest_locator
+
+    #_______________________________________________________________
+    def createSeatbeltLocator(self, the_car, side):
+        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seatbelt'+side in self._workspace.get_entity_name(ent) ]
+        if len(locators) == 0:
+            seatbeltlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'seatbelt' + side + '_locator', the_car)
+            loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
+            if side == 'right':
+                loc_position = anyverse_platform.Vector3D(-0.09, -0.62, 1.19)
+            elif side == 'left':
+                loc_position = anyverse_platform.Vector3D(-0.09, 0.62, 1.19)
+            self._workspace.set_entity_property_value(seatbeltlocator,'RelativeTransformToComponent','position', loc_position)
+        else:
+            print('[WARN] seatbelt{}_locator already created.'.format(side))
+            seatbeltlocator = locators[0]
+
+        print('Seatbelt locator: {}'.format(self._workspace.get_entity_name(seatbeltlocator)))
+        return seatbeltlocator
 
     #_______________________________________________________________
     def createRVMLocator(self, the_car, side):
@@ -3181,28 +3229,168 @@ class InCabinUtils:
         return rvm_locator
 
     #_______________________________________________________________
-    def getRVMLocator(self, the_car, side):
-        rvm_locator = None
-        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'rvm_'+side in self._workspace.get_entity_name(ent) ]
-        if len(locators) > 0:
-            rvm_locator = locators[0]
-        else:
-            print('[WARN] Could NOT find rvm_{}_locator.'.format(side))
+    def createCCLocator(self, the_car):
+        cc_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
+        if len(cc_locators) > 0:
+            print('[INFO] Recreating CC locator')
+            self._workspace.delete_entity(cc_locators[0])
+        cc_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'cc_info_locator', the_car)
 
-        print('RVM locator: {}'.format(self._workspace.get_entity_name(rvm_locator)))
-        return rvm_locator
+        loc_position = anyverse_platform.Vector3D(0.6, 0.0, random.uniform(0.9, 1.0))
+        self._workspace.set_entity_property_value(cc_locator,'RelativeTransformToComponent','position', loc_position)
+        print('CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
+        return cc_locator
+
+    #_______________________________________________________________
+    def reachLocator(self, character_id, hand, locator, offset = None):
+        type = None
+        try:
+            type = self._workspace.get_entity_type(locator)
+        except:
+            print('[ERROR] locator {} does not exist.'.format(locator))
+            locator_name = None
+        if type == 'Locator':
+            hand_config = 'left_hand_config.locator_entity_id'
+            if hand == 'right':
+                hand_config = 'right_hand_config.locator_entity_id'
+            self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent',hand_config, locator)
+            if offset is not None:
+                self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent',hand_config+'.offset', offset)
+            locator_name = self._workspace.get_entity_name(locator)
+        elif type is not None:
+            print('[WARN] {}({}) not a locator.'.format(self._workspace.get_entity_name(locator), locator))
+        return locator_name
+
+    #_______________________________________________________________
+    def reachFloor(self, character_id, hand):
+        the_car = self.getCars()[0]
+
+        # Make the character lean forward to some extent
+        animation, weight = self.selectAdultAnimation('spine', 0.5, 1, 'leaning_forward_extreme')
+        self.setAnimation('spine', animation, weight, character_id)
+
+        side = hand
+        floor_locator = self.getFloorLocator(the_car, side)
+        if floor_locator:
+            locator_name = self.reachLocator(character_id, hand, floor_locator)
+        else:
+            print('[WARN] Could not find {} floor locator.'.format(side))
+        return locator_name
+
+    #_______________________________________________________________
+    def reachSeatbelt(self, character_id, hand):
+        the_car = self.getCars()[0]
+
+        if hand == 'right':
+            side = 'left'
+        elif hand == 'left':
+            side = 'right'
+
+         # Make the character lean forward to some extent
+        animation, weight = self.selectAdultAnimation('spine', 0, 0.1, 'leaning_forward')
+        self.setAnimation('spine', animation, weight, character_id)
+
+        seatbelt_locator = self.getSeatbeltLocator(the_car, side)
+        if seatbelt_locator:
+            locator_name = self.reachLocator(character_id, hand, seatbelt_locator)
+        else:
+            print('[WARN] Could not find {} seatbelt locator.'.format(side))
+        return locator_name
+
+    #_______________________________________________________________
+    def reachHeadrest(self, character_id, hand):
+        the_car = self.getCars()[0]
+
+        side = hand
+
+         # Make the character lean forward to some extent
+        animation, weight = self.selectAdultAnimation('spine', 0.3, 0.5, 'leaning_forward')
+        self.setAnimation('spine', animation, weight, character_id)
+
+        headrest_locator = self.getHeadrestLocator(the_car, side)
+        if headrest_locator:
+            locator_name = self.reachLocator(character_id, hand, headrest_locator)
+        else:
+            print('[WARN] Could not find {} headrest locator.'.format(side))
+        return locator_name
+
+    #_______________________________________________________________
+    def reachGloveCompartment(self, character_id, hand):
+        the_car = self.getCars()[0]
+
+         # Make the character lean forward to some extent
+        animation, weight = self.selectAdultAnimation('spine', 0.5, 1, 'leaning_forward_extreme')
+        self.setAnimation('spine', animation, weight, character_id)
+
+        glove_locator = self.getGloveCompLocator(the_car)
+        if glove_locator:
+            locator_name = self.reachLocator(character_id, hand, glove_locator)
+        else:
+            print('[WARN] Could not find glove compartment locator.')
+        return locator_name
+
+    #_______________________________________________________________
+    def reachInfotainment(self, character_id, hand):
+        the_car = self.getCars()[0]
+        cc_locator = self.getCCLocator(the_car)
+        if cc_locator:
+            locator_name = self.reachLocator(character_id, hand, cc_locator)
+        else:
+            print('[WARN] Could not find CC infotainment locator.')
+        return locator_name
+
+    #_______________________________________________________________
+    def reachRVM(self, character_id, hand):
+        the_car = self.getCars()[0]
+        rvm_inside_locator = self.getRVMLocator(the_car, 'inside')
+        if rvm_inside_locator:
+            loc_rot = self._workspace.get_entity_property_value(rvm_inside_locator, 'RelativeTransformToComponent','rotation')
+            loc_rot.z += 90
+            loc_rot.y += 0
+            loc_rot.x += 45
+            self._workspace.set_entity_property_value(rvm_inside_locator, 'RelativeTransformToComponent','rotation', loc_rot)
+            offset_value = random.uniform(-0.4,0.1)
+            offset = anyverse_platform.Vector3D(0,0,offset_value)
+            locator_name = self.reachLocator(character_id, hand, rvm_inside_locator, offset=offset)
+        else:
+            print('[WARN] Could not find RVM locator.')
+        return locator_name+' ({})'.format(offset_value)
+
+    #_______________________________________________________________
+    def getSeatbeltLocator(self, the_car, side):
+        return self.getLocator(the_car, 'seatbelt_'+side)
+
+    #_______________________________________________________________
+    def getFloorLocator(self, the_car, side):
+        return self.getLocator(the_car, 'floor_'+side)
+
+    #_______________________________________________________________
+    def getHeadrestLocator(self, the_car, side):
+        return self.getLocator(the_car, 'headrest_'+side)
+
+    #_______________________________________________________________
+    def getRVMLocator(self, the_car, side):
+        return self.getLocator(the_car, 'rvm_'+side)
+
+    #_______________________________________________________________
+    def getGloveCompLocator(self, the_car):
+        return self.getLocator(the_car, 'glove_')
 
     #_______________________________________________________________
     def getCCLocator(self, the_car):
-        cc_locator = None
-        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
-        if len(locators) > 0:
-            cc_locator = locators[0]
-        else:
-            print('[WARN] Could NOT find cc_infotainmet_locator.')
+        return self.getLocator(the_car, 'cc_info')
 
-        print('CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
-        return cc_locator
+    #_______________________________________________________________
+    def getLocator(self, the_car, prefix):
+        locator = None
+        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and prefix in self._workspace.get_entity_name(ent) ]
+        if len(locators) > 0:
+            locator = locators[0]
+        else:
+            print('[WARN] Could NOT find {}*_locator'.format(prefix))
+
+        print('locator: {}'.format(self._workspace.get_entity_name(locator)))
+        return locator
 
     #_______________________________________________________________
     def letGoWheel(self, looker, side):
@@ -3213,10 +3401,6 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def LookAtRearSeat(self, looker, the_car, side):
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
-
         seat_number = '01'
         if side == 'right':
             seat_number = '05'
@@ -3238,57 +3422,85 @@ class InCabinUtils:
         else:
             seat_loc = anyverse_platform.invalid_entity_id
 
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', seat_loc)
+        return self.LookAtLocator(looker, seat_loc)
 
     #_______________________________________________________________
     def LookAtOtherCharacter(self, looker, looked_at):
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 2)
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
-
         looked_at_name = self._workspace.get_entity_name(looked_at)
-        print('Driver looking at ' + looked_at_name)
 
         if looked_at != anyverse_platform.invalid_entity_id and 'rp_' in looked_at_name:
             char_locators = [ ent for ent in self._workspace.get_hierarchy(looked_at) if self._workspace.get_entity_type(ent) == 'Locator' ]
             if len(char_locators) >= 1:
                 lookat_locator = char_locators[0]
         else:
-            lookat_locator = looked_at
+            lookat_locator = self.getParent(looked_at)
 
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', lookat_locator)
+        return self.LookAtLocator(looker, lookat_locator)
 
     #_______________________________________________________________
     def LookAtInsideRearViewMirror(self, looker, the_car):
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
+        rvm_inside_locator = self.getRVMLocator(the_car, 'inside')
 
-        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' ]
-        inside_rvm = [ l for l in locators if 'rvm_in' in self._workspace.get_entity_name(l) ][0]
-        self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', inside_rvm)
+        return self.LookAtLocator(looker, rvm_inside_locator)
 
     #_______________________________________________________________
     def LookAtExteriorRearViewMirror(self, looker, the_car, side):
         rvm_locator = self.getRVMLocator(the_car, side)
-        if rvm_locator is not None:
-            print('Looking at {} exterior rvm'.format(side))
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
+        print('Looking at {} exterior rvm'.format(side))
 
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', rvm_locator)
+        return self.LookAtLocator(looker, rvm_locator)
 
     #_______________________________________________________________
-    def LookAtInfotainment(self, the_car, looker):
+    def LookAtHeadrest(self, looker, the_car, side):
+        headrest_locator = self.getHeadrestLocator(the_car, side)
+        print('Looking at {} headrest'.format(side))
+
+        return self.LookAtLocator(looker, headrest_locator)
+
+    #_______________________________________________________________
+    def LookAtSeatbelt(self, looker, the_car, side):
+        seatbelt_locator = self.getSeatbeltLocator(the_car, side)
+        print('Looking at {} headrest'.format(side))
+
+        return self.LookAtLocator(looker, seatbelt_locator)
+
+    #_______________________________________________________________
+    def LookAtFloor(self, looker, the_car, side):
+        floor_locator = self.getFloorLocator(the_car, side)
+        print('Looking at {} floor'.format(side))
+
+        return self.LookAtLocator(looker, floor_locator)
+
+    #_______________________________________________________________
+    def LookAtInfotainment(self, looker, the_car):
         cc_locator = self.getCCLocator(the_car)
 
-        if cc_locator is not None:
+        return self.LookAtLocator(looker, cc_locator)
+
+    #_______________________________________________________________
+    def LookAtGloveCompartment(self, looker, the_car):
+        glove_locator = self.getGloveCompLocator(the_car)
+
+        return self.LookAtLocator(looker, glove_locator)
+
+    #_______________________________________________________________
+    def LookAtLocator(self, looker, locator):
+        type = None
+        try:
+            type = self._workspace.get_entity_type(locator)
+        except:
+            print('[ERROR] locator {} does not exist.'.format(locator))
+            locator_name = None
+        if type == 'Locator':
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
 
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', self._ego_id)
+            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', locator)
+            locator_name = self._workspace.get_entity_name(locator)
+        elif type is not None:
+            print('[WARN] {}({}) not a locator.'.format(self._workspace.get_entity_name(locator), locator))
+        return locator_name
 
     #_______________________________________________________________
     def setFaceExpression(self, character_id, eyes_position, eyelids_position, eyebrows_positions, mouth_positions, jaw_position):
