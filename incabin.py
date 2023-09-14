@@ -8,12 +8,13 @@ import sys
 import anyverseaux as aux
 
 class InCabinUtils:
-    def __init__(self, workspace, script_console, iteration_index = None):
+    def __init__(self, workspace, script_console, iteration_index = None, total_iteration_count = None):
         self._iteration_index = iteration_index
+        self._total_iteration_count = total_iteration_count
         self._workspace = workspace
         self._no_entry = anyverse_platform.invalid_entity_id
         self._ego_id = self._workspace.get_entities_by_name("Ego")[0]
-        self._already_used_characters = []
+        self._already_used_characters = ['rp_fabienne_rigged_001_OP','rp_toshiro_rigged_007_OP','rp_sheila_rigged_002_OP','rp_toshiro_rigged_003_OP','rp_debra_rigged_001_OP','rp_toshiro_rigged_008_OP','rp_bianca_rigged_001_OP','rp_amit_rigged_003_OP'] # HACK trying to avoid these characters
         self._car_brand = ""
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
@@ -1018,7 +1019,7 @@ class InCabinUtils:
         return object
 
     #_______________________________________________________________
-    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, gaze_probabilities = None, expression_probabilities = None):
+    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
         print('Placing Driver in {}'.format(self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
         # select a random adult character
@@ -1058,10 +1059,8 @@ class InCabinUtils:
                 self.setAnimation(arms[arm], animation, weight, driver_id)
 
             # setting head animation
-            # we cannot set the driver gaze here in case it has to look at the passenger that is not there yet 
-            animation, weight = self.selectAdultAnimation('head', 0, 1)
-            # print('Setting animation: {}, weight: {}'.format(self._workspace.get_entity_name(animation), weight))
-            self.setAnimation('head', animation, weight, driver_id)
+            # This is done now when setting the gaze
+            # after all occupants are placed. Controlled by probability 
 
             # Decide if we fasten the seat belt or not
             fasten_seatbelt = self.decideFastenSeatbelt(driver, seatbelts_distribution['belt_on_probability'])
@@ -1114,7 +1113,7 @@ class InCabinUtils:
             self.setCharacterPoseInfo(driver)
             self.setSeatInfo(driver)
 
-            self._already_used_characters.append(driver['model'])
+            self._already_used_characters.append(driver['resource_name'])
         else:
             # No matching drivers found returning id -1
             if driver != None:
@@ -1196,7 +1195,7 @@ class InCabinUtils:
             self.setChildseatInfo(childseat)
             self.setSeatInfo(childseat)
 
-            self._already_used_characters.append(childseat['model'])
+            self._already_used_characters.append(childseat['resource_name'])
         else:
             print('[WARN]: Could not find a {} childseat with orientation {}'.format(childseat_type, orientation))
 
@@ -1244,7 +1243,7 @@ class InCabinUtils:
         self.setSeatInfo(childseat)
 
         # We don't allow the same childseat repeated
-        self._already_used_characters.append(baby['model'])
+        self._already_used_characters.append(baby['resource_name'])
 
         return baby
 
@@ -1388,12 +1387,12 @@ class InCabinUtils:
         self.setChildseatInfo(childseat)
         self.setSeatInfo(childseat)
 
-        self._already_used_characters.append(child['model'])
+        self._already_used_characters.append(child['resource_name'])
 
         return child
 
     #_______________________________________________________________
-    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, gaze_probabilities = None, expression_probabilities = None):
+    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
         print('Placing Passenger in {} ({})'.format(self._workspace.get_entity_name(seat_locator).split('_')[0], seat_locator))
         # select a random adult character
         # select a random childseat of the given type
@@ -1470,12 +1469,10 @@ class InCabinUtils:
                 self.setAnimation(arm, animation, weight, passenger_id)
 
             # setting head animation
-            # Don't move the copilot head. Controled by gaze if there are gaze settings
-            if (self.isCopilotSeat(seat_locator) and gaze_probabilities is not None):
-                self.setPassengerGaze(gaze_probabilities)
-            else:
+            # For copilot this is controlled by the gaze settings. 
+            # For other passengers we set a head animation
+            if  not self.isCopilotSeat(seat_locator):
                 animation, weight = self.selectAdultAnimation('head', 0, 0.8)
-                # print('Setting animation: {}, weight: {}'.format(self._workspace.get_entity_name(animation), weight))
                 self.setAnimation('head', animation, weight, passenger_id)
 
             # Place accessories on the passenger according to external probabilities
@@ -1528,7 +1525,7 @@ class InCabinUtils:
             self.setCharacterPoseInfo(passenger)
             self.setSeatInfo(passenger)
 
-            self._already_used_characters.append(passenger['model'])
+            self._already_used_characters.append(passenger['resource_name'])
 
         return passenger
 
@@ -2216,7 +2213,7 @@ class InCabinUtils:
         elegible_chars = filtered_characters.copy()
         # Discard the characters already used
         for character in filtered_characters:
-            if character['model'] in self._already_used_characters:
+            if character['resource_name'] in self._already_used_characters:
                 print('[WARN]: Character {} used. Removing from elegible...'.format(character['resource_name']))
                 elegible_chars.remove(character)
         return elegible_chars
@@ -2836,8 +2833,7 @@ class InCabinUtils:
 
 
     #_______________________________________________________________
-    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, gaze_probabilities = None, expression_probabilities = None):
-        gaze = None
+    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
         the_car = self.getCars()[0]
         car_name = self._workspace.get_entity_name(self._workspace.get_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id'))
         if occupancy == 0:
@@ -2852,7 +2848,7 @@ class InCabinUtils:
             ret['isEmpty'] = True
             ret['Seatbelt_on'] = set_seatbel_on
         elif occupancy == 1:
-            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, gaze_probabilities = None, expression_probabilities = expression_probabilities)
+            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities)
             if driver == None:
                 print('[WARN]: Couldnot find a driver to place')
             ret = driver
@@ -2881,9 +2877,7 @@ class InCabinUtils:
                 ret['isEmpty'] = True
                 ret['Seatbelt_on'] = False
         elif occupancy == 3:
-            if gaze_probabilities is not None:
-                gaze = gaze_probabilities['copilot_gaze_probabilities']
-            passenger = self.placePassenger(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, gaze_probabilities = gaze, expression_probabilities = expression_probabilities)
+            passenger = self.placePassenger(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities)
             if passenger == None:
                 print('[WARN]: Couldnot find a passenger to place')
             ret = passenger
@@ -2897,12 +2891,6 @@ class InCabinUtils:
             ret = object
         else:
             print('Invalid filling seat action')
-
-        # Set the driver gaze if filling copilot seat to take into account what
-        # was just placed in it
-        if self.isCopilotSeat(seat_locator) and gaze_probabilities is not None:
-            gaze = gaze_probabilities['driver_gaze_probabilities']
-            self.setDriverGaze(gaze) 
 
         return ret
 
@@ -2942,12 +2930,6 @@ class InCabinUtils:
             if occupancy == 2: # 2 means we are placing a childseat so we need the childseat locator
                 seat_locator = self.seatLocator2ChildseatLocator(seat_locator, the_car)
 
-            if 'gaze_probabilities' in occupancy_distribution:
-                gaze_distribution = occupancy_distribution['gaze_probabilities']
-            else:
-                gaze_distribution = None
-                print('[WARN] No gaze probabilities')
-
             if 'expression_probabilities' in occupancy_distribution:
                 expression_probabilities = occupancy_distribution['expression_probabilities']
             else:
@@ -2957,7 +2939,6 @@ class InCabinUtils:
                                         childseat_config = occupancy_distribution['childseat_config'],
                                         seatbelts_distribution = occupancy_distribution['seatbelts_distribution'],
                                         accessories_probabilities = occupancy_distribution['accessories_probabilities'],
-                                        gaze_probabilities = gaze_distribution,
                                         expression_probabilities = expression_probabilities
                                         )
 
@@ -2972,6 +2953,21 @@ class InCabinUtils:
                         ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': seat_occupant[1]['name'], 'Seatbelt_on': seat_occupant[1]['Seatbelt_on']})
                     else:
                         ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': 'None', 'Seatbelt_on': False})
+
+        if 'gaze_probabilities' in occupancy_distribution:
+            gaze_distribution = occupancy_distribution['gaze_probabilities']
+        else:
+            gaze_distribution = None
+            print('[WARN] No gaze probabilities')
+
+        # After occupancy is complete we adjust the driver's and copilot's gaze
+        # according to configuration 
+        if gaze_distribution:
+            driver_gaze = gaze_distribution['driver_gaze_probabilities']
+            self.setDriverGaze(driver_gaze) 
+            copilot_gaze = gaze_distribution['copilot_gaze_probabilities']
+            self.setPassengerGaze(copilot_gaze)
+
 
         return ret, occupied_seats
 
@@ -2997,8 +2993,9 @@ class InCabinUtils:
         reach = gaze_probabilities[idx]['reach']
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze
-        print('Setting the driver to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
         if driver != anyverse_platform.invalid_entity_id:
+            print('[INFO] Setting the driver to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
+            # if gaze == 0 do nothing: looking straight at the road
             if gaze == 1: # exterior rear view mirror (50% each side)
                 side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
                 self.LookAtExteriorRearViewMirror(driver, the_car, side)
@@ -3031,28 +3028,27 @@ class InCabinUtils:
                 self.LookAtFloor(driver, the_car, 'left')
                 if reach:
                     self.reachFloor(driver, 'left')
+            elif gaze == 10:
+                animation, weight = self.selectAdultAnimation('head', 0, 1)
+                self.setAnimation('head', animation, weight, driver)
 
             self.setCustomMetadata(driver, 'gaze', gaze_info)
+        else:
+            print('[WARN]: Cannot set gaze, no driver')
 
     #_______________________________________________________________
     def setPassengerGaze(self, gaze_probabilities):
         the_car = self.getCars()[0]
         seat_locators = self.getSeatLocators(the_car)
-        childseat_locators = self.getChildseatLocators(the_car)
         # We consider the driver what ever is placed in the driver seat:
-        # (character or the seat itself if empty)
+        # (a character or the seat itself if empty)
         driver_seat = self.getParent([ ent for ent in seat_locators if 'seat01' in self._workspace.get_entity_name(ent).lower() ][0])
         driver_l = [ ent for ent in self._workspace.get_hierarchy(driver_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
-        if len(driver_l) > 0:
-            driver = driver_l[len(driver_l)-1]
-        else:
-            driver = driver_seat
-        passenger_seats = [ ent for ent in seat_locators + childseat_locators if 'seat02' in self._workspace.get_entity_name(ent).lower() ]
-        for passenger_seat in passenger_seats:
-            passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
-            if len(passenger_l) > 0:
-                passenger = passenger_l[0]
-                break
+        driver = driver_l[len(driver_l)-1] if len(driver_l) > 0 else driver_seat
+
+        passenger_seat = self.getParent([ ent for ent in seat_locators if 'seat02' in self._workspace.get_entity_name(ent).lower() ][0])
+        passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        passenger = passenger_l[0] if len(passenger_l) > 0 else anyverse_platform.invalid_entity_id
 
         gaze_info = {}
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
@@ -3060,41 +3056,48 @@ class InCabinUtils:
         reach = gaze_probabilities[idx]['reach']
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze
-        print('Setting the passenger to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
-        if gaze == 1: # exterior rear view mirror (50% each side)
-            side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
-            self.LookAtExteriorRearViewMirror(passenger, the_car, side)
-            gaze_info['side'] = side
-        elif gaze == 2: # inside rear view mirror
-            self.LookAtInsideRearViewMirror(passenger, the_car)
-            if reach:
-                self.reachRVM(driver, 'right')
-        elif gaze == 3: #  infotaintment
-            self.LookAtInfotainment(the_car, passenger)
-            if reach:
-                self.reachInfotainment(passenger, 'left')
-        elif gaze == 4: #passenger
-            self.LookAtOtherCharacter(passenger, driver)
-        elif gaze == 5: # rear seat
-            self.LookAtRearSeat(passenger,the_car, 'left')
-        elif gaze == 6: # headrest
-            self.LookAtHeadrest(passenger, the_car, 'left')
-            if reach:
-                self.reachHeadrest(passenger, 'left')
-        elif gaze == 7: # glove compartment
-            self.LookAtGloveCompartment(passenger, the_car)
-            if reach:
-                self.reachGloveCompartment(passenger, 'right')
-        elif gaze == 8: # seat belt
-            self.LookAtSeatbelt(passenger, the_car, 'right')
-            if reach:
-                self.reachSeatbelt(passenger, 'left')
-        elif gaze == 9: # floor own side
-            self.LookAtFloor(passenger, the_car, 'right')
-            if reach:
-                self.reachFloor(passenger, 'right')
+        if passenger != anyverse_platform.invalid_entity_id and 'child' not in self._workspace.get_entity_name(self.getParent(passenger)):
+            print('[INFO] Setting the passenger to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
+            # if gaze == 0 do nothing: looking straight at the road
+            if gaze == 1: # exterior rear view mirror (50% each side)
+                side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
+                self.LookAtExteriorRearViewMirror(passenger, the_car, side)
+                gaze_info['side'] = side
+            elif gaze == 2: # inside rear view mirror
+                self.LookAtInsideRearViewMirror(passenger, the_car)
+                if reach:
+                    self.reachRVM(driver, 'right')
+            elif gaze == 3: #  infotaintment
+                self.LookAtInfotainment(passenger, the_car)
+                if reach:
+                    self.reachInfotainment(passenger, 'left')
+            elif gaze == 4: #passenger
+                self.LookAtOtherCharacter(passenger, driver)
+            elif gaze == 5: # rear seat
+                self.LookAtRearSeat(passenger,the_car, 'left')
+            elif gaze == 6: # headrest
+                self.LookAtHeadrest(passenger, the_car, 'left')
+                if reach:
+                    self.reachHeadrest(passenger, 'left')
+            elif gaze == 7: # glove compartment
+                self.LookAtGloveCompartment(passenger, the_car)
+                if reach:
+                    self.reachGloveCompartment(passenger, 'right')
+            elif gaze == 8: # seat belt
+                self.LookAtSeatbelt(passenger, the_car, 'right')
+                if reach:
+                    self.reachSeatbelt(passenger, 'left')
+            elif gaze == 9: # floor own side
+                self.LookAtFloor(passenger, the_car, 'right')
+                if reach:
+                    self.reachFloor(passenger, 'right')
+            elif gaze == 10:
+                animation, weight = self.selectAdultAnimation('head', 0, 1)
+                self.setAnimation('head', animation, weight, passenger)
 
-        self.setCustomMetadata(passenger, 'gaze', gaze_info)
+            self.setCustomMetadata(passenger, 'gaze', gaze_info)
+        else:
+            print('[WARN]: Cannot set gaze, no passenger, or there is a child')
 
     #_______________________________________________________________
     def getOccupant(self, seat_locator, occupant_dist):
@@ -3151,7 +3154,7 @@ class InCabinUtils:
 
         loc_position = anyverse_platform.Vector3D(0.55, -0.38, 0.95)
         self._workspace.set_entity_property_value(glove_locator,'RelativeTransformToComponent','position', loc_position)
-        print('Glove compartment locator: {}'.format(self._workspace.get_entity_name(glove_locator)))
+        print('[INFO] Glove compartment locator: {}'.format(self._workspace.get_entity_name(glove_locator)))
         return glove_locator
 
     #_______________________________________________________________
@@ -3169,7 +3172,7 @@ class InCabinUtils:
             print('[WARN] floor{}_locator already created.'.format(side))
             floorlocator = locators[0]
 
-        print('Floor locator: {}'.format(self._workspace.get_entity_name(floorlocator)))
+        print('[INFO] Floor locator: {}'.format(self._workspace.get_entity_name(floorlocator)))
         return floorlocator
 
     #_______________________________________________________________
@@ -3187,14 +3190,14 @@ class InCabinUtils:
             print('[WARN] headrest_{}_locator already created.'.format(side))
             headrest_locator = locators[0]
 
-        print('Headrest locator: {}'.format(self._workspace.get_entity_name(headrest_locator)))
+        print('[INFO] Headrest locator: {}'.format(self._workspace.get_entity_name(headrest_locator)))
         return headrest_locator
 
     #_______________________________________________________________
     def createSeatbeltLocator(self, the_car, side):
-        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seatbelt'+side in self._workspace.get_entity_name(ent) ]
+        locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seatbelt_'+side in self._workspace.get_entity_name(ent) ]
         if len(locators) == 0:
-            seatbeltlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'seatbelt' + side + '_locator', the_car)
+            seatbeltlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'seatbelt_' + side + '_locator', the_car)
             loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
             if side == 'right':
                 loc_position = anyverse_platform.Vector3D(-0.09, -0.62, 1.19)
@@ -3205,7 +3208,7 @@ class InCabinUtils:
             print('[WARN] seatbelt{}_locator already created.'.format(side))
             seatbeltlocator = locators[0]
 
-        print('Seatbelt locator: {}'.format(self._workspace.get_entity_name(seatbeltlocator)))
+        print('[INFO] Seatbelt locator: {}'.format(self._workspace.get_entity_name(seatbeltlocator)))
         return seatbeltlocator
 
     #_______________________________________________________________
@@ -3225,7 +3228,7 @@ class InCabinUtils:
             print('[WARN] rvm_{}_locator already created.'.format(side))
             rvm_locator = locators[0]
 
-        print('RVM locator: {}'.format(self._workspace.get_entity_name(rvm_locator)))
+        print('[INFO] RVM locator: {}'.format(self._workspace.get_entity_name(rvm_locator)))
         return rvm_locator
 
     #_______________________________________________________________
@@ -3238,7 +3241,7 @@ class InCabinUtils:
 
         loc_position = anyverse_platform.Vector3D(0.6, 0.0, random.uniform(0.9, 1.0))
         self._workspace.set_entity_property_value(cc_locator,'RelativeTransformToComponent','position', loc_position)
-        print('CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
+        print('[INFO] CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
         return cc_locator
 
     #_______________________________________________________________
@@ -3387,9 +3390,9 @@ class InCabinUtils:
         if len(locators) > 0:
             locator = locators[0]
         else:
-            print('[WARN] Could NOT find {}*_locator'.format(prefix))
+            print('[WARN] Could NOT find {}_locator'.format(prefix))
 
-        print('locator: {}'.format(self._workspace.get_entity_name(locator)))
+        print('[INFO] locator: {}'.format(self._workspace.get_entity_name(locator)))
         return locator
 
     #_______________________________________________________________
@@ -3446,28 +3449,24 @@ class InCabinUtils:
     #_______________________________________________________________
     def LookAtExteriorRearViewMirror(self, looker, the_car, side):
         rvm_locator = self.getRVMLocator(the_car, side)
-        print('Looking at {} exterior rvm'.format(side))
 
         return self.LookAtLocator(looker, rvm_locator)
 
     #_______________________________________________________________
     def LookAtHeadrest(self, looker, the_car, side):
         headrest_locator = self.getHeadrestLocator(the_car, side)
-        print('Looking at {} headrest'.format(side))
 
         return self.LookAtLocator(looker, headrest_locator)
 
     #_______________________________________________________________
     def LookAtSeatbelt(self, looker, the_car, side):
         seatbelt_locator = self.getSeatbeltLocator(the_car, side)
-        print('Looking at {} headrest'.format(side))
 
         return self.LookAtLocator(looker, seatbelt_locator)
 
     #_______________________________________________________________
     def LookAtFloor(self, looker, the_car, side):
         floor_locator = self.getFloorLocator(the_car, side)
-        print('Looking at {} floor'.format(side))
 
         return self.LookAtLocator(looker, floor_locator)
 
