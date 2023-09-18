@@ -912,10 +912,6 @@ class InCabinUtils:
             self.setSeatInfo(object)
             object['Accessory'] = 'None'
 
-            if self.isChildseatLocator(seat_locator):
-                self.setChildseatInfo(childseat)
-                self.setSeatInfo(childseat)
-
         else:
             # No matching objects found returning id -1
             object_entity_id = -1
@@ -1610,6 +1606,8 @@ class InCabinUtils:
             seat_info['Placement'] = character['Seatbelt_placement']
         except KeyError:
             print('[WARN] It is a child seat, no seatbelt_on info')
+            seat_info["seatbelt_on"] = 'Off'
+            seat_info['Placement'] = ''
 
         self.setCustomMetadata(character['fixed_entity_id'], "Seat", seat_info)
 
@@ -1937,13 +1935,20 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','size.height_resolution', height/factor)
 
         lens_id = self._workspace.get_entity_property_value(cam_id, 'CameraReferencesComponent','camera_lens')
-        lens_name = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.lens_type')
+        focal_length = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.focal_length')
+        self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.focal_length', focal_length/factor)
 
-        if 'OPENCV' in lens_name:
+        lens_type = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.lens_type')
+        if 'OPENCV' in lens_type:
             cx = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx')
             cy = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy')
             self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx', cx/factor)
             self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy', cy/factor)
+
+            fx = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fx')
+            fy = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fy')
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fx', fx/factor)
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fy', fy/factor)
 
     #_______________________________________________________________
     def reduceAllCameraResolution(self, factor):
@@ -1960,14 +1965,20 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','size.height_resolution', height*factor)
 
         lens_id = self._workspace.get_entity_property_value(cam_id, 'CameraReferencesComponent','camera_lens')
-        lens_name = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.lens_type')
+        focal_length = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.focal_length')
+        self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.focal_length', focal_length*factor)
 
-        if 'OPENCV' in lens_name:
+        lens_type = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','properties.lens_type')
+        if 'OPENCV' in lens_type:
             cx = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx')
             cy = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy')
             self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cx', cx*factor)
             self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-cy', cy*factor)
 
+            fx = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fx')
+            fy = self._workspace.get_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fy')
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fx', fx*factor)
+            self._workspace.set_entity_property_value(lens_id, 'CameraLensPropertiesComponent','intrinsics.camera-intrinsics-fy', fy*factor)
     #_______________________________________________________________
     def increaseAllCameraResolution(self, factor):
         cameras = self._workspace.get_camera_entities()
