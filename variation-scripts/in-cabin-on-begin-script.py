@@ -43,14 +43,14 @@ incabin_config = {
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
-                'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
-                'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
-                'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.53, 0.005, 1.29) },
-                'Porsche_CayenneS': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
-                'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.52, -0.005, 1.43) },
-                'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.60, -0.027, 1.287)},
-                'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.58, -0.02, 1.315)},
-                'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.50, 0.0, 1.6)},
+                'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.435, 0.0, 1.45) }, 
+                'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.53, 0.0, 1.26) },
+                'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.46, 0.005, 1.26) },
+                'Porsche_CayenneS': {'rotation': (0, -25, 0), 'position': (0.50, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.485, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.575, -0.027, 1.287)},
+                'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.45, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.41, 0.0, 1.58)},
                 'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         },
@@ -72,10 +72,10 @@ incabin_config = {
         }
     },
     "conditions": [ 
-        {'Day': True,  'Cond':'sunny',          'probability': 0.25},
-        {'Day': True,  'Cond':'scattered',      'probability': 0.25},
-        {'Day': True,  'Cond':'overcast',       'probability': 0.25},
-        {'Day': False, 'Cond':'interior-lights','probability': 0.25}
+        {'Day': True,  'Cond':'sunny',          'probability': 0.17},
+        {'Day': True,  'Cond':'scattered',      'probability': 0.17},
+        {'Day': True,  'Cond':'overcast',       'probability': 0.16},
+        {'Day': False, 'Cond':'interior-lights','probability': 0.50}
     ],
     "occupant_confs_probabilities": [ 
         {'Conf': 'Empty', 'probability': 0.0},
@@ -93,10 +93,10 @@ incabin_config = {
             {'name': 'Object',    'occupancy': 4, 'probability': 0.1} 
         ],
         'backseat_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.25}
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.1},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.3},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.4},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.2}
         ],
         'middleseat_occupancy_probabilities': [
             {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
@@ -106,9 +106,9 @@ incabin_config = {
         ],
         'childseat_config': {
             'childseat_type_probabilities': [
-                {'Type': 'BabyChild', 'probability': 0.75},
-                {'Type': 'Convertible', 'probability': 0.25},
-                {'Type': 'Booster', 'probability': 0.0}
+                {'Type': 'BabyChild', 'probability': 0.20},
+                {'Type': 'Convertible', 'probability': 0.30},
+                {'Type': 'Booster', 'probability': 0.50}
             ],
             'childseat_occupancy_probabilities': [
                 {'name': 'Empty', 'occupancy': 0, 'probability': 0.25},
@@ -137,20 +137,20 @@ incabin_config = {
         },
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
-                {'name': 'road', 'gaze': 0, 'probability': 0.7},
+                {'name': 'road', 'gaze': 0, 'probability': 0.5},
                 {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.1},
-                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.05},
-                {'name': 'infotainment', 'gaze': 3, 'probability': 0.05},
-                {'name': 'passenger', 'gaze': 4, 'probability': 0.1},
-                {'name': 'rear', 'gaze': 5, 'probability': 0.0}
-            ],
-            'copilot_gaze_probabilities': [
-                {'name': 'road', 'gaze': 0, 'probability': 0.50},
-                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.05},
                 {'name': 'int_mirror', 'gaze': 2, 'probability': 0.1},
                 {'name': 'infotainment', 'gaze': 3, 'probability': 0.1},
+                {'name': 'passenger', 'gaze': 4, 'probability': 0.1},
+                {'name': 'rear', 'gaze': 5, 'probability': 0.1}
+            ],
+            'copilot_gaze_probabilities': [
+                {'name': 'road', 'gaze': 0, 'probability': 0.35},
+                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.1},
+                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.05},
+                {'name': 'infotainment', 'gaze': 3, 'probability': 0.2},
                 {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
-                {'name': 'rear', 'gaze': 5, 'probability': 0.05}
+                {'name': 'rear', 'gaze': 5, 'probability': 0.1}
             ]
         },
         'expression_probabilities': [
@@ -413,14 +413,12 @@ if workspace.reduce_resolution and iteration_index == 0:
     print('Reducing all cameras resolution for testing')
     icu.reduceAllCameraResolution(2)
 if workspace.testing:
-    print('Setting render quality to Medium and denoiser off for testing')
+    print('Setting render quality to Medium for testing')
     workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','render_quality','Medium')
-    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','enable_denosier', False)
 else:
     print('PRODUCTION!!!!')
-    print('Setting render quality to Ultra and denoiser on for production')
+    print('Setting render quality to Ultra for production')
     workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','render_quality','Ultra')
-    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','enable_denosier', True)
 
 #__________________________________________________________
 # Set background, day/night and conditions for illumination
