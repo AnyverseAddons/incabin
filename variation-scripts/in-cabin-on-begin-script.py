@@ -22,7 +22,7 @@ print('Script Console: {}'.format(script_console))
 #__________________________________________
 # Global config: Cameras, environmental conditions, Occupant distribution, childseats, seat belts, additional props, gaze
 incabin_config = {
-    "use_car_interior_probabilities": False,
+    "use_car_interior_probabilities": True, # set to True with uniform probabilities to avoid new car cabins until we add them to the config
     "adjust_front_seats": True,
     "car_interior_probabilities": [
         {'car_name': 'Audi_Q5', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }, 
@@ -355,7 +355,7 @@ if multiple_cameras:
             print('[ERROR] Missing {} camera in workspace'.format(camera))
         # place active light in the cam position
         light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
-        light_id = light_ids[0] if len(light_ids) == 1 else 0
+        light_id = light_ids[0] if len(light_ids) >= 1 else 0
         if light_id != 0:
             light_pos, _ = icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
             if camera == 'RVM':
@@ -387,14 +387,14 @@ else:
     print('Ego initial position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
     print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
 
-    # Advance the light 10 cm to avoid rvm casted shadows
-    light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera_selected in workspace.get_entity_name(li) ]
-    light_id = light_ids[0] if len(light_ids) == 1 else 0
+    # Advance the first light light 10 cm to avoid rvm casted shadows
+    light_ids = [ li for li in workspace.get_entities_by_type('Light') ]
+    light_id = light_ids[0] if len(light_ids) > 0 else 0
     if light_id != 0:
         light_pos = anyverse_platform.Vector3D(-0.1, 0, 0) if camera_selected =='RVM' else anyverse_platform.Vector3D(0, 0, 0)
+        workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
     else:
-        print('[WARN] Missing light for {} camera in workspace'.format(camera_selected))
-    workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
+        print('[WARN] Missing lights in workspace')
 
     # Apply camera vibration simulation with normal distribution
     pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
