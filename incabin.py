@@ -212,7 +212,7 @@ class InCabinUtils:
     def getAnimIdByName(self, anim_name):
         anims = self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation)
         for anim in anims:
-            if self._workspace.get_entity_name(anim) == anim_name:
+            if anim_name in self._workspace.get_entity_name(anim):
                 return anim
         return -1
 
@@ -2088,6 +2088,22 @@ class InCabinUtils:
         return self.queryResultToDic(query.execute_query_on_assets())
 
     #_______________________________________________________________
+    def queryCarBeltClip(self, brand, model):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_attribute_filter("brand", brand)
+        query.add_attribute_filter("model", model)
+        query.add_attribute_filter("type", "ClipBelt")
+
+        result = self.queryResultToDic(query.execute_query_on_assets())
+
+        clip = None
+        if len(result) >= 1:
+            clip = result[0]
+            print('Found clip for ' + brand)
+
+        return clip
+
+    #_______________________________________________________________
     def queryCarBeltsOff(self, picked_car):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_attribute_filter("brand", picked_car['brand'])
@@ -2261,35 +2277,6 @@ class InCabinUtils:
                 return True
 
         return False
-
-    #_______________________________________________________________
-    def getBeltAssetsForCar(self, brand, model, assetList):
-        result = []
-        if model == '0076_20220809':
-            prefix = "{}".format(model)
-        elif brand != 'Unbranded' and brand != 'Hyundai':
-            prefix = "{}_{}".format(brand, model)
-        else:
-            prefix = "{}".format(brand)
-
-        for item in assetList:
-            if (prefix in item.name and "belt" in item.name and "Off" in item.name) :
-                result.append(item)
-
-        return result
-
-    #_______________________________________________________________
-    def getClipAssetForCar(self, brand, model,assetList):
-        if model == '0076_20220809':
-            beltName = "{}_ClipOn".format(model)
-        else:
-            beltName = "{}ClipOn".format(brand)
-            
-        for item in assetList:
-            if item.name == beltName :
-                return item
-
-        return None
 
     #_______________________________________________________________
     def getConvertibleClipAsset(self, name, assetList):
@@ -2483,7 +2470,7 @@ class InCabinUtils:
         return selected_background, ws_bckgnd_id
 
     #_______________________________________________________________
-    def selectCar(self, use_probs = False):
+    def selectCar(self, use_probs = False, car_idx = None):
         if use_probs:
             probabilities = [ c['probability'] for c in use_probs ]
             idx = self.choiceUsingProbabilities(probabilities)
@@ -2493,6 +2480,8 @@ class InCabinUtils:
         else:
             idx = random.randrange(len(self._workspace.cars))
 
+        if car_idx is not None:
+            idx = car_idx
         picked_car = self._workspace.cars[idx]
         new_car_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_car["resource_id"])
         picked_car['entity_id'] = new_car_id
@@ -2620,12 +2609,12 @@ class InCabinUtils:
     def createBeltFor(self, seat_pos, beltUserEntityId, car_brand, car_model, seatbelts_distribution ):
         print("[INFO] Setting belt on in position {}".format(seat_pos))
         seatId = str(seat_pos).zfill(2)
-        clip = self.getClipAssetForCar(car_brand, car_model, self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset))
+        clip = self.queryCarBeltClip(car_brand, car_model)
         if clip == None:
             print("[ERROR] Cannot find clip for brand " + car_brand)
             return None
         
-        clip_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, clip.name, clip.id, anyverse_platform.invalid_entity_id )
+        clip_asset = clip['entity_id']
         assert clip_asset != anyverse_platform.invalid_entity_id
 
         jointsToRemove = None  # For the moment just use the default: both arms
