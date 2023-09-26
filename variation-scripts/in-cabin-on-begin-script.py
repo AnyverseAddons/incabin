@@ -17,6 +17,7 @@ try:
 except NameError:
     script_console = True
     iteration_index = 0
+    total_iteration_count = 1
 print('Script Console: {}'.format(script_console))
 
 #__________________________________________
@@ -32,14 +33,22 @@ incabin_config = {
         {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125, 'front_seat_max_depth': 0.07, 'front_seat_max_tilt': 2, 'normal_dist': False },
         {'car_name': 'Volkswagen_Passat', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Hyundai_Ioniq', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
-        {'car_name': 'LandRover_Autobiography', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
+        {'car_name': 'LandRover_Autobiography', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Ford_Escape', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Honda_Jazz', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Kia_EV_GT', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Mercedes_Benz_EQE_SUV', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Buick_Lacrosse', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Peugeot_3008', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Tesla_S', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Venucia_Star', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
     ],
     "multiple_cameras": False,
     "nir_at_night": True,
     "rgb_sensor_sim": True,
     "cameras":{
         "RVM": {
-            "probability": 0.0,
+            "probability": 1.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
@@ -51,11 +60,19 @@ incabin_config = {
                 'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.575, -0.027, 1.287)},
                 'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.45, -0.02, 1.315)},
                 'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.41, 0.0, 1.58)},
+                'Ford_Escape': {'rotation': (0, -35, 0), 'position': (0.45, 0.0, 1.39)},
+                'Honda_Jazz': {'rotation': (0, -35, 0), 'position': (0.35, 0.0, 1.3)},
+                'Kia_EV_GT': {'rotation': (0, -35, 0), 'position': (0.44, 0.0, 1.41)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -35, 0), 'position': (0.44, 0.0, 1.5)},
+                'Buick_LaCrosse': {'rotation': (0, -35, 0), 'position': (0.47, 0.0, 1.34)},
+                'Peugeot_3008': {'rotation': (0, -35, 0), 'position': (0.50, 0.0, 1.42)},
+                'Tesla_S': {'rotation': (0, -35, 0), 'position': (0.51, 0.0, 1.21)},
+                'Venucia_Star': {'rotation': (0, -35, 0), 'position': (0.50, 0.0, 1.46)},
                 'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         },
         "CC": { 
-            "probability": 1.0,
+            "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
@@ -67,6 +84,14 @@ incabin_config = {
                 'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
                 'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
                 'LandRover_Autobiography': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.22)},
+                'Ford_Escape': {'rotation': (0, -10, 0), 'position': (0.51, 0.0, 1.21)},
+                'Honda_Jazz': {'rotation': (0, -10, 0), 'position': (0.58, 0.0, 1.03)},
+                'Kia_EV_GT': {'rotation': (0, -10, 0), 'position': (0.65, 0.0, 1.175)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.18)},
+                'Buick_LaCrosse': {'rotation': (0, -10, 0), 'position': (0.66, 0.0, 1.03)},
+                'Peugeot_3008': {'rotation': (0, -20, 0), 'position': (0.58, 0.0, 1.23)},
+                'Tesla_S': {'rotation': (0, -10, 0), 'position': (0.61, 0.0, 0.98)},
+                'Venucia_Star': {'rotation': (0, -15, 0), 'position': (0.66, 0.0, 1.19)},
                 'default':           {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         }
@@ -276,7 +301,10 @@ icu.deleteAllOnBelts()
 car_list = incabin_config['car_interior_probabilities']
 if incabin_config['use_car_interior_probabilities']:
     car_probabilities = incabin_config['car_interior_probabilities']
-    selected_car = icu.selectCar(car_probabilities)
+    if len(car_list) == total_iteration_count:
+        selected_car = icu.selectCar(car_probabilities, car_idx = iteration_index)
+    else:
+        selected_car = icu.selectCar(car_probabilities)
 else:
     selected_car = icu.selectCar() # Uniform car interior distribution
 car_name = 'default'
