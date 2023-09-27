@@ -2187,9 +2187,10 @@ class InCabinUtils:
                     selected_material = compatible_materials[random.randrange(len(compatible_materials))]
                     # Take into account an equal probability to use the default material
                     self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
-                    print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
+                    # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                 else:
-                    print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+                    # print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+                    continue
             else:
                 print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
 
@@ -2197,7 +2198,6 @@ class InCabinUtils:
     def changeExposedMaterialsList(self, fixed_ids_list, asset_set, color_scheme = None):
         cached_materials = {}
         for fixed_id in fixed_ids_list:
-            print('[INFO] Changing materials for {}'.format(self._workspace.get_entity_name(fixed_id)))
             # Get the asset that correspond to the fixed entity that expose the materials
             asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
             if type(asset_set) is list: 
@@ -2226,9 +2226,10 @@ class InCabinUtils:
                             cached_materials[material_name] = selected_material
                         # Take into account an equal probability to use the default material
                         self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
-                        print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
+                        # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                     else:
-                        print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+                        # print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+                        continue
                 else:
                     print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
 
@@ -2510,6 +2511,7 @@ class InCabinUtils:
         color_scheme = self._car_color_schemes[random.randrange(len(self._car_color_schemes))]
         print('[INFO] Color scheme: {}'.format(color_scheme))
         
+        print('[INFO] Changing materials for {}_{}'.format(picked_car['brand'], picked_car['model']))
         self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
 
         self.setCarSeatbeltsOff(picked_car)
@@ -2570,6 +2572,7 @@ class InCabinUtils:
             seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat06", color_scheme))
             seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat07", color_scheme))
         
+        print('[INFO] Changing materials for seats')
         self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         
     #_______________________________________________________________
