@@ -33,6 +33,14 @@ class InCabinUtils:
                 'WrongSideOfHead': anyverse_platform.SeatBeltPlacement.WrongSideOfHead,
                 'CharacterOverSeatbelt': anyverse_platform.SeatBeltPlacement.WithoutCharacter,
             }
+        self._look_and_reach_positions = {
+                'cc': {'center': (0.6, 0.0, 1.04)},
+                'glove': {'right': (0.6, -0.5, 0.84)},
+                'rvm': {'inside': (0.44, 0.0, 1.44), 'right': (0.7, -1.0, 1.1), 'left': (0.7, 1.0, 1.1)},
+                'floor': {'right': (0.65, -0.4, 0.3), 'left': (0.65, 0.4, 0.3)},
+                'headrest': {'right': (-0.2, -0.28, 1.30), 'left': (-0.2, 0.28, 1.30)},
+                'seatbelt': {'right': (-0.1, -0.6, 1.19), 'left': (-0.1, 0.6, 1.19)}
+        }
 
     #________________________________________________________________________________________
     # update_progress() : Displays or updates a console progress bar
@@ -3141,11 +3149,17 @@ class InCabinUtils:
     def createGloveCompLocator(self, the_car):
         glove_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'glove_' in self._workspace.get_entity_name(ent) ]
         if len(glove_locators) > 0:
-            print('[INFO] Recreating glove compartment locator')
+            # print('[INFO] Recreating glove compartment locator')
             self._workspace.delete_entity(glove_locators[0])
         glove_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'glove_locator', the_car)
 
-        loc_position = anyverse_platform.Vector3D(0.55, -0.38, 0.95)
+        try:
+            pos = self._look_and_reach_positions['glove']['right']
+            x, y, z = pos[0],  pos[1], pos[2]
+            loc_position = anyverse_platform.Vector3D(x, y, z)
+        except KeyError as ke:
+            print('[WARN] No position defined for glove compartment')
+            loc_position = anyverse_platform.Vector3D(0, 0, 0)
         self._workspace.set_entity_property_value(glove_locator,'RelativeTransformToComponent','position', loc_position)
         # print('[INFO] Glove compartment locator: {}'.format(self._workspace.get_entity_name(glove_locator)))
         return glove_locator
@@ -3153,17 +3167,20 @@ class InCabinUtils:
     #_______________________________________________________________
     def createFloorLocator(self, the_car, side):
         locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'floor_'+side in self._workspace.get_entity_name(ent) ]
-        if len(locators) == 0:
-            floorlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'floor_' + side + '_locator', the_car)
-            loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
-            if side == 'right':
-                loc_position = anyverse_platform.Vector3D(0.68, -0.38, 0.36)
-            elif side == 'left':
-                loc_position = anyverse_platform.Vector3D(0.68, 0.23, 0.36)
-            self._workspace.set_entity_property_value(floorlocator,'RelativeTransformToComponent','position', loc_position)
-        else:
-            print('[WARN] floor{}_locator already created.'.format(side))
-            floorlocator = locators[0]
+        if len(locators) > 0:
+            # print('[INFO] Recreating floor {} locator'.format(side))
+            self._workspace.delete_entity(locators[0])            
+        floorlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'floor_' + side + '_locator', the_car)
+        try:
+            pos = self._look_and_reach_positions['floor'][side]
+            x, y, z = pos[0],  pos[1], pos[2]
+            loc_position = anyverse_platform.Vector3D(x, y, z)
+            delta = random.uniform(0, 0.5)
+            loc_position.z += delta
+        except KeyError as ke:
+            print('[WARN] No position defined for floor side {}'.format(side))
+            loc_position = anyverse_platform.Vector3D(0, 0, 0)
+        self._workspace.set_entity_property_value(floorlocator,'RelativeTransformToComponent','position', loc_position)
 
         # print('[INFO] Floor locator: {}'.format(self._workspace.get_entity_name(floorlocator)))
         return floorlocator
@@ -3171,17 +3188,19 @@ class InCabinUtils:
     #_______________________________________________________________
     def createHeadrestLocator(self, the_car, side):
         locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'headrest_'+side in self._workspace.get_entity_name(ent) ]
-        if len(locators) == 0:
-            headrest_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'headrest_' + side + '_locator', the_car)
-            loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
-            if side == 'right':
-                loc_position = anyverse_platform.Vector3D(-0.35, -0.28, 1.3)
-            elif side == 'left':
-                loc_position = anyverse_platform.Vector3D(-0.35, 0.28, 1.3)
-            self._workspace.set_entity_property_value(headrest_locator,'RelativeTransformToComponent','position', loc_position)
-        else:
-            print('[WARN] headrest_{}_locator already created.'.format(side))
-            headrest_locator = locators[0]
+        if len(locators) > 0:
+            # print('[INFO] Recreating headrest {} locator'.format(side))
+            self._workspace.delete_entity(locators[0])            
+        headrest_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'headrest_' + side + '_locator', the_car)
+        try:
+            pos = self._look_and_reach_positions['headrest'][side]
+            x, y, z = pos[0],  pos[1], pos[2]
+            loc_position = anyverse_platform.Vector3D(x, y, z)
+            loc_position.y = random.uniform(loc_position.y, 0) if loc_position.y < 0 else random.uniform(0,loc_position.y)
+        except KeyError as ke:
+            print('[WARN] No position defined for headrest side {}'.format(side))
+            loc_position = anyverse_platform.Vector3D(0, 0, 0)
+        self._workspace.set_entity_property_value(headrest_locator,'RelativeTransformToComponent','position', loc_position)
 
         # print('[INFO] Headrest locator: {}'.format(self._workspace.get_entity_name(headrest_locator)))
         return headrest_locator
@@ -3189,17 +3208,18 @@ class InCabinUtils:
     #_______________________________________________________________
     def createSeatbeltLocator(self, the_car, side):
         locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seatbelt_'+side in self._workspace.get_entity_name(ent) ]
-        if len(locators) == 0:
-            seatbeltlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'seatbelt_' + side + '_locator', the_car)
-            loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
-            if side == 'right':
-                loc_position = anyverse_platform.Vector3D(-0.09, -0.62, 1.19)
-            elif side == 'left':
-                loc_position = anyverse_platform.Vector3D(-0.09, 0.62, 1.19)
-            self._workspace.set_entity_property_value(seatbeltlocator,'RelativeTransformToComponent','position', loc_position)
-        else:
-            print('[WARN] seatbelt{}_locator already created.'.format(side))
-            seatbeltlocator = locators[0]
+        if len(locators) > 0:
+            # print('[INFO] Recreating seatbelt {} locator'.format(side))
+            self._workspace.delete_entity(locators[0])            
+        seatbeltlocator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'seatbelt_' + side + '_locator', the_car)
+        try:
+            pos = self._look_and_reach_positions['seatbelt'][side]
+            x, y, z = pos[0],  pos[1], pos[2]
+            loc_position = anyverse_platform.Vector3D(x, y, z)
+        except KeyError as ke:
+            print('[WARN] No position defined for seat belt side {}'.format(side))
+            loc_position = anyverse_platform.Vector3D(0, 0, 0)
+        self._workspace.set_entity_property_value(seatbeltlocator,'RelativeTransformToComponent','position', loc_position)
 
         # print('[INFO] Seatbelt locator: {}'.format(self._workspace.get_entity_name(seatbeltlocator)))
         return seatbeltlocator
@@ -3207,19 +3227,18 @@ class InCabinUtils:
     #_______________________________________________________________
     def createRVMLocator(self, the_car, side):
         locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'rvm_'+side in self._workspace.get_entity_name(ent) ]
-        if len(locators) == 0:
-            rvm_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'rvm_' + side + '_locator', the_car)
-            loc_position = anyverse_platform.Vector3D(0.0, 0.0, 0.0)
-            if side == 'right':
-                loc_position = anyverse_platform.Vector3D(0.7, -0.9, 1.1)
-            elif side == 'left':
-                loc_position = anyverse_platform.Vector3D(0.7, 0.9, 1.1)
-            elif side == 'inside':
-                loc_position = anyverse_platform.Vector3D(0.45, 0.0, 1.3)
-            self._workspace.set_entity_property_value(rvm_locator,'RelativeTransformToComponent','position', loc_position)
-        else:
-            print('[WARN] rvm_{}_locator already created.'.format(side))
-            rvm_locator = locators[0]
+        if len(locators) > 0:
+            # print('[INFO] Recreating rvm {} locator'.format(side))
+            self._workspace.delete_entity(locators[0])            
+        rvm_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'rvm_' + side + '_locator', the_car)
+        try:
+            pos = self._look_and_reach_positions['rvm'][side]
+            x, y, z = pos[0],  pos[1], pos[2]
+            loc_position = anyverse_platform.Vector3D(x, y, z)
+        except KeyError as ke:
+            print('[WARN] No position defined for rvm side {}'.format(side))
+            loc_position = anyverse_platform.Vector3D(0, 0, 0)
+        self._workspace.set_entity_property_value(rvm_locator,'RelativeTransformToComponent','position', loc_position)
 
         # print('[INFO] RVM locator: {}'.format(self._workspace.get_entity_name(rvm_locator)))
         return rvm_locator
@@ -3228,11 +3247,17 @@ class InCabinUtils:
     def createCCLocator(self, the_car):
         cc_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
         if len(cc_locators) > 0:
-            print('[INFO] Recreating CC locator')
+            # print('[INFO] Recreating CC locator')
             self._workspace.delete_entity(cc_locators[0])
         cc_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, 'cc_info_locator', the_car)
 
-        loc_position = anyverse_platform.Vector3D(0.6, 0.0, random.uniform(0.9, 1.0))
+        try:
+            pos = self._look_and_reach_positions['cc']['center']
+            x, y, z = pos[0],  pos[1], pos[2]
+            loc_position = anyverse_platform.Vector3D(x, y, z)
+        except KeyError as ke:
+            print('[WARN] No position defined for central console')
+            loc_position = anyverse_platform.Vector3D(0, 0, 0)
         self._workspace.set_entity_property_value(cc_locator,'RelativeTransformToComponent','position', loc_position)
         # print('[INFO] CC locator: {}'.format(self._workspace.get_entity_name(cc_locator)))
         return cc_locator
