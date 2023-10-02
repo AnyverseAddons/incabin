@@ -1047,8 +1047,8 @@ class InCabinUtils:
             max_weight = 1
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
-            if 'side_ward' in spine_animation_name and weight > 0.4:
-                weight = 0.4
+            if 'side_ward' in spine_animation_name:
+                weight = 0.0
             if 'extreme' in spine_animation_name and weight < 0.5:
                 weight = 0.5
 
@@ -1448,6 +1448,8 @@ class InCabinUtils:
                 max_weight = 0.5
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
+            if 'side_ward' in spine_animation_name:
+                weight = 0.0
             if 'extreme' in spine_animation_name and weight < 0.5:
                 weight = 0.5
 
