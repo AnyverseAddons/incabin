@@ -2448,9 +2448,9 @@ class InCabinUtils:
         return time_of_day
 
     #_______________________________________________________________
-    def setGroundRotationTimeOfDay(self, day, simulation_id, ground_rotation = None, time_of_day = None):
+    def setGroundRotationTimeOfDay(self, day, simulation_id, dawn = False, ground_rotation = None, time_of_day = None):
         if time_of_day is None:
-            time_of_day = self.genTimeOfday(day)
+            time_of_day = self.genTimeOfday(day, dawn)
         if ground_rotation is None:
             ground_rotation = random.uniform(0,360)
 
