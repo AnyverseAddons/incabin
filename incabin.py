@@ -3145,7 +3145,7 @@ class InCabinUtils:
             else:
                 if childseat_name != None:
                     chilldseat_config = occupancy_distribution['childseat_config']
-                    childseat = self.placeChildseat(seat_locator, chilldseat_config, childseat_name)
+                    childseat = self.placeChildseat(seat_locator, chilldseat_config, name = childseat_name, only_baby_in_copilot = False)
                     if childseat['kind'] == 'BabyChild' and occupied:
                         child = self.placeBabyInChildseat(childseat, seat_locator, occupant['Occupant'])
                     else:
@@ -3165,6 +3165,20 @@ class InCabinUtils:
                         ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': seat_occupant[1]['name'], 'Seatbelt_on': seat_occupant[1]['Seatbelt_on']})
                     else:
                         ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': 'None', 'Seatbelt_on': False})
+
+        if 'gaze_probabilities' in occupancy_distribution:
+            gaze_distribution = occupancy_distribution['gaze_probabilities']
+        else:
+            gaze_distribution = None
+            print('[WARN] No gaze probabilities')
+
+        # After occupancy is complete we adjust the driver's and copilot's gaze
+        # according to configuration 
+        if gaze_distribution:
+            driver_gaze = gaze_distribution['driver_gaze_probabilities']
+            self.setDriverGaze(driver_gaze) 
+            copilot_gaze = gaze_distribution['copilot_gaze_probabilities']
+            self.setPassengerGaze(copilot_gaze)
 
         return ret
 
