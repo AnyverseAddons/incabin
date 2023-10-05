@@ -3066,8 +3066,9 @@ class InCabinUtils:
         reach = gaze_probabilities[idx]['reach']
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze
-        if passenger != anyverse_platform.invalid_entity_id and 'child' not in self._workspace.get_entity_name(self.getParent(passenger)):
-            print('[INFO] Setting the passenger to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
+        if passenger != anyverse_platform.invalid_entity_id:
+            is_child = 'child' in self._workspace.get_entity_name(self.getParent(passenger)).lower()
+            print('Is child: {}'.format(is_child))
             # if gaze == 0 do nothing: looking straight at the road
             if gaze == 1: # exterior rear view mirror (50% each side)
                 side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
@@ -3083,9 +3084,9 @@ class InCabinUtils:
                     self.reachInfotainment(passenger, 'left')
             elif gaze == 4: #passenger
                 self.LookAtOtherCharacter(passenger, driver)
-            elif gaze == 5: # rear seat
+            elif gaze == 5 and not is_child: # rear seat
                 self.LookAtRearSeat(passenger,the_car, 'left')
-            elif gaze == 6: # headrest
+            elif gaze == 6 and not is_child: # headrest
                 self.LookAtHeadrest(passenger, the_car, 'left')
                 if reach:
                     self.reachHeadrest(passenger, 'left')
@@ -3093,21 +3094,24 @@ class InCabinUtils:
                 self.LookAtGloveCompartment(passenger, the_car)
                 if reach:
                     self.reachGloveCompartment(passenger, 'right')
-            elif gaze == 8: # seat belt
+            elif gaze == 8 and not is_child: # seat belt
                 self.LookAtSeatbelt(passenger, the_car, 'right')
                 if reach:
                     self.reachSeatbelt(passenger, 'left')
-            elif gaze == 9: # floor own side
+            elif gaze == 9 and not is_child: # floor own side
                 self.LookAtFloor(passenger, the_car, 'right')
                 if reach:
                     self.reachFloor(passenger, 'right')
-            elif gaze == 10:
+            else: # includes gaze == 10:
                 animation, weight = self.selectAdultAnimation('head', 0, 1)
                 self.setAnimation('head', animation, weight, passenger)
+                gaze_info['direction'] = 'free'
+                gaze_info['code'] = 10
 
+            print('[INFO] Setting the passenger to look at {}({})'.format(gaze_info['direction'], gaze_info['code']))
             self.setCustomMetadata(passenger, 'gaze', gaze_info)
         else:
-            print('[WARN]: Cannot set gaze, no passenger, or there is a child')
+            print('[WARN]: Cannot set gaze, no passenger.')
 
     #_______________________________________________________________
     def getOccupant(self, seat_locator, occupant_dist):
