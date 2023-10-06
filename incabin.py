@@ -3494,6 +3494,8 @@ class InCabinUtils:
             char_locators = [ ent for ent in self._workspace.get_hierarchy(looked_at) if self._workspace.get_entity_type(ent) == 'Locator' ]
             if len(char_locators) >= 1:
                 lookat_locator = char_locators[0]
+            else:
+                lookat_locator = self.getParent(looked_at)
         else:
             lookat_locator = self.getParent(looked_at)
 
