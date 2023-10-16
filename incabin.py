@@ -851,7 +851,7 @@ class InCabinUtils:
     def placeObjectOnSeat(self, seat_locator, seat_id, name = None, version = None):
         print('[INFO] Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
 
-        big_object = True if random.uniform(0,1) >= 0.5 else False
+        big_object = True if random.uniform(0,1) >= 0.1 else False
 
         # select a named object from resources
         object = self.selectObject(name, version, big_object)
