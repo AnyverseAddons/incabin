@@ -2399,7 +2399,7 @@ class InCabinUtils:
 
             background_weight = 1
             if background != None:
-                self._workspace.set_entity_property_value(background['fixed_entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
+                self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
             return background_weight, ibl_light_intensity
 
     #_______________________________________________________________
@@ -2464,15 +2464,15 @@ class InCabinUtils:
     #_______________________________________________________________
     def setBackground(self, background, simulation_id, dawn = False):
         if not dawn:
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',background['fixed_entity_id'])
-            self._workspace.set_entity_property_value(background['fixed_entity_id'], 'BackgroundContentComponent','environment_weight', background['background_intensity'])
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',background['entity_id'])
+            self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background['background_intensity'])
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',self._no_entry)
 
         # Dump the background info in the simulation custom metadata
         bkg_info = {}
         bkg_info['background'] = background['name']
-        bkg_info['env-weight'] = self._workspace.get_entity_property_value(background['fixed_entity_id'], 'BackgroundContentComponent','environment_weight')
+        bkg_info['env-weight'] = self._workspace.get_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight')
 
         self.setCustomMetadata(simulation_id, "backgroundInfo", bkg_info)
 
@@ -2494,8 +2494,9 @@ class InCabinUtils:
                     break
         selected_background = backgrounds[selected_background_idx]
 
-        ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
-        selected_background['fixed_entity_id'] = ws_bckgnd_id
+        ws_bckgnd_id = selected_background['entity_id']
+        # ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
+        # selected_background['fixed_entity_id'] = ws_bckgnd_id
 
         return selected_background, ws_bckgnd_id
 
