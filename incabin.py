@@ -11,6 +11,7 @@ class InCabinUtils:
     def __init__(self, workspace, script_console, iteration_index = None, total_iteration_count = None):
         self._iteration_index = iteration_index
         self._workspace = workspace
+        self._simulation_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Simulation)[0]
         self._no_entry = anyverse_platform.invalid_entity_id
         self._ego_id = self._workspace.get_entities_by_name("Ego")[0]
         self._already_used_characters = []
@@ -94,6 +95,11 @@ class InCabinUtils:
             return self._workspace.get_entity_property_value( entity_id, "RelativeTransformToComponent", "entity_id" )
         except:
             return anyverse_platform.invalid_entity_id
+
+    #_______________________________________________________________
+    def isDay(self):
+        time_of_day = self._workspace.get_entity_property_value(self._simulation_id, 'SimulationEnvironmentComponent','time_of_day' )
+        return time_of_day >= 6.00 and time_of_day <= 18.00
 
     #_______________________________________________________________
     def vectorToList(self, vector):
@@ -1046,6 +1052,22 @@ class InCabinUtils:
 
             driver['fixed_entity_id'] = driver_id
 
+            bright_pupil = False
+            if self.setBrightPupil():
+                bright_pupil_material = self.getBrightPupilMaterial()
+                if bright_pupil_material != anyverse_platform.invalid_entity_id:
+                    bright_pupil = self.changeMaterial(driver_id, '.*_eye_pupil$', bright_pupil_material)
+            if bright_pupil:
+                print('[INFO] Pupil should be bright under NIR light')
+
+            bright_iris = False
+            if self.setBrightIris(seat_locator):
+                bright_nir_material = self.getBrightPupilMaterial()
+                if bright_nir_material != anyverse_platform.invalid_entity_id:
+                    bright_iris = self.changeMaterial(driver_id, '.*_eye_iris$', bright_nir_material)
+            if bright_iris:
+                print('[INFO] Iris should be bright under NIR light')
+
             # set driver pose
             animation = self.getAnimIdByName('Driving')
             self.setAnimation('base', animation, 1.0, driver_id)
@@ -1297,6 +1319,22 @@ class InCabinUtils:
 
             child['fixed_entity_id'] = child_id
 
+            bright_pupil = False
+            if self.setBrightPupil():
+                bright_nir_material = self.getBrightPupilMaterial()
+                if bright_nir_material != anyverse_platform.invalid_entity_id:
+                    bright_pupil = self.changeMaterial(child_id, '.*_eye_pupil$', bright_nir_material)
+            if bright_pupil:
+                print('[INFO] Pupil should be bright under NIR light')
+
+            bright_iris = False
+            if self.setBrightIris(seat_locator):
+                bright_nir_material = self.getBrightPupilMaterial()
+                if bright_nir_material != anyverse_platform.invalid_entity_id:
+                    bright_iris = self.changeMaterial(child_id, '.*_eye_iris$', bright_nir_material)
+            if bright_iris:
+                print('[INFO] Iris should be bright under NIR light')
+
             # Decide if we fasten the seat belt or not
             # Never fasten seatbelt if it's a big baby or if the convertible backwards
             # For the other children in convertibles we always fasten the seatbelts to have a 50/50
@@ -1440,6 +1478,22 @@ class InCabinUtils:
 
         if passenger_found:
             passenger['fixed_entity_id'] = passenger_id
+
+            bright_pupil = False
+            if self.setBrightPupil():
+                bright_pupil_material = self.getBrightPupilMaterial()
+                if bright_pupil_material != anyverse_platform.invalid_entity_id:
+                    bright_pupil = self.changeMaterial(passenger_id, '.*_eye_pupil$', bright_pupil_material)
+            if bright_pupil:
+                print('[INFO] Pupil should be bright under NIR light')
+
+            bright_iris = False
+            if self.setBrightIris(seat_locator):
+                bright_nir_material = self.getBrightPupilMaterial()
+                if bright_nir_material != anyverse_platform.invalid_entity_id:
+                    bright_iris = self.changeMaterial(passenger_id, '.*_eye_iris$', bright_nir_material)
+            if bright_iris:
+                print('[INFO] Iris should be bright under NIR light')
 
             # Decide if we faten the seat belt or not
             fasten_seatbelt = self.decideFastenSeatbelt(passenger, seatbelts_distribution['belt_on_probability'])
@@ -2206,10 +2260,55 @@ class InCabinUtils:
         return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
 
     #_______________________________________________________________
+    def queryPupilMaterial(self):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_attribute_filter('family', 'organic')
+
+        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+    #_______________________________________________________________
+    def getBrightPupilMaterial(self):
+        pupil_material_id = anyverse_platform.invalid_entity_id
+        pupil_materials = self.queryPupilMaterial()
+        if len(pupil_materials) > 0:
+            pupil_material_id = pupil_materials[0]['entity_id']
+        else:
+            print('[WARN] Could NOT find bright pupil material')
+
+        return pupil_material_id
+
+    #_______________________________________________________________
+    def setBrightPupil(self):
+        light_ids = self._workspace.get_entities_by_type('Light')
+        light_on = False
+        for light_id in light_ids:
+            if self._workspace.get_entity_property_value(light_id, 'VisibleComponent','visible'):
+                light_on = True
+                break
+        return light_on and not self.isDay()
+    
+    #_______________________________________________________________
+    def setBrightIris(self, seat_locator):
+        return self.setBrightPupil() and (self.isDriverSeat(seat_locator) or self.isCopilotSeat(seat_locator))
+    
+    #_______________________________________________________________
     def getAssetExposedMaterials(self, fixed_id):
         exposed_materials = [ m for m in self._workspace.get_hierarchy(fixed_id) if 'MaterialPartEntity' == self._workspace.get_entity_type(m) ]
 
         return exposed_materials
+    
+    #_______________________________________________________________
+    def changeMaterial(self, fixed_id, material_name_pattern, new_material):
+        ok = False
+        matched_materials = [ m for m in self.getAssetExposedMaterials(fixed_id) if re.search(material_name_pattern, self._workspace.get_entity_name(m)) ]
+        if len(matched_materials) > 0:
+            material = matched_materials[0]
+            self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', new_material)
+            ok = True
+        else:
+            print('[WARN] Could NOT find material matching {} in fixed entity {}'.format(material_name_pattern, self._workspace.get_entity_name(fixed_id)))
+        
+        return ok
     
     #_______________________________________________________________
     def changeExposedMaterials(self, fixed_id, asset_set, color_scheme = None):
@@ -3587,7 +3686,7 @@ class InCabinUtils:
         animation, weight = self.selectAdultAnimation('spine', 0, 1, 'leaning_forward')
         self.setAnimation('spine', animation, weight, looker)
 
-        seat_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seat'+seat_number in self._workspace.get_entity_name(ent).lower() ]
+        seat_locators = [ ent for ent in self.getSeatLocators(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seat'+seat_number in self._workspace.get_entity_name(ent).lower() ]
         if len(seat_locators) > 0:
             seat_loc = seat_locators[0]
         else:
