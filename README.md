@@ -32,6 +32,10 @@ Clone this repo to your local machine, or if you want to contribute, fork the re
 - More car cabin variability: Support for dynamic material in car cabins following a color scheme. No need of specific car cabin assets for different interior colors
 - New configuration parameters to adjust front seats in depth and tilt
 
+**October 2023**
+- Added 8 new car cabin models from real brands and models. Now the total available car cabins is 16
+- New points inside the cabin to configure the gaze of the front occupants. Additionally there is new feature to make the characters reach to the gaze points to force more extreme poses.
+
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
 
@@ -75,14 +79,22 @@ With the `adjust_front_seats` you control if you want to change the adjust the d
     "use_car_interior_probabilities": True,
     "adjust_front_seats": True,
     "car_interior_probabilities": [
-        {'car_name': 'Audi_Q5', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True }, 
-        {'car_name': 'Chevrolet_Menlo', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
-        {'car_name': 'Lexus_UX', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
-        {'car_name': 'Porsche_CayenneS', 'probability': 0.5, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
-        {'car_name': 'Unbranded_GenericSUV', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
-        {'car_name': 'Volkswagen_Passat', 'probability': 0.5, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
-        {'car_name': 'Hyundai_Ioniq', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True },
-        {'car_name': 'LandRover_Autobiography', 'probability': 0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': True }
+        {'car_name': 'Audi_Q5', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Lexus_UX', 'probability': 0.125, 'front_seat_max_depth': 0.05, 'front_seat_max_tilt': 0, 'normal_dist': False },
+        {'car_name': 'Porsche_CayenneS', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125, 'front_seat_max_depth': 0.07, 'front_seat_max_tilt': 2, 'normal_dist': False },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'LandRover_Autobiography', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Ford_Escape', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Honda_Jazz', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Kia_EV_GT', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Mercedes_Benz_EQE_SUV', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Buick_Lacrosse', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Peugeot_3008', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Tesla_S', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Venucia_Star', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
     ],
 ```
 The next set of properties, allow you to configure and control the cameras in the cabin. 
@@ -99,34 +111,50 @@ This is the default configuration for 2 cameras RVM for a rear view mirror posit
     "rgb_sensor_sim": False,
     "cameras":{
         "RVM": {
-            "probability": 0.0,
+            "probability": 1.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
-                'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
-                'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
-                'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.53, 0.005, 1.29) },
-                'Porsche_Cayenne': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
-                'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.52, -0.005, 1.43) },
-                'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.60, -0.027, 1.287)},
-                'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.58, -0.02, 1.315)},
-                'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.50, 0.0, 1.6)},
+                'Audi_Q5': {'rotation': (0, -50, 0), 'position': (0.435, 0.0, 1.45) }, 
+                'Chevrolet_Menlo':  {'rotation': (0, -50, 0), 'position': (0.53, 0.0, 1.26) },
+                'Lexus_UX':         {'rotation': (0, -50, 0), 'position': (0.46, 0.005, 1.26) },
+                'Porsche_CayenneS': {'rotation': (0, -50, 0), 'position': (0.50, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (0, -50, 0), 'position': (0.485, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (0, -50, 0), 'position': (0.575, -0.027, 1.287)},
+                'Hyundai_Ioniq': {'rotation': (0, -50, 0), 'position': (0.45, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (0, -50, 0), 'position': (0.41, 0.0, 1.58)},
+                'Ford_Escape': {'rotation': (0, -35, 0), 'position': (0.42, 0.0, 1.37)},
+                'Honda_Jazz': {'rotation': (0, -40, 0), 'position': (0.35, 0.0, 1.3)},
+                'Kia_EV_GT': {'rotation': (0, -35, 0), 'position': (0.41, 0.0, 1.40)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -40, 0), 'position': (0.42, 0.0, 1.45)},
+                'Buick_LaCrosse': {'rotation': (0, -35, 0), 'position': (0.44, -0.03, 1.31)},
+                'Peugeot_3008': {'rotation': (0, -40, 0), 'position': (0.37, 0.0, 1.42)},
+                'Tesla_S': {'rotation': (0, -40, 0), 'position': (0.32, 0.0, 1.22)},
+                'Venucia_Star': {'rotation': (0, -35, 0), 'position': (0.50, 0.0, 1.46)},
                 'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         },
         "CC": { 
-            "probability": 1.0,
+            "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
                 'Audi_Q5': {'rotation': (0, -10, 0), 'position': (0.53, 0.0, 1.11)}, 
                 'Chevrolet_Menlo':   {'rotation': (0, -10, 0), 'position': (0.64, 0.0, 1.03)},
                 'Lexus_UX':          {'rotation': (0, -10, 0), 'position': (0.505, 0.02, 0.95)},
-                'Porsche_Cayenne':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
+                'Porsche_CayenneS':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
                 'Unbranded_GenericSUV':     {'rotation': (0, -10, 0), 'position': (0.58, 0.005, 1.085)},
                 'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
                 'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
                 'LandRover_Autobiography': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.22)},
+                'Ford_Escape': {'rotation': (0, -10, 0), 'position': (0.51, 0.0, 1.21)},
+                'Honda_Jazz': {'rotation': (0, -10, 0), 'position': (0.58, 0.0, 1.03)},
+                'Kia_EV_GT': {'rotation': (0, -10, 0), 'position': (0.65, 0.0, 1.175)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.18)},
+                'Buick_LaCrosse': {'rotation': (0, -10, 0), 'position': (0.66, 0.0, 1.03)},
+                'Peugeot_3008': {'rotation': (0, -20, 0), 'position': (0.58, 0.0, 1.23)},
+                'Tesla_S': {'rotation': (0, -10, 0), 'position': (0.61, 0.0, 0.98)},
+                'Venucia_Star': {'rotation': (0, -15, 0), 'position': (0.66, 0.0, 1.19)},
                 'default':           {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         }
@@ -234,25 +262,35 @@ For seat belts, `seatbelts_distribution`, on one hand, you can decide the probab
         },
 ```
 
-For the driver and the copilot, you can control their gaze (`gaze_probabilities`) setting the probabilities they are going to look at: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger or at the rear passengers.
+For the driver and the copilot, you can control their gaze (`gaze_probabilities`) setting the probabilities they are going to look at and optionally reach to: the road, the exterior rear view mirrors, the interior rear view mirror the other front row passenger, at the rear, at the opposite headrest, at the glove compartment, at the own seat belt or at the floor.
 
 ```
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
-                {'name': 'road', 'gaze': 0, 'probability': 0.7},
-                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.1},
-                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.05},
-                {'name': 'infotainment', 'gaze': 3, 'probability': 0.05},
-                {'name': 'passenger', 'gaze': 4, 'probability': 0.1},
-                {'name': 'rear', 'gaze': 5, 'probability': 0.0}
+                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
+                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
             ],
             'copilot_gaze_probabilities': [
-                {'name': 'road', 'gaze': 0, 'probability': 0.50},
-                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.05},
-                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.1},
-                {'name': 'infotainment', 'gaze': 3, 'probability': 0.1},
-                {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
-                {'name': 'rear', 'gaze': 5, 'probability': 0.05}
+                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
+                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
             ]
         },
 ```
