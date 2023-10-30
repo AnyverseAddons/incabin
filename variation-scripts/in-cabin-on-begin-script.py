@@ -114,27 +114,27 @@ incabin_config = {
             {'name': 'Driver', 'occupancy': 1, 'probability': 1.0} 
         ],
         'copilot_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.1},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.2},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.6},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.1} 
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.2},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.1},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.4},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.3} 
         ],
         'backseat_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.1},
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.4},
             {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.3},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.4},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.2}
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.2},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.1}
         ],
         'middleseat_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.33},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.0},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.33},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.34} 
         ],
         'childseat_config': {
             'childseat_type_probabilities': [
-                {'Type': 'BabyChild', 'probability': 0.20},
-                {'Type': 'Convertible', 'probability': 0.30},
+                {'Type': 'BabyChild', 'probability': 0.1},
+                {'Type': 'Convertible', 'probability': 0.4},
                 {'Type': 'Booster', 'probability': 0.50}
             ],
             'childseat_occupancy_probabilities': [
@@ -144,11 +144,11 @@ incabin_config = {
             ],
             'childseat_orientation_probabilities': [
                 {'Orientation': 'Forward', 'probability': 0.5},
-                {'Orientation': 'Backward', 'probability': 0.5}
+                {'Orientation': 'Backward', 'probability': 0.0}
             ],
             'childseat_rotation_max': 30
         },
-        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
