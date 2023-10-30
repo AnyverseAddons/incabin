@@ -207,8 +207,20 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(entity_id, 'VisibleComponent','visible', True)
 
     #_______________________________________________________________
-    def setAvoidArmsAutoCollision(self, entity_id):
-        self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','avoid_arms_auto_collision', True)
+    def setAvoidArmsAutoCollision(self, entity_id, avoid):
+        self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','avoid_arms_auto_collision', avoid)
+
+    #_______________________________________________________________
+    def setSeatCollision(self, entity_id, mode = 'Nothing', collision_entity_id = None):
+        if collision_entity_id:
+            mode = 'SeatEntity'
+
+        try:
+            self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','SeatCollision.SeatCollisionMode', mode)
+            if mode ==  'SeatEntity':
+                self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','SeatCollision.SeatCollisionEntityId', collision_entity_id)
+        except RuntimeError as rune:
+            print('[WARN] Avoid collision with seats not supported: {}'.format(rune))
 
     #_______________________________________________________________
     def setExportAlwaysExcludeOcclusionToAllEntities(self):
@@ -1143,7 +1155,8 @@ class InCabinUtils:
                     driver['Seatbelt_placement'] = belt_placement     
 
             self.setExportAlwaysExcludeOcclusion(driver_id)
-            self.setAvoidArmsAutoCollision(driver_id)
+            self.setAvoidArmsAutoCollision(driver_id, True)
+            self.setSeatCollision(driver_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(driver_id)
             self.applyCharacterOffset(driver)
             self.setCharacterInfo(driver)
@@ -1427,7 +1440,8 @@ class InCabinUtils:
                     child['Seatbelt_placement'] = 'Normal'
 
             self.setExportAlwaysExcludeOcclusion(child_id)
-            self.setAvoidArmsAutoCollision(child_id)
+            self.setAvoidArmsAutoCollision(child_id, True)
+            self.setSeatCollision(child_id, collision_entity_id = childseat['fixed_entity_id'])
             self.removeMotionBlur(child_id)
             self.setCharacterInfo(child)
             self.setSeatInfo(child)
@@ -1595,7 +1609,8 @@ class InCabinUtils:
                     passenger['Seatbelt_placement'] = belt_placement
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
-            self.setAvoidArmsAutoCollision(passenger_id)
+            self.setAvoidArmsAutoCollision(passenger_id, True)
+            self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(passenger_id)
             self.applyCharacterOffset(passenger)
             self.setCharacterInfo(passenger)
@@ -2281,10 +2296,12 @@ class InCabinUtils:
             if self._workspace.get_entity_property_value(light_id, 'VisibleComponent','visible'):
                 light_on = True
                 break
+        return False # TODO: Not setting bright pupil yet. Define the conditions beyond active light on.
         return light_on and not self.isDay()
     
     #_______________________________________________________________
     def setBrightIris(self, seat_locator):
+        return False # TODO: Not setting bright iris yet. Define the conditions beyond active light on.
         return self.setBrightPupil() and (self.isDriverSeat(seat_locator) or self.isCopilotSeat(seat_locator))
     
     #_______________________________________________________________
