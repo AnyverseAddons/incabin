@@ -2673,7 +2673,7 @@ class InCabinUtils:
         if car_idx is not None:
             idx = car_idx
         picked_car = self._workspace.cars[idx]
-        self._car_brand = picked_car['brand'].replace(" ", "")
+        self._car_brand = picked_car['brand']
         self._car_model = picked_car['model']
         return picked_car
 
