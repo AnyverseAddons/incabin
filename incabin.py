@@ -3000,46 +3000,60 @@ class InCabinUtils:
 
         gaze_info = {}
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
-        gaze = gaze_probabilities[idx]['gaze']
+        gaze_id = gaze_probabilities[idx]['id']
         reach = gaze_probabilities[idx]['reach']
+        change_gaze = True if random.uniform(0,1) <= gaze_probabilities[idx]['gaze'] else False
         gaze_info['direction'] = gaze_probabilities[idx]['name']
-        gaze_info['code'] = gaze
+        gaze_info['code'] = gaze_id
+        gaze_info['change-gaze'] = change_gaze
+        gaze_info['reach'] = reach
         if driver != anyverse_platform.invalid_entity_id:
             print('[INFO] Setting the driver to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
             # if gaze == 0 do nothing: looking straight at the road
-            if gaze == 1: # exterior rear view mirror (50% each side)
+            if gaze_id == 1: # exterior rear view mirror (50% each side)
+                if change_gaze:
+                    side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
+                    self.LookAtExteriorRearViewMirror(driver, the_car, side)
+                    gaze_info['side'] = side
+            elif gaze_id == 2: # inside rear view mirror
+                if change_gaze:
+                    self.LookAtInsideRearViewMirror(driver, the_car)
                 side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
-                self.LookAtExteriorRearViewMirror(driver, the_car, side)
-                gaze_info['side'] = side
-            elif gaze == 2: # inside rear view mirror
-                self.LookAtInsideRearViewMirror(driver, the_car)
                 if reach:
-                    self.reachRVM(driver, 'right')
-            elif gaze == 3: # infotaintment
-                self.LookAtInfotainment(driver, the_car)
+                    self.reachRVM(driver, side)
+            elif gaze_id == 3: # infotaintment
+                if change_gaze:
+                    self.LookAtInfotainment(driver, the_car)
                 if reach:
                     self.reachInfotainment(driver, 'right')
-            elif gaze == 4: # passenger
-                self.LookAtOtherCharacter(driver, passenger)
-            elif gaze == 5: # rear seat
-                self.LookAtRearSeat(driver, the_car, 'right')
-            elif gaze == 6: # headrest
-                self.LookAtHeadrest(driver, the_car, 'right')
+            elif gaze_id == 4: # passenger
+                if change_gaze:
+                    self.LookAtOtherCharacter(driver, passenger)
+            elif gaze_id == 5: # rear seat
+                if change_gaze:
+                    self.LookAtRearSeat(driver, the_car, 'right')
+            elif gaze_id == 6: # headrest
+                side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
+                if change_gaze:
+                    self.LookAtHeadrest(driver, the_car, side)
                 if reach:
-                    self.reachHeadrest(driver, 'right')
-            elif gaze == 7: # glove compartment
-                self.LookAtGloveCompartment(driver, the_car)
+                    self.reachHeadrest(driver, side)
+            elif gaze_id == 7: # glove compartment
+                if change_gaze:
+                    self.LookAtGloveCompartment(driver, the_car)
                 if reach:
                     self.reachGloveCompartment(driver, 'right')
-            elif gaze == 8: # seat belt
-                self.LookAtSeatbelt(driver, the_car, 'left')
+            elif gaze_id == 8: # seat belt
+                if change_gaze:
+                    self.LookAtSeatbelt(driver, the_car, 'left')
                 if reach:
-                    self.reachSeatbelt(driver, 'right')
-            elif gaze == 9: # floor own side
-                self.LookAtFloor(driver, the_car, 'left')
+                    self.reachSeatbelt(driver, 'left')
+            elif gaze_id == 9: # floor own side
+                if change_gaze:
+                    self.LookAtFloor(driver, the_car, 'left')
                 if reach:
                     self.reachFloor(driver, 'left')
-            elif gaze == 10:
+            elif gaze_id == 10:
                 animation, weight = self.selectAdultAnimation('head', 0, 1)
                 self.setAnimation('head', animation, weight, driver)
 
@@ -3063,47 +3077,59 @@ class InCabinUtils:
 
         gaze_info = {}
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
-        gaze = gaze_probabilities[idx]['gaze']
+        gaze_id = gaze_probabilities[idx]['id']
         reach = gaze_probabilities[idx]['reach']
+        change_gaze = True if random.uniform(0,1) <= gaze_probabilities[idx]['gaze'] else False
         gaze_info['direction'] = gaze_probabilities[idx]['name']
-        gaze_info['code'] = gaze
+        gaze_info['code'] = gaze_id
+        gaze_info['change-gaze'] = change_gaze
+        gaze_info['reach'] = reach
         if passenger != anyverse_platform.invalid_entity_id:
             is_child = 'child' in self._workspace.get_entity_name(self.getParent(passenger)).lower()
             print('Is child: {}'.format(is_child))
-            # if gaze == 0 do nothing: looking straight at the road
-            if gaze == 1: # exterior rear view mirror (50% each side)
-                side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
-                self.LookAtExteriorRearViewMirror(passenger, the_car, side)
-                gaze_info['side'] = side
-            elif gaze == 2: # inside rear view mirror
-                self.LookAtInsideRearViewMirror(passenger, the_car)
+            # if gaze_id == 0 do nothing: looking straight at the road
+            if gaze_id == 1: # exterior rear view mirror (50% each side)
+                if change_gaze:
+                    side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
+                    self.LookAtExteriorRearViewMirror(passenger, the_car, side)
+                    gaze_info['side'] = side
+            elif gaze_id == 2: # inside rear view mirror
+                if change_gaze:
+                    self.LookAtInsideRearViewMirror(passenger, the_car)
                 if reach:
                     self.reachRVM(driver, 'right')
-            elif gaze == 3: #  infotaintment
-                self.LookAtInfotainment(passenger, the_car)
+            elif gaze_id == 3: #  infotaintment
+                if change_gaze:
+                    self.LookAtInfotainment(passenger, the_car)
                 if reach:
                     self.reachInfotainment(passenger, 'left')
-            elif gaze == 4: #passenger
-                self.LookAtOtherCharacter(passenger, driver)
-            elif gaze == 5 and not is_child: # rear seat
-                self.LookAtRearSeat(passenger,the_car, 'left')
-            elif gaze == 6 and not is_child: # headrest
-                self.LookAtHeadrest(passenger, the_car, 'left')
+            elif gaze_id == 4: #passenger
+                if change_gaze:
+                    self.LookAtOtherCharacter(passenger, driver)
+            elif gaze_id == 5 and not is_child: # rear seat
+                if change_gaze:
+                    self.LookAtRearSeat(passenger,the_car, 'left')
+            elif gaze_id == 6 and not is_child: # headrest
+                if change_gaze:
+                    self.LookAtHeadrest(passenger, the_car, 'left')
                 if reach:
                     self.reachHeadrest(passenger, 'left')
-            elif gaze == 7: # glove compartment
-                self.LookAtGloveCompartment(passenger, the_car)
+            elif gaze_id == 7: # glove compartment
+                if change_gaze:
+                    self.LookAtGloveCompartment(passenger, the_car)
                 if reach:
                     self.reachGloveCompartment(passenger, 'right')
-            elif gaze == 8 and not is_child: # seat belt
-                self.LookAtSeatbelt(passenger, the_car, 'right')
+            elif gaze_id == 8 and not is_child: # seat belt
+                if change_gaze:
+                    self.LookAtSeatbelt(passenger, the_car, 'right')
                 if reach:
                     self.reachSeatbelt(passenger, 'left')
-            elif gaze == 9 and not is_child: # floor own side
-                self.LookAtFloor(passenger, the_car, 'right')
+            elif gaze_id == 9 and not is_child: # floor own side
+                if change_gaze:
+                    self.LookAtFloor(passenger, the_car, 'right')
                 if reach:
                     self.reachFloor(passenger, 'right')
-            else: # includes gaze == 10:
+            else: # includes gaze_id == 10:
                 animation, weight = self.selectAdultAnimation('head', 0, 1)
                 self.setAnimation('head', animation, weight, passenger)
                 gaze_info['direction'] = 'free'
@@ -3325,14 +3351,14 @@ class InCabinUtils:
         return locator_name
 
     #_______________________________________________________________
-    def reachFloor(self, character_id, hand):
+    def reachFloor(self, character_id, side):
         the_car = self.getCars()[0]
 
         # Make the character lean forward to some extent
         animation, weight = self.selectAdultAnimation('spine', 0.5, 1, 'leaning_forward_extreme')
         self.setAnimation('spine', animation, weight, character_id)
 
-        side = hand
+        hand = 'left' if random.uniform(0, 1) >= 0.5 else 'right'
         floor_locator = self.getFloorLocator(the_car, side)
         if floor_locator:
             locator_name = self.reachLocator(character_id, hand, floor_locator)
@@ -3341,13 +3367,10 @@ class InCabinUtils:
         return locator_name
 
     #_______________________________________________________________
-    def reachSeatbelt(self, character_id, hand):
+    def reachSeatbelt(self, character_id, side):
         the_car = self.getCars()[0]
 
-        if hand == 'right':
-            side = 'left'
-        elif hand == 'left':
-            side = 'right'
+        hand = 'left' if random.uniform(0, 1) >= 0.5 else 'right'
 
          # Make the character lean forward to some extent
         animation, weight = self.selectAdultAnimation('spine', 0, 0.1, 'leaning_forward')
@@ -3361,10 +3384,10 @@ class InCabinUtils:
         return locator_name
 
     #_______________________________________________________________
-    def reachHeadrest(self, character_id, hand):
+    def reachHeadrest(self, character_id, side):
         the_car = self.getCars()[0]
 
-        side = hand
+        hand = 'left' if random.uniform(0, 1) >= 0.5 else 'right'
 
          # Make the character lean forward to some extent
         animation, weight = self.selectAdultAnimation('spine', 0.3, 0.5, 'leaning_forward')
