@@ -3034,7 +3034,7 @@ class InCabinUtils:
         idx = self.choiceUsingProbabilities([ float(o['probability']) for o in gaze_probabilities ])
         gaze_id = gaze_probabilities[idx]['id']
         reach = gaze_probabilities[idx]['reach']
-        change_gaze = True if random.uniform(0,1) <= gaze_probabilities[idx]['gaze'] else False
+        change_gaze = True if random.uniform(0,1) < gaze_probabilities[idx]['gaze'] else False
         gaze_info['direction'] = gaze_probabilities[idx]['name']
         gaze_info['code'] = gaze_id
         gaze_info['change-gaze'] = change_gaze
@@ -3065,11 +3065,10 @@ class InCabinUtils:
                 if change_gaze:
                     self.LookAtRearSeat(driver, the_car, 'right')
             elif gaze_id == 6: # headrest
-                side = 'left' if random.uniform(0,1) <= 1 else 'right'
                 if change_gaze:
-                    self.LookAtHeadrest(driver, the_car, side)
+                    self.LookAtHeadrest(driver, the_car, 'right')
                 if reach:
-                    self.reachHeadrest(driver, 'right')
+                    self.reachHeadrest(driver, 'right') # reach the right side headrest
             elif gaze_id == 7: # glove compartment
                 if change_gaze:
                     self.LookAtGloveCompartment(driver, the_car)
@@ -3155,7 +3154,7 @@ class InCabinUtils:
                 if change_gaze:
                     self.LookAtSeatbelt(passenger, the_car, 'right')
                 if reach:
-                    self.reachSeatbelt(passenger, 'left')
+                    self.reachSeatbelt(passenger, 'right')
             elif gaze_id == 9 and not is_child: # floor own side
                 if change_gaze:
                     self.LookAtFloor(passenger, the_car, 'right')
@@ -3402,7 +3401,7 @@ class InCabinUtils:
     def reachSeatbelt(self, character_id, side):
         the_car = self.getCars()[0]
 
-        hand = 'left' if random.uniform(0, 1) >= 0.5 else 'right'
+        hand = 'left' if side == 'right' else 'right' 
 
          # Make the character lean forward to some extent
         animation, weight = self.selectAdultAnimation('spine', 0, 0.1, 'leaning_forward')
@@ -3419,7 +3418,7 @@ class InCabinUtils:
     def reachHeadrest(self, character_id, side):
         the_car = self.getCars()[0]
 
-        hand = 'left' if random.uniform(0, 1) >= 0 else 'right'
+        hand = 'left' if random.uniform(0, 1) >= 0.5 else 'right'
 
          # Make the character lean forward to some extent
         animation, weight = self.selectAdultAnimation('spine', 0.3, 0.5, 'leaning_forward')
