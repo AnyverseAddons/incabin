@@ -33,7 +33,7 @@ class InCabinUtils:
                 'WrongSideOfHead': anyverse_platform.SeatBeltPlacement.WrongSideOfHead,
                 'CharacterOverSeatbelt': anyverse_platform.SeatBeltPlacement.WithoutCharacter,
             }
-        self._look_and_reach_positions = {
+        self._general_look_and_reach_positions = {
                 'cc': {'center': (0.6, 0.0, 1.04)},
                 'glove': {'right': (0.6, -0.5, 0.84)},
                 'rvm': {'inside': (0.44, 0.0, 1.44), 'right': (0.7, -1.0, 1.1), 'left': (0.7, 1.0, 1.1)},
@@ -41,6 +41,23 @@ class InCabinUtils:
                 'headrest': {'right': (-0.2, -0.28, 1.30), 'left': (-0.2, 0.28, 1.30)},
                 'seatbelt': {'right': (-0.1, -0.6, 1.19), 'left': (-0.1, 0.6, 1.19)}
         }
+        self._big_car_look_and_reach_positions = {
+                'cc': {'center': (0.6, 0.0, 1.19)},
+                'glove': {'right': (0.68, -0.5, 0.94)},
+                'rvm': {'inside': (0.4, 0.08, 1.6), 'right': (0.46, -1.02, 1.36), 'left': (0.46, 1.02, 1.36)},
+                'floor': {'right': (0.88, -0.4, 0.52), 'left': (0.88, 0.4, 0.52)},
+                'headrest': {'right': (-0.25, -0.23, 1.5), 'left': (-0.25, 0.23, 1.5)},
+                'seatbelt': {'right': (-0.25, -0.62, 1.4), 'left': (-0.25, 0.62, 1.4)}
+        }
+        self._medium_car_look_and_reach_positions = {
+                'cc': {'center': (0.6, 0.0, 1.19)},
+                'glove': {'right': (0.68, -0.5, 0.94)},
+                'rvm': {'inside': (0.24, 0.08, 1.5), 'right': (0.63, -1.02, 1.2), 'left': (0.63, 1.02, 1.2)},
+                'floor': {'right': (0.88, -0.4, 0.52), 'left': (0.88, 0.4, 0.52)},
+                'headrest': {'right': (-0.24, -0.23, 1.45), 'left': (-0.24, 0.23, 1.45)},
+                'seatbelt': {'right': (-0.25, -0.62, 1.4), 'left': (-0.25, 0.62, 1.4)}
+        }
+        self._look_and_reach_positions = self._medium_car_look_and_reach_positions
 
     #________________________________________________________________________________________
     # update_progress() : Displays or updates a console progress bar
@@ -204,6 +221,18 @@ class InCabinUtils:
     #_______________________________________________________________
     def setAvoidArmsAutoCollision(self, entity_id):
         self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','avoid_arms_auto_collision', True)
+
+    #_______________________________________________________________
+    def setSeatCollision(self, entity_id, mode = 'Nothing', collision_entity_id = None):
+        if collision_entity_id:
+            mode = 'SeatEntity'
+
+        try:
+            self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','SeatCollision.SeatCollisionMode', mode)
+            if mode ==  'SeatEntity':
+                self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','SeatCollision.SeatCollisionEntityId', collision_entity_id)
+        except RuntimeError as rune:
+            print('[WARN] Avoid collision with seats not supported: {}'.format(rune))
 
     #_______________________________________________________________
     def setExportAlwaysExcludeOcclusionToAllEntities(self):
@@ -420,7 +449,7 @@ class InCabinUtils:
         elif anim_type == 'base':
             filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in ['sitting_straight', 'arms_on_the_body']]
         elif anim_type == 'spine':
-            filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
+            filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() ] # TESTING and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
         elif anim_type == 'left_arm':
             filtered_animations = [ laa for laa in animations if re.search("^Arms_.*_body_L|_head_L$", self._workspace.get_entity_name(laa)) ]
             # filtered_animations = [ laa for laa in animations if re.search("^Arms_stretched_above_.*_L$", self._workspace.get_entity_name(laa)) ]
@@ -1047,10 +1076,10 @@ class InCabinUtils:
             max_weight = 1
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
-            if 'side_ward' in spine_animation_name:
-                weight = 0.0
-            if 'extreme' in spine_animation_name and weight < 0.5:
-                weight = 0.5
+            if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
+                weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
+            # if 'extreme' in spine_animation_name and weight < 0.5:
+            #     weight = 0.5
 
             self.setAnimation('spine', animation, weight, driver_id)
 
@@ -1115,6 +1144,7 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(driver_id)
             self.setAvoidArmsAutoCollision(driver_id)
+            self.setSeatCollision(driver_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(driver_id)
             self.applyCharacterOffset(driver)
             self.setCharacterInfo(driver)
@@ -1388,6 +1418,7 @@ class InCabinUtils:
 
         self.setExportAlwaysExcludeOcclusion(child_id)
         self.setAvoidArmsAutoCollision(child_id)
+        self.setSeatCollision(child_id, collision_entity_id = childseat['fixed_entity_id'])
         self.removeMotionBlur(child_id)
         self.setCharacterInfo(child)
         self.setSeatInfo(child)
@@ -1448,10 +1479,10 @@ class InCabinUtils:
                 max_weight = 0.5
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
-            if 'side_ward' in spine_animation_name:
-                weight = 0.0
-            if 'extreme' in spine_animation_name and weight < 0.5:
-                weight = 0.5
+            if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
+                weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
+            # if 'extreme' in spine_animation_name and weight < 0.5:
+            #     weight = 0.5
 
             self.setAnimation('spine', animation, weight, passenger_id)
 
@@ -1530,6 +1561,7 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
             self.setAvoidArmsAutoCollision(passenger_id)
+            self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(passenger_id)
             self.applyCharacterOffset(passenger)
             self.setCharacterInfo(passenger)
@@ -3008,7 +3040,7 @@ class InCabinUtils:
         gaze_info['change-gaze'] = change_gaze
         gaze_info['reach'] = reach
         if driver != anyverse_platform.invalid_entity_id:
-            print('[INFO] Setting the driver to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['gaze']))
+            print('[INFO] Setting the driver to look at {}({})'.format(gaze_probabilities[idx]['name'], gaze_probabilities[idx]['id']))
             # if gaze == 0 do nothing: looking straight at the road
             if gaze_id == 1: # exterior rear view mirror (50% each side)
                 if change_gaze:
@@ -3033,11 +3065,11 @@ class InCabinUtils:
                 if change_gaze:
                     self.LookAtRearSeat(driver, the_car, 'right')
             elif gaze_id == 6: # headrest
-                side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
+                side = 'left' if random.uniform(0,1) <= 1 else 'right'
                 if change_gaze:
                     self.LookAtHeadrest(driver, the_car, side)
                 if reach:
-                    self.reachHeadrest(driver, side)
+                    self.reachHeadrest(driver, 'right')
             elif gaze_id == 7: # glove compartment
                 if change_gaze:
                     self.LookAtGloveCompartment(driver, the_car)
@@ -3264,7 +3296,7 @@ class InCabinUtils:
             pos = self._look_and_reach_positions['headrest'][side]
             x, y, z = pos[0],  pos[1], pos[2]
             loc_position = anyverse_platform.Vector3D(x, y, z)
-            loc_position.y = random.uniform(loc_position.y, 0) if loc_position.y < 0 else random.uniform(0,loc_position.y)
+            # loc_position.y = random.uniform(loc_position.y, 0) if loc_position.y < 0 else random.uniform(0,loc_position.y)
         except KeyError as ke:
             print('[WARN] No position defined for headrest side {}'.format(side))
             loc_position = anyverse_platform.Vector3D(0, 0, 0)
@@ -3387,7 +3419,7 @@ class InCabinUtils:
     def reachHeadrest(self, character_id, side):
         the_car = self.getCars()[0]
 
-        hand = 'left' if random.uniform(0, 1) >= 0.5 else 'right'
+        hand = 'left' if random.uniform(0, 1) >= 0 else 'right'
 
          # Make the character lean forward to some extent
         animation, weight = self.selectAdultAnimation('spine', 0.3, 0.5, 'leaning_forward')
