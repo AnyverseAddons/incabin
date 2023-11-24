@@ -452,7 +452,7 @@ class InCabinUtils:
         elif anim_type == 'base':
             filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in ['sitting_straight', 'arms_on_the_body']]
         elif anim_type == 'spine':
-            filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
+            filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() ] # TESTING and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
         elif anim_type == 'left_arm':
             filtered_animations = [ laa for laa in animations if re.search("^Arms_.*_body_L|_head_L$", self._workspace.get_entity_name(laa)) ]
             # filtered_animations = [ laa for laa in animations if re.search("^Arms_stretched_above_.*_L$", self._workspace.get_entity_name(laa)) ]
@@ -1086,8 +1086,8 @@ class InCabinUtils:
             max_weight = 1
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
-            if 'side_ward' in spine_animation_name:
-                weight = 0.0
+            if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
+                weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
             if 'extreme' in spine_animation_name and weight < 0.5:
                 weight = 0.5
 
@@ -1526,8 +1526,8 @@ class InCabinUtils:
                 max_weight = 0.5
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
-            if 'side_ward' in spine_animation_name:
-                weight = 0.0
+            if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
+                weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
             if 'extreme' in spine_animation_name and weight < 0.5:
                 weight = 0.5
 
@@ -1610,8 +1610,7 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
             self.setAvoidArmsAutoCollision(passenger_id, True)
-            # self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors') HACK
-            self.setSeatCollision(passenger_id)
+            self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(passenger_id)
             self.applyCharacterOffset(passenger)
             self.setCharacterInfo(passenger)
