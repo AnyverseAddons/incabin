@@ -1610,7 +1610,8 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
             self.setAvoidArmsAutoCollision(passenger_id, True)
-            self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors')
+            # self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors') HACK
+            self.setSeatCollision(passenger_id)
             self.removeMotionBlur(passenger_id)
             self.applyCharacterOffset(passenger)
             self.setCharacterInfo(passenger)
