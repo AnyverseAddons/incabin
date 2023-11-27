@@ -2514,7 +2514,7 @@ class InCabinUtils:
             if day :
                 backgrounds = [ b for b in self._workspace.backgrounds if b['day'] ]
             else:
-                backgrounds = [ b for b in self._workspace.backgrounds if not b['day'] ]
+                backgrounds = [ b for b in self._workspace.backgrounds if not b['day'] and 'DARK' in b['name']]
         else:
             backgrounds = bg_list
 
