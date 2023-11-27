@@ -3087,6 +3087,9 @@ class InCabinUtils:
             elif gaze_id == 10:
                 animation, weight = self.selectAdultAnimation('head', 0, 1)
                 self.setAnimation('head', animation, weight, driver)
+                print('[INFO] setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
+                hand = 'left' if random.uniform(0,1) >= 0.5 else 'right'
+                self.reachXiphoidLocator(driver, hand, 0.3)
 
             self.setCustomMetadata(driver, 'gaze', gaze_info)
         else:
@@ -3117,7 +3120,6 @@ class InCabinUtils:
         gaze_info['reach'] = reach
         if passenger != anyverse_platform.invalid_entity_id:
             is_child = 'child' in self._workspace.get_entity_name(self.getParent(passenger)).lower()
-            print('Is child: {}'.format(is_child))
             # if gaze_id == 0 do nothing: looking straight at the road
             if gaze_id == 1: # exterior rear view mirror (50% each side)
                 if change_gaze:
@@ -3160,11 +3162,17 @@ class InCabinUtils:
                     self.LookAtFloor(passenger, the_car, 'right')
                 if reach:
                     self.reachFloor(passenger, 'right')
-            else: # includes gaze_id == 10:
+            elif gaze_id == 10:
                 animation, weight = self.selectAdultAnimation('head', 0, 1)
                 self.setAnimation('head', animation, weight, passenger)
-                gaze_info['direction'] = 'free'
-                gaze_info['code'] = 10
+                print('[INFO] setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
+                both_hands = False if random.uniform(0,1) >= 0.5 else True
+                if both_hands:
+                    self.reachXiphoidLocator(passenger, 'left')
+                    self.reachXiphoidLocator(passenger, 'right')
+                else:
+                    hand = 'left' if random.uniform(0,1) >= 0.5 else 'right' 
+                    self.reachXiphoidLocator(passenger, hand)
 
             print('[INFO] Setting the passenger to look at {}({})'.format(gaze_info['direction'], gaze_info['code']))
             self.setCustomMetadata(passenger, 'gaze', gaze_info)
@@ -3245,7 +3253,35 @@ class InCabinUtils:
         return ret
 
     #_______________________________________________________________
-    def createGloveCompLocator(self, the_car):
+    def reachXiphoidLocator(self, char_id, hand, max_distance = 0.4):
+        xiphoid_locators = [ ent for ent in self._workspace.get_hierarchy(char_id) if self._workspace.get_entity_type(ent) == 'Locator' and 'xiphoid' in self._workspace.get_entity_name(ent) ]
+        for loc in xiphoid_locators:
+            self._workspace.delete_entity(loc)
+
+        xiphoid = [ b for b in self._workspace.get_hierarchy(char_id) if 'SkeletonJointEntity' == self._workspace.get_entity_type(b) and 'xiphoid' in self._workspace.get_entity_name(b) ][0]
+        xiphoid_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, hand + 'xiphoid_locator', xiphoid)
+        xiphoid_position = self._workspace.get_entity_local_position(xiphoid_locator)
+        xiphoid_position.x += random.uniform(0.1, max_distance)
+        delta = random.uniform(-max_distance, max_distance)
+        times = 0
+        while abs(delta) < 0.1:
+            delta = random.uniform(-max_distance, max_distance)
+            times += 1
+        print('[INFO] iterations: {}'.format(times))
+        xiphoid_position.y += delta
+        xiphoid_position.z += delta
+
+        self._workspace.set_entity_property_value(xiphoid_locator, 'RelativeTransformToComponent','position', xiphoid_position)
+
+        if hand == 'left':
+            self._workspace.set_entity_property_value(char_id, 'CharacterHandAttachmentComponent','left_hand_config.locator_entity_id', xiphoid_locator)
+        else:
+            self._workspace.set_entity_property_value(char_id, 'CharacterHandAttachmentComponent','right_hand_config.locator_entity_id', xiphoid_locator)
+
+        return xiphoid_locator
+
+    #_______________________________________________________________
+    def createGloveCompLocator(self, the_car, displace = False):
         glove_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'glove_' in self._workspace.get_entity_name(ent) ]
         if len(glove_locators) > 0:
             # print('[INFO] Recreating glove compartment locator')
@@ -3255,6 +3291,10 @@ class InCabinUtils:
         try:
             pos = self._look_and_reach_positions['glove']['right']
             x, y, z = pos[0],  pos[1], pos[2]
+            if displace:
+                x += random.uniform(-0.1, 0)
+                y += random.uniform(-0.1, 0.1)
+                z += random.uniform(-0.1, 0.1)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for glove compartment')
@@ -3285,7 +3325,7 @@ class InCabinUtils:
         return floorlocator
 
     #_______________________________________________________________
-    def createHeadrestLocator(self, the_car, side):
+    def createHeadrestLocator(self, the_car, side, displace = False):
         locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'headrest_'+side in self._workspace.get_entity_name(ent) ]
         if len(locators) > 0:
             # print('[INFO] Recreating headrest {} locator'.format(side))
@@ -3294,6 +3334,10 @@ class InCabinUtils:
         try:
             pos = self._look_and_reach_positions['headrest'][side]
             x, y, z = pos[0],  pos[1], pos[2]
+            if displace:
+                x += random.uniform(-0.1, 0.1)
+                y += random.uniform(-0.1, 0.1)
+                z += random.uniform(-0.1, 0.1)
             loc_position = anyverse_platform.Vector3D(x, y, z)
             # loc_position.y = random.uniform(loc_position.y, 0) if loc_position.y < 0 else random.uniform(0,loc_position.y)
         except KeyError as ke:
@@ -3305,7 +3349,7 @@ class InCabinUtils:
         return headrest_locator
 
     #_______________________________________________________________
-    def createSeatbeltLocator(self, the_car, side):
+    def createSeatbeltLocator(self, the_car, side, displace = False):
         locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seatbelt_'+side in self._workspace.get_entity_name(ent) ]
         if len(locators) > 0:
             # print('[INFO] Recreating seatbelt {} locator'.format(side))
@@ -3314,6 +3358,10 @@ class InCabinUtils:
         try:
             pos = self._look_and_reach_positions['seatbelt'][side]
             x, y, z = pos[0],  pos[1], pos[2]
+            if displace:
+                x += random.uniform(-0.1, 0.1)
+                y += random.uniform(-0.1, 0.1)
+                z += random.uniform(-0.1, 0.1)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for seat belt side {}'.format(side))
@@ -3343,7 +3391,7 @@ class InCabinUtils:
         return rvm_locator
 
     #_______________________________________________________________
-    def createCCLocator(self, the_car):
+    def createCCLocator(self, the_car, displace = False):
         cc_locators = [ ent for ent in self._workspace.get_hierarchy(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'cc_info' in self._workspace.get_entity_name(ent) ]
         if len(cc_locators) > 0:
             # print('[INFO] Recreating CC locator')
@@ -3353,6 +3401,10 @@ class InCabinUtils:
         try:
             pos = self._look_and_reach_positions['cc']['center']
             x, y, z = pos[0],  pos[1], pos[2]
+            if displace:
+                x += random.uniform(-0.1, 0)
+                y += random.uniform(-0.1, 0.1)
+                z += random.uniform(-0.1, 0.1)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for central console')
