@@ -2425,7 +2425,8 @@ class InCabinUtils:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 300)
             return sky_light_intensity, sun_light_intensity
         else:
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
+            # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None')
             ibl_light_intensity = random.uniform(1, 1)
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
 
@@ -3262,14 +3263,8 @@ class InCabinUtils:
         xiphoid_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, hand + 'xiphoid_locator', xiphoid)
         xiphoid_position = self._workspace.get_entity_local_position(xiphoid_locator)
         xiphoid_position.x += random.uniform(0.1, max_distance)
-        delta = random.uniform(-max_distance, max_distance)
-        times = 0
-        while abs(delta) < 0.1:
-            delta = random.uniform(-max_distance, max_distance)
-            times += 1
-        print('[INFO] iterations: {}'.format(times))
-        xiphoid_position.y += delta
-        xiphoid_position.z += delta
+        xiphoid_position.y += random.uniform(-max_distance, max_distance)
+        xiphoid_position.z += random.uniform(-max_distance, max_distance)
 
         self._workspace.set_entity_property_value(xiphoid_locator, 'RelativeTransformToComponent','position', xiphoid_position)
 
@@ -3292,9 +3287,9 @@ class InCabinUtils:
             pos = self._look_and_reach_positions['glove']['right']
             x, y, z = pos[0],  pos[1], pos[2]
             if displace:
-                x += random.uniform(-0.1, 0)
-                y += random.uniform(-0.1, 0.1)
-                z += random.uniform(-0.1, 0.1)
+                x += random.uniform(-0.3, 0)
+                y += random.uniform(-0.3, 0.3)
+                z += random.uniform(-0.25, 0.25)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for glove compartment')
@@ -3335,9 +3330,9 @@ class InCabinUtils:
             pos = self._look_and_reach_positions['headrest'][side]
             x, y, z = pos[0],  pos[1], pos[2]
             if displace:
-                x += random.uniform(-0.1, 0.1)
-                y += random.uniform(-0.1, 0.1)
-                z += random.uniform(-0.1, 0.1)
+                x += random.uniform(-0.2, 0.3)
+                y += random.uniform(-0.2, 0.2)
+                z += random.uniform(-0.3, 0.3)
             loc_position = anyverse_platform.Vector3D(x, y, z)
             # loc_position.y = random.uniform(loc_position.y, 0) if loc_position.y < 0 else random.uniform(0,loc_position.y)
         except KeyError as ke:
@@ -3359,9 +3354,9 @@ class InCabinUtils:
             pos = self._look_and_reach_positions['seatbelt'][side]
             x, y, z = pos[0],  pos[1], pos[2]
             if displace:
-                x += random.uniform(-0.1, 0.1)
-                y += random.uniform(-0.1, 0.1)
-                z += random.uniform(-0.1, 0.1)
+                x += random.uniform(-0.2, 0.2)
+                y += random.uniform(-0.1, 0.2) if side == 'right' else random.uniform(-0.2, 0.1)
+                z += random.uniform(-0.3, 0.3)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for seat belt side {}'.format(side))
@@ -3402,9 +3397,9 @@ class InCabinUtils:
             pos = self._look_and_reach_positions['cc']['center']
             x, y, z = pos[0],  pos[1], pos[2]
             if displace:
-                x += random.uniform(-0.1, 0)
-                y += random.uniform(-0.1, 0.1)
-                z += random.uniform(-0.1, 0.1)
+                x += random.uniform(-0.3, 0)
+                y += random.uniform(-0.3, 0.3)
+                z += random.uniform(-0.25, 0.35)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for central console')
