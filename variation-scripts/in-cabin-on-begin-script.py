@@ -46,8 +46,8 @@ incabin_config = {
         {'car_name': 'Venucia_Star', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
     ],
     "multiple_cameras": False,
-    "nir_at_night": True,
-    "rgb_sensor_sim": True,
+    "use_nir": True,
+    "rgb_at_day": False, # Override the use of NIR sensor for day light
     "cameras":{
         "RVM": {
             "probability": 1.0,
@@ -368,8 +368,8 @@ icu.resetLights()
 cameras = incabin_config["cameras"]
 # Global camera settings
 multiple_cameras = incabin_config["multiple_cameras"]
-nir_simulation = incabin_config["nir_at_night"]
-rgb_sensor_sim = incabin_config["rgb_sensor_sim"]
+nir_simulation = incabin_config["use_nir"]
+rgb_at_day = incabin_config["rgb_at_day"]
 # If multiple cameras,  
 # place each camera in its position relative to the ego.
 # The workspace needs to have an active light associated to each camera for NIR
@@ -506,39 +506,34 @@ seatbelt_right_locator = icu.createSeatbeltLocator(the_car, 'right')
 if multiple_cameras:
     camera_ids = workspace.get_camera_entities()
     for camera_id in camera_ids:
-        if not day and nir_simulation:
+        if nir_simulation:
             icu.setSensor(camera_id, 'NIR-Sensor')
             icu.setIsp(camera_id, 'NIR-ISP')
             active_light = True
-            sensor_enabled = True
-        elif rgb_sensor_sim:
+        else:
             icu.setSensor(camera_id, 'RGB-Sensor')
             icu.setIsp(camera_id, 'RGB-ISP')
             active_light = False
-            sensor_enabled = True
-        else:
-            icu.setSensor(camera_id, None)
-            icu.setIsp(camera_id, None)
+        if day and rgb_at_day:
+            icu.setSensor(camera_id, 'RGB-Sensor')
+            icu.setIsp(camera_id, 'RGB-ISP')
             active_light = False
-            sensor_enabled = False
+
 else:
-    if not day and nir_simulation:
+    if nir_simulation:
         icu.setSensor(camera_id, 'NIR-Sensor')
         icu.setIsp(camera_id, 'NIR-ISP')
         active_light = True
-        sensor_enabled = True
-    elif rgb_sensor_sim:
+    else:
         icu.setSensor(camera_id, 'RGB-Sensor')
         icu.setIsp(camera_id, 'RGB-ISP')
         active_light = False
-        sensor_enabled = True
-    else:
-        icu.setSensor(camera_id, None)
-        icu.setIsp(camera_id, None)
+    if day and rgb_at_day:
+        icu.setSensor(camera_id, 'RGB-Sensor')
+        icu.setIsp(camera_id, 'RGB-ISP')
         active_light = False
-        sensor_enabled = False
 
-print('Sensor enabled? {}. Setting active lights to {}'.format(sensor_enabled, active_light))
+print('Sensor enabled? {}. Setting active lights to {}'.format(True, active_light))
 # set the illumination depending on day/night and conditions
 intensity = icu.setIllumination(day, cond, background, simulation_id, multiple_cameras, active_light = active_light)
 if day:
@@ -556,7 +551,7 @@ occupancy_distribution = incabin_config["occupancy_distribution"]
 
 conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
 if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
-    icu.EmptyDistribution(the_car)
+    icu.EmptyDistribution(the_car, occupancy_distribution)
 elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
     # occupant_dist = icu.AllAdultsDistribution(the_car)
     occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
