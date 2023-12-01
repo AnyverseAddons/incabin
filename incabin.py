@@ -3764,21 +3764,20 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def LookAtLocator(self, looker, locator):
+        locator_name = self._workspace.get_entity_name(locator)
         type = None
         try:
             type = self._workspace.get_entity_type(locator)
         except:
-            print('[ERROR] locator {} does not exist.'.format(locator))
-            locator_name = None
+            print('[ERROR] locator {} does not exist.'.format(locator_name))
         if type == 'Locator':
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
 
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', locator)
-            locator_name = self._workspace.get_entity_name(locator)
         elif type is not None:
-            print('[WARN] {}({}) not a locator.'.format(self._workspace.get_entity_name(locator), locator))
+            print('[WARN] {} ({}) not a locator.'.format(locator_name, locator))
         return locator_name
 
     #_______________________________________________________________
