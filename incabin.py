@@ -1441,7 +1441,7 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(child_id)
             self.setAvoidArmsAutoCollision(child_id, True)
-            self.setSeatCollision(child_id, collision_entity_id = childseat['fixed_entity_id'])
+            self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(child_id)
             self.setCharacterInfo(child)
             self.setSeatInfo(child)
