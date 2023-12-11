@@ -263,7 +263,7 @@ if iteration_index == 0:
     print('Backgrounds list loaded!')
 
     print('Loading materials...')
-    anyverse_platform.materials = icu.queryMaterials()
+    anyverse_platform.materials = icu.queryMaterials(color_scheme=True)
     #print(anyverse_platform.materials)
     print('Materials list loaded!')
 
