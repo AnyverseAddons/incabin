@@ -8,7 +8,7 @@ import sys
 import anyverseaux as aux
 
 class InCabinUtils:
-    def __init__(self, workspace, script_console, iteration_index = None, total_iteration_count = None):
+    def __init__(self, workspace, script_console, iteration_index = None, total_iteration_count = None, seat_collision = False):
         self._iteration_index = iteration_index
         self._workspace = workspace
         self._simulation_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Simulation)[0]
@@ -43,6 +43,7 @@ class InCabinUtils:
                 'headrest': {'right': (-0.2, -0.28, 1.30), 'left': (-0.2, 0.28, 1.30)},
                 'seatbelt': {'right': (-0.1, -0.6, 1.19), 'left': (-0.1, 0.6, 1.19)}
         }
+        self._seat_collision = seat_collision
 
     #________________________________________________________________________________________
     # update_progress() : Displays or updates a console progress bar
@@ -452,7 +453,10 @@ class InCabinUtils:
         elif anim_type == 'base':
             filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in ['sitting_straight', 'arms_on_the_body']]
         elif anim_type == 'spine':
-            filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() ] # TESTING and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
+            if self._seat_collision:
+                filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() ] # TESTING and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
+            else:
+                filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
         elif anim_type == 'left_arm':
             filtered_animations = [ laa for laa in animations if re.search("^Arms_.*_body_L|_head_L$", self._workspace.get_entity_name(laa)) ]
             # filtered_animations = [ laa for laa in animations if re.search("^Arms_stretched_above_.*_L$", self._workspace.get_entity_name(laa)) ]
@@ -1082,16 +1086,18 @@ class InCabinUtils:
             # Grab the steering wheel by default
             self.grabSteeringWheel(driver_id)
 
-            # setting spine animation
-            max_weight = 1
-            animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
-            spine_animation_name = self._workspace.get_entity_name(animation)
-            if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
-                weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
-            if 'extreme' in spine_animation_name and weight < 0.5:
-                weight = 0.5
+            # setting spine animation 50% of the times
+            set_spine_anim = True if random.uniform(0,1) <= 0.3 else False
+            if set_spine_anim:
+                max_weight = 1 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
+                animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
+                spine_animation_name = self._workspace.get_entity_name(animation)
+                if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
+                    weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
+                if 'extreme' in spine_animation_name and weight < 0.5:
+                    weight = 0.5
 
-            self.setAnimation('spine', animation, weight, driver_id)
+                self.setAnimation('spine', animation, weight, driver_id)
 
             # Set one arm animation for half the samples
             animate_arms = True if random.uniform(0,1) <= 0.5 else False
@@ -1156,7 +1162,8 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(driver_id)
             self.setAvoidArmsAutoCollision(driver_id, True)
-            self.setSeatCollision(driver_id, 'SeatSearchedInAncestors')
+            if self._seat_collision:
+                self.setSeatCollision(driver_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(driver_id)
             self.applyCharacterOffset(driver)
             self.setCharacterInfo(driver)
@@ -1441,7 +1448,8 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(child_id)
             self.setAvoidArmsAutoCollision(child_id, True)
-            self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
+            if self._seat_collision:
+                self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(child_id)
             self.setCharacterInfo(child)
             self.setSeatInfo(child)
@@ -1519,19 +1527,21 @@ class InCabinUtils:
             self.setAnimation('base', animation, weight, passenger_id)
             base_animation_name = self._workspace.get_entity_name(animation)
 
-            # setting spine animation
-            if self.isCopilotSeat(seat_locator):
-                max_weight = 1
-            else:
-                max_weight = 0.5
-            animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
-            spine_animation_name = self._workspace.get_entity_name(animation)
-            if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
-                weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
-            if 'extreme' in spine_animation_name and weight < 0.5:
-                weight = 0.5
+            # setting spine animation 30% of the times
+            set_spine_anim = True if random.uniform(0,1) <= 0.3 else False
+            if set_spine_anim:
+                if self.isCopilotSeat(seat_locator):
+                    max_weight = 1 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
+                else:
+                    max_weight = 0.5 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
+                animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
+                spine_animation_name = self._workspace.get_entity_name(animation)
+                if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
+                    weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
+                if 'extreme' in spine_animation_name and weight < 0.5:
+                    weight = 0.5
 
-            self.setAnimation('spine', animation, weight, passenger_id)
+                self.setAnimation('spine', animation, weight, passenger_id)
 
             # Set arms animation: only if not arms on the body
             animate_left_arm, animate_right_arm = True, True
@@ -1546,7 +1556,7 @@ class InCabinUtils:
                 left_arm_max_weight = 1.0
                 right_arm_max_weight = 0.2
 
-            arms_min_weight = 0.2 if 'extreme' not in spine_animation_name else 0.5
+            arms_min_weight = 0.2 if set_spine_anim and 'extreme' not in spine_animation_name else 0.5
             if animate_left_arm:
                 arm = 'left_arm'
                 animation, weight = self.selectAdultAnimation(arm, 0.35, left_arm_max_weight) # left arm min weight enough to avoid seatbelt collision
@@ -1611,7 +1621,8 @@ class InCabinUtils:
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
             self.setAvoidArmsAutoCollision(passenger_id, True)
-            self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors')
+            if self._seat_collision:
+                self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(passenger_id)
             self.applyCharacterOffset(passenger)
             self.setCharacterInfo(passenger)
