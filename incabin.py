@@ -1543,11 +1543,9 @@ class InCabinUtils:
 
                 self.setAnimation('spine', animation, weight, passenger_id)
 
-            # Set arms animation: only if not arms on the body
-            animate_left_arm, animate_right_arm = True, True
-            if base_animation_name == 'Arms_on_the_body':
-                animate_left_arm = False if random.uniform(0,1) <= 0.5 else True
-                animate_right_arm = False if random.uniform(0,1) <= 0.5 else True
+            # Set arms animation
+            animate_left_arm = False if random.uniform(0,1) <= 0.05 else True
+            animate_right_arm = False if random.uniform(0,1) <= 0.05 else True
         
             if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
                 left_arm_max_weight = 0.65
