@@ -2606,8 +2606,8 @@ class InCabinUtils:
                 seat_id = anyverse_platform.invalid_entity_id
 
         # If change seat position True get a random depth and tilt to apply only to front seats
-        depth= 0
-        tilt = 0
+        depth= 0.0
+        tilt = 0.0
         if move_seat_conf and move_seat_conf['move_seats'] and seat_id != anyverse_platform.invalid_entity_id:
             normal = move_seat_conf['normal_dist']
             print('[INFO] Moving fron seats, normal distribution: {}'.format(normal))
