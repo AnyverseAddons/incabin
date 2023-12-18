@@ -19,6 +19,7 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
+        self._car_color_schemes = ['black']
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -1077,7 +1078,7 @@ class InCabinUtils:
             animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
             spine_animation_name = self._workspace.get_entity_name(animation)
             if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
-                weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
+                weight = 0.7 if weight >= 0.7 else weight # cap the weight until extreme cases work properly with the colliders
             # if 'extreme' in spine_animation_name and weight < 0.5:
             #     weight = 0.5
 
@@ -1141,6 +1142,8 @@ class InCabinUtils:
             if fasten_seatbelt and not self._script_console:
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), driver_id, self._car_brand, self._car_model, seatbelts_distribution = seatbelts_distribution)
                 driver['Seatbelt_placement'] = belt_placement
+            else:
+                driver['Seatbelt_placement'] = 'Off'
 
             self.setExportAlwaysExcludeOcclusion(driver_id)
             self.setAvoidArmsAutoCollision(driver_id)
@@ -1260,6 +1263,7 @@ class InCabinUtils:
         baby['fixed_entity_id'] = baby_id
         # Babies never have seatbelts. Set it to False for annotations
         baby['Seatbelt_on'] = False
+        baby['Seatbelt_placement'] = 'Off'
 
         if 'Cybex-CloudZ' in childseat['name']:
             updown = random.uniform(0,5)
@@ -2259,7 +2263,7 @@ class InCabinUtils:
                 material_name = self._workspace.get_entity_name(material)
                 # Get compatible materials from asset
                 if material_name in asset:
-                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ]
+                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ] # and cm['family'] == 'Leather' ] # HACK to pick textile/Leather materials only
                     if len(compatible_materials) != 0:
                         if material_name in cached_materials:
                             selected_material = cached_materials[material_name]
@@ -2635,6 +2639,7 @@ class InCabinUtils:
             beltoff_id = self._workspace.create_fixed_entity(belt['resource_name'], belt_locator, belt['entity_id'])
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
+            self.setCustomMetadata(beltoff_id, "Placement", 'off')
             seat_info = {}
             seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
             self.setCustomMetadata(beltoff_id, "Seat", seat_info)
@@ -3047,7 +3052,7 @@ class InCabinUtils:
                 if change_gaze:
                     side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
                     self.LookAtExteriorRearViewMirror(driver, the_car, side)
-                    gaze_info['side'] = side
+                    gaze_info['direction'] += '_' + side
             elif gaze_id == 2: # inside rear view mirror
                 if change_gaze:
                     self.LookAtInsideRearViewMirror(driver, the_car)
