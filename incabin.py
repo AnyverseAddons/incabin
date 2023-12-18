@@ -2583,11 +2583,11 @@ class InCabinUtils:
         self.setSeats(picked_car, the_car, dynamic_materials, color_scheme, move_seat_conf)
 
     #_______________________________________________________________
-    def setSeat(self, the_car, seats, seat_locators, seat_pos, color_scheme = None, move_seat_conf = None):
-        locator = next( (x for x in seat_locators if seat_pos in self._workspace.get_entity_name(x).lower()), None )
+    def setSeat(self, the_car, seats, seat_locators, seat_num, color_scheme = None, move_seat_conf = None):
+        locator = next( (x for x in seat_locators if seat_num in self._workspace.get_entity_name(x).lower()), None )
         if locator != None:
             # There is a specific locator por this seat
-            seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
+            seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
                 seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat_asset)
@@ -2597,12 +2597,12 @@ class InCabinUtils:
                 seat_id = anyverse_platform.invalid_entity_id
         else:
             # There is not a specific locator por this seat. Create it under the car directly
-            seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
+            seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
                 seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat_asset)
             else:
-                print("[INFO] Locator exists neither seat for position {}".format(seat_pos) )
+                print("[INFO] Locator exists neither seat for position {}".format(seat_num) )
                 seat_id = anyverse_platform.invalid_entity_id
 
         # If change seat position True get a random depth and tilt to apply only to front seats
@@ -2625,8 +2625,10 @@ class InCabinUtils:
         self.setAdjustableSeatInfo(seat_id, depth, tilt)
 
         seat_info = {}
-        seat_info['number'] = seat_pos
+        seat_info['number'] = seat_num
         self.setCustomMetadata(seat_id, "Seat", seat_info)
+
+        self.setExportAlwaysExcludeOcclusion(seat_id)
         return seat_id
 
     #_______________________________________________________________
