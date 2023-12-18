@@ -57,7 +57,7 @@ class InCabinUtils:
                 'headrest': {'right': (-0.24, -0.23, 1.45), 'left': (-0.24, 0.23, 1.45)},
                 'seatbelt': {'right': (-0.25, -0.62, 1.4), 'left': (-0.25, 0.62, 1.4)}
         }
-        self._look_and_reach_positions = self._medium_car_look_and_reach_positions
+        self._look_and_reach_positions = self._big_car_look_and_reach_positions
 
     #________________________________________________________________________________________
     # update_progress() : Displays or updates a console progress bar
