@@ -2568,7 +2568,7 @@ class InCabinUtils:
         return picked_car
 
     #_______________________________________________________________
-    def buildCar(self, picked_car, the_car, dynamic_materials = False, move_seat_conf = None):
+    def buildCar(self, picked_car, the_car, dynamic_materials = False, move_seats_conf = None):
         self._workspace.set_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id', picked_car['entity_id'])
         print('[INFO] Using car: {}_{}_{}'.format(picked_car['brand'], picked_car['model'], picked_car['version']))
 
@@ -2580,10 +2580,10 @@ class InCabinUtils:
         self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
 
         self.setCarSeatbeltsOff(picked_car)
-        self.setSeats(picked_car, the_car, dynamic_materials, color_scheme, move_seat_conf)
+        self.setSeats(picked_car, the_car, dynamic_materials, color_scheme, move_seats_conf)
 
     #_______________________________________________________________
-    def setSeat(self, the_car, seats, seat_locators, seat_num, color_scheme = None, move_seat_conf = None):
+    def setSeat(self, the_car, seats, seat_locators, seat_num, color_scheme = None, move_seats_conf = None):
         locator = next( (x for x in seat_locators if seat_num in self._workspace.get_entity_name(x).lower()), None )
         if locator != None:
             # There is a specific locator por this seat
@@ -2608,11 +2608,11 @@ class InCabinUtils:
         # If change seat position True get a random depth and tilt to apply only to front seats
         depth= 0.0
         tilt = 0.0
-        if move_seat_conf and move_seat_conf['move_seats'] and seat_id != anyverse_platform.invalid_entity_id:
-            normal = move_seat_conf['normal_dist']
+        if move_seats_conf and move_seats_conf['move_seats'] and seat_id != anyverse_platform.invalid_entity_id:
+            normal = move_seats_conf['normal_dist']
             print('[INFO] Moving fron seats, normal distribution: {}'.format(normal))
-            max_depth = move_seat_conf['max_depth']
-            max_tilt = move_seat_conf['max_tilt']
+            max_depth = move_seats_conf['max_depth']
+            max_tilt = move_seats_conf['max_tilt']
             depth = self.getDelta(0, max_depth, normal)
             tilt = self.getDelta(0, max_tilt, normal)
             seat_pos = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','position')
@@ -2632,7 +2632,7 @@ class InCabinUtils:
         return seat_id
 
     #_______________________________________________________________
-    def setSeats(self, picked_car, the_car, dynamic_materials = False, color_scheme = None, move_seat_conf = None):
+    def setSeats(self, picked_car, the_car, dynamic_materials = False, color_scheme = None, move_seats_conf = None):
         if (not 'adjustable_seats' in picked_car) or (not picked_car['adjustable_seats'] ):
             return
 
@@ -2649,8 +2649,8 @@ class InCabinUtils:
             seats  = [ s for s in seats if 'conventional' in s['resource_name'] ]
 
         seat_ids_list = []  
-        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat01", color_scheme, move_seat_conf))
-        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat02", color_scheme, move_seat_conf))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat01", color_scheme, move_seats_conf))
+        seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat02", color_scheme, move_seats_conf))
         seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat03", color_scheme))
         seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat04", color_scheme))
         seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat05", color_scheme))
