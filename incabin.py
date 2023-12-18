@@ -2429,7 +2429,7 @@ class InCabinUtils:
             return sky_light_intensity, sun_light_intensity
         else:
             # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None')
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None') # HACK don't use any exterior illumination at might
             ibl_light_intensity = random.uniform(1, 1)
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
 
