@@ -1421,7 +1421,7 @@ class InCabinUtils:
 
         self.setExportAlwaysExcludeOcclusion(child_id)
         self.setAvoidArmsAutoCollision(child_id)
-        self.setSeatCollision(child_id, collision_entity_id = childseat['fixed_entity_id'])
+        self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
         self.removeMotionBlur(child_id)
         self.setCharacterInfo(child)
         self.setSeatInfo(child)
@@ -2409,14 +2409,14 @@ class InCabinUtils:
                 else:
                     print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
                     self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
-        elif len(incabin_lights) > 0: # No multiple cameras, turn on the first light we find
-            incabin_light = incabin_lights[0]
-            if active_light:
-                print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-            else:
-                print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
+        elif len(incabin_lights) > 0: # No multiple cameras, turn on all the lights we find. For Sony there is only 1 camera and 2 lights
+             for incabin_light in incabin_lights:
+                if active_light:
+                    print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
+                else:
+                    print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
         elif active_light:
             print('[WARN]: Active light set to True, but no active light defined in the workspace')
 
@@ -2438,6 +2438,7 @@ class InCabinUtils:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 300)
             return sky_light_intensity, sun_light_intensity
         else:
+            # HACK for Sony -> complete black background. no illumination coming from the outside
             # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None') # HACK don't use any exterior illumination at might
             ibl_light_intensity = random.uniform(1, 1)
