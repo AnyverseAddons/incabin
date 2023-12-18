@@ -19,7 +19,6 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
-        self._car_color_schemes = ['black']
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
