@@ -2703,11 +2703,11 @@ class InCabinUtils:
         self.setSeats(picked_car, the_car, dynamic_materials, color_scheme, move_seats_conf)
 
     #_______________________________________________________________
-    def setSeat(self, the_car, seats, seat_locators, seat_pos, move_seat_conf = None):
-        locator = next( (x for x in seat_locators if seat_pos in self._workspace.get_entity_name(x).lower()), None )
+    def setSeat(self, the_car, seats, seat_locators, seat_num, move_seat_conf = None):
+        locator = next( (x for x in seat_locators if seat_num in self._workspace.get_entity_name(x).lower()), None )
         if locator != None:
             # There is a specific locator por this seat
-            seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
+            seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat['entity_id'])
                 # self.setSplitAction(seat_id, 'Split') # If the assets does not have the the 'compound' tag
@@ -2716,14 +2716,16 @@ class InCabinUtils:
                 seat_id = anyverse_platform.invalid_entity_id
         else:
             # There is not a specific locator por this seat. Create it under the car directly
-            seat = next((x for x in seats if seat_pos in x["resource_name"].lower()), None)
+            seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat['entity_id'])
             else:
-                print("[INFO] Locator exists neither seat for position {}".format(seat_pos) )
+                print("[INFO] Locator exists neither seat for position {}".format(seat_num) )
                 seat_id = anyverse_platform.invalid_entity_id
 
         # If change seat position True get a random depth and tilt to apply only to front seats
+        depth = 0
+        tilt = 0
         if move_seat_conf and move_seat_conf['move_seats'] and seat_id != anyverse_platform.invalid_entity_id:
             normal = move_seat_conf['normal_dist']
             max_depth = move_seat_conf['max_depth']
@@ -2736,7 +2738,14 @@ class InCabinUtils:
             seat_rot.y += tilt
             seat_pos = self._workspace.set_entity_property_value(seat_id,'RelativeTransformToComponent','position', seat_pos)
             seat_rot = self._workspace.set_entity_property_value(seat_id,'RelativeTransformToComponent','rotation', seat_rot)
-            self.setAdjustableSeatInfo(seat_id, depth, tilt)
+
+        self.setAdjustableSeatInfo(seat_id, depth, tilt)
+
+        seat_info = {}
+        seat_info['number'] = seat_num
+        self.setCustomMetadata(seat_id, "Seat", seat_info)
+
+        self.setExportAlwaysExcludeOcclusion(seat_id)
 
         return seat_id
 
