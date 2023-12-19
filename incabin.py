@@ -1140,7 +1140,11 @@ class InCabinUtils:
 
             if fasten_seatbelt and not self._script_console:
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), driver_id, self._car_brand, self._car_model, seatbelts_distribution = seatbelts_distribution)
-                driver['Seatbelt_placement'] = belt_placement
+                if belt_placement:
+                    driver['Seatbelt_placement'] = belt_placement
+                else:
+                    driver['Seatbelt_placement'] = 'Off'
+                    driver['Seatbelt_on'] = False
             else:
                 driver['Seatbelt_placement'] = 'Off'
 
@@ -1556,6 +1560,9 @@ class InCabinUtils:
             if fasten_seatbelt and not self._script_console:
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), passenger_id, self._car_brand, self._car_model, seatbelts_distribution = seatbelts_distribution)
                 # Move the children 7 cm forward when sitting on the seatbelt
+                if belt_placement is None:
+                    belt_placement = 'Off'
+                    passenger['Seatbelt_on'] = False
                 if belt_placement == 'CharacterOverSeatbelt' and passenger['kind'] == 'Child':
                     pass_pos = self._workspace.get_entity_property_value(passenger_id, 'RelativeTransformToComponent', 'position')
                     pass_pos.x += 0.07
@@ -3162,7 +3169,7 @@ class InCabinUtils:
                 if change_gaze:
                     side = 'left' if random.uniform(0,1) <= 0.5 else 'right'
                     self.LookAtExteriorRearViewMirror(passenger, the_car, side)
-                    gaze_info['side'] = side
+                    gaze_info['direction'] += '_' + side
             elif gaze_id == 2: # inside rear view mirror
                 if change_gaze:
                     self.LookAtInsideRearViewMirror(passenger, the_car)
