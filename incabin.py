@@ -3391,7 +3391,7 @@ class InCabinUtils:
             x, y, z = pos[0],  pos[1], pos[2]
             if displace:
                 x += random.uniform(-0.2, 0.2)
-                y += random.uniform(-0.1, 0.2) if side == 'right' else random.uniform(-0.2, 0.1)
+                y += random.uniform(-0.1, 0.1) if side == 'right' else random.uniform(-0.1, 0.1)
                 z += random.uniform(-0.3, 0.3)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
@@ -3691,7 +3691,7 @@ class InCabinUtils:
             locator_name = None
         if type == 'Locator':
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
+            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 4)
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
 
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', locator)
