@@ -723,6 +723,8 @@ class InCabinUtils:
         # select a named object from resoures
         object = self.selectObject(name, version, big_object)
         print('[INFO] Object to place {}'.format(object['resource_name']))
+        print('[INFO] Baby on character {}'.format(object['resource_name']))
+        
         if object['entity_id'] != -1:
             # Create the object fixed entity
             object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['Version'], seat_locator, object['entity_id'])
@@ -764,7 +766,7 @@ class InCabinUtils:
 
             # place the object in the in the region and land it in the car seat
             # For next version to control lander orientation and position 
-            # self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 30)
+            # self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 10)
             self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
             self._workspace.set_entity_property_value(object_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
 
@@ -786,6 +788,77 @@ class InCabinUtils:
             object = None
 
         return object
+
+    #_______________________________________________________________
+    def placeBabyOnCharacter(self, seat_locator, character_id, name = None, version = None):
+        print('[INFO] Placing baby on {}'.format(self._workspace.get_entity_name(character_id)))
+
+        # select a named baby from resoures
+        baby_id, baby = self.selectBaby('', '', True, name='Baby02') if random.uniform(0,1) < 0.5 else self.selectBaby('', '', False, name='Baby01')
+        print('[INFO] Baby on character {}'.format(baby['resource_name']))
+        
+        if baby['entity_id'] != -1:
+            # Create the baby fixed entity
+            baby_entity_id = self._workspace.create_fixed_entity(baby['resource_name'], seat_locator, baby['entity_id'])
+            scale_factor = random.uniform(0.75, 0.95) if '02' in baby['resource_name'] else 1
+            if scale_factor != 1:
+                print('[INFO] Rescaling baby to {}'.format(round(scale_factor, 2)))
+                self.scaleEntity(baby_entity_id,round(scale_factor, 2))
+            baby['fixed_entity_id'] = baby_entity_id
+
+            # Delete existing region if it exists
+            existing_landing_region = self._workspace.get_entities_by_name('landing_region')
+            if len(existing_landing_region) > 0:
+                self._workspace.delete_entity(existing_landing_region[0])
+
+            # Create a reagion around the seat locator. Default 1x1x1 meters
+            landing_region_id = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Region, 'landing_region', seat_locator)
+
+            # Resize the region to 70x70x70 cm
+            width = 0.5
+            depth = 0.4
+            self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','width', width)
+            # self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','height', 0.7)
+            self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','depth', depth)
+
+            # Apply position offset to separate from the back of the seat to avoid "flying" babies
+            pos_offset_y = 0
+            pos_offset_x = 0.25
+            landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
+            landing_region_pos.x += pos_offset_x
+            landing_region_pos.y += pos_offset_y
+            self._workspace.set_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position',landing_region_pos)
+
+            # Get the car id and insert it in the set of port entities
+            # The car is goign to be the only one for the time being
+            the_car = self._workspace.get_entities_by_name('The_Car')[0]
+            port_entities = city_builder.core.EntitySet()
+            # port_entities.insert(the_car)
+            port_entities.insert(character_id)
+
+            # place the baby in the in the region and land it on the character
+            # For next version to control lander orientation and position 
+            self._workspace.placement.place_entity_on_entities(baby_entity_id, port_entities, landing_region_id, -1, True, False, 10)
+            self._workspace.set_entity_property_value(baby_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
+
+            # WORKAROUND: Set instance if possible ALWAYS to False so custom metadata
+            # for identical babies is always exported. Until ANYS-3660 is fixed
+            self.setInstanceIfPossible(baby_entity_id, False)
+
+            # Set custom meta data for the baby
+            self.setExportAlwaysExcludeOcclusion(baby_entity_id)
+            baby['Seatbelt_on'] = False
+            baby['Face'] = ''
+            self.setCharacterInfo(baby)
+            self.setSeatInfo(baby)
+            baby['Accessory'] = 'None'
+
+        else:
+            # No matching babies found returning id -1
+            baby_entity_id = -1
+            baby = None
+
+        return baby
 
     #_______________________________________________________________
     def placeObjectInChildseat(self, seat_locator, childseat, name = None, version = None):
@@ -849,7 +922,7 @@ class InCabinUtils:
                 animal_rot = self._workspace.get_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation')
                 animal_rot.z = random.randrange(360)
                 self._workspace.set_entity_property_value(object_entity_id, 'RelativeTransformToComponent','rotation', animal_rot)
-                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 15)
+                self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id, -1, True, False, 5)
             else:
                 self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
             self._workspace.set_entity_property_value(object_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
@@ -882,7 +955,7 @@ class InCabinUtils:
     def placeObjectOnSeat(self, seat_locator, seat_id, name = None, version = None):
         print('[INFO] Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
 
-        big_object = True if random.uniform(0,1) >= 0.75 else False
+        big_object = True if random.uniform(0,1) >= 0.75 and not self.isMiddleBackSeat(seat_locator) else False
 
         # select a named object from resources
         object = self.selectObject(name, version, big_object)
@@ -1054,11 +1127,21 @@ class InCabinUtils:
         return object
 
     #_______________________________________________________________
-    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
+    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, age_group_probabilities = None):
         print('[INFO] Placing Driver in {}'.format(self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
-        # select a random adult character
-        driver_asset_id, driver = self.selectCharacter('kind','Adult', name)
+        # Select a random character based on age-group probabilities if not None
+        # otherwise select a random adult 
+        if age_group_probabilities:
+            age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
+            age_group = age_group_probabilities[age_group_idx]['age_group']
+            print('[INFO] driver age group: {}'.format(age_group))
+            driver_asset_id, driver = self.selectCharacter('agegroup', age_group, name)
+            # kind = age_group_probabilities['age_group_idx']['kind']
+            # driver_asset_id, driver = self.selectCharacter('kind', kind, name)
+        else:
+            driver_asset_id, driver = self.selectCharacter('kind', 'Adult', name)
+
         if driver_asset_id != -1:
             driver_id = self._workspace.create_fixed_entity(driver['name'], seat_locator, driver_asset_id)
 
@@ -1471,7 +1554,7 @@ class InCabinUtils:
         return child
 
     #_______________________________________________________________
-    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
+    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap = False):
         print('[INFO] Placing Passenger in {} ({})'.format(self._workspace.get_entity_name(seat_locator).split('_')[0], seat_locator))
         # select a random adult character
         # select a random childseat of the given type
@@ -1528,7 +1611,7 @@ class InCabinUtils:
             base_animation_name = self._workspace.get_entity_name(animation)
 
             # setting spine animation 30% of the times
-            set_spine_anim = True if random.uniform(0,1) <= 0.3 else False
+            set_spine_anim = True if random.uniform(0,1) <= 0.3 and not baby_on_lap else False
             if set_spine_anim:
                 if self.isCopilotSeat(seat_locator):
                     max_weight = 1 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
@@ -1543,9 +1626,13 @@ class InCabinUtils:
 
                 self.setAnimation('spine', animation, weight, passenger_id)
 
-            # Set arms animation
-            animate_left_arm = False if random.uniform(0,1) <= 0.05 else True
-            animate_right_arm = False if random.uniform(0,1) <= 0.05 else True
+            # Set arms animation if not baby on lap
+            if not baby_on_lap:
+                animate_left_arm = False if random.uniform(0,1) <= 0.05 else True
+                animate_right_arm = False if random.uniform(0,1) <= 0.05 else True
+            else:
+                animate_left_arm = False
+                animate_right_arm = False
         
             if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
                 left_arm_max_weight = 0.65
@@ -1616,6 +1703,10 @@ class InCabinUtils:
                         pass_pos.x += 0.07
                         self._workspace.set_entity_property_value(passenger_id, 'RelativeTransformToComponent', 'position', pass_pos)
                     passenger['Seatbelt_placement'] = belt_placement
+            
+            # Place Baby on passenger
+            if baby_on_lap:
+                self.placeBabyOnCharacter(seat_locator, passenger_id)
 
             self.setExportAlwaysExcludeOcclusion(passenger_id)
             self.setAvoidArmsAutoCollision(passenger_id, True)
@@ -3075,7 +3166,7 @@ class InCabinUtils:
 
 
     #_______________________________________________________________
-    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
+    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None):
         the_car = self.getCars()[0]
         car_name = self._workspace.get_entity_name(self._workspace.get_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id'))
         if occupancy == 0:
@@ -3090,7 +3181,7 @@ class InCabinUtils:
             ret['isEmpty'] = True
             ret['Seatbelt_on'] = set_seatbel_on
         elif occupancy == 1:
-            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities)
+            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities, age_group_probabilities = age_group_probabilities)
             if driver == None:
                 print('[WARN]: Could not find a driver to place')
             ret = driver
@@ -3125,7 +3216,8 @@ class InCabinUtils:
                 ret['isEmpty'] = True
                 ret['Seatbelt_on'] = False
         elif occupancy == 3:
-            passenger = self.placePassenger(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities)
+            baby_on_lap = False if random.uniform(0,1) > baby_on_lap_probability else True
+            passenger = self.placePassenger(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities, baby_on_lap = baby_on_lap)
             if passenger == None:
                 print('[WARN]: Could not find a passenger to place')
             ret = passenger
@@ -3183,11 +3275,23 @@ class InCabinUtils:
             else:
                 expression_probabilities = None
 
+            if 'baby_on_lap_probability' in occupancy_distribution:
+                baby_on_lap_probability = occupancy_distribution['baby_on_lap_probability']
+            else:
+                baby_on_lap_probability = 0
+
+            if 'age_group_probabilities' in occupancy_distribution:
+                age_group_probabilities = occupancy_distribution['age_group_probabilities']
+            else:
+                age_group_probabilities = None
+
             seat_occupant = self.fillSeat(occupancy,seat_locator,
                                         childseat_config = occupancy_distribution['childseat_config'],
                                         seatbelts_distribution = occupancy_distribution['seatbelts_distribution'],
                                         accessories_probabilities = occupancy_distribution['accessories_probabilities'],
-                                        expression_probabilities = expression_probabilities
+                                        expression_probabilities = expression_probabilities,
+                                        baby_on_lap_probability = baby_on_lap_probability,
+                                        age_group_probabilities = age_group_probabilities
                                         )
 
             # Build a return list with a dict with the occupancy of every seat

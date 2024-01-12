@@ -148,6 +148,15 @@ incabin_config = {
             ],
             'childseat_rotation_max': 30
         },
+        'age_group_probabilities': [
+            {'age_group': '0-3', 'kind': 'Baby', 'probability': 0.0},
+            {'age_group': '4-12', 'kind': 'Child', 'probability': 0.20},
+            {'age_group': '13-18', 'kind': 'Child', 'probability': 0.20},
+            {'age_group': '19-30', 'kind': 'Adult', 'probability': 0.20},
+            {'age_group': '31-50', 'kind': 'Adult', 'probability': 0.20},
+            {'age_group': '50+', 'kind': 'Adult', 'probability': 0.20},
+        ],
+        'baby_on_lap_probability': 0.5,
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
