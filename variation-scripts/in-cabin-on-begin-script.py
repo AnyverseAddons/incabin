@@ -9,6 +9,8 @@ workspace.reduce_resolution = False
 # iteration_index = 1
 # Change this attribute to False when for production
 workspace.testing = False
+# Flag to use fixed random seed or not
+workspace.fixed_seed = False
 #__________________________________________
 # Check if running from script console and pass it to the incabin utils constructor
 script_console = False
@@ -17,44 +19,62 @@ try:
 except NameError:
     script_console = True
     iteration_index = 0
+    total_iteration_count = 1
 print('Script Console: {}'.format(script_console))
 
 #__________________________________________
 # Global config: Cameras, environmental conditions, Occupant distribution, childseats, seat belts, additional props, gaze
 incabin_config = {
-    "use_car_interior_probabilities": False,
+    "use_car_interior_probabilities": True, # set to True with uniform probabilities to avoid new car cabins until we add them to the config
+    "adjust_front_seats": True,
     "car_interior_probabilities": [
-        {'car_name': 'Audi_Q5', 'probability': 0.125 }, 
-        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125 },
-        {'car_name': 'Lexus_UX', 'probability': 0.125 },
-        {'car_name': 'Porsche_CayenneS', 'probability': 0.125 },
-        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125 },
-        {'car_name': 'Volkswagen_Passat', 'probability': 0.125 },
-        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125 },
-        {'car_name': 'LandRover_Autobiography', 'probability': 0.125 }
+        {'car_name': 'Audi_Q5', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }, 
+        {'car_name': 'Chevrolet_Menlo', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Lexus_UX', 'probability': 0.125, 'front_seat_max_depth': 0.05, 'front_seat_max_tilt': 0, 'normal_dist': False },
+        {'car_name': 'Porsche_CayenneS', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Unbranded_GenericSUV', 'probability': 0.125, 'front_seat_max_depth': 0.07, 'front_seat_max_tilt': 2, 'normal_dist': False },
+        {'car_name': 'Volkswagen_Passat', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Hyundai_Ioniq', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'LandRover_Autobiography', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Ford_Escape', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Honda_Jazz', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Kia_EV_GT', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Mercedes_Benz_EQE_SUV', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Buick_Lacrosse', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Peugeot_3008', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Tesla_S', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Venucia_Star', 'probability': 0.125, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
     ],
     "multiple_cameras": False,
-    "nir_at_night": True,
-    "rgb_sensor_sim": False,
+    "use_nir": True,
+    "rgb_at_day": False, # Override the use of NIR sensor for day light
     "cameras":{
         "RVM": {
-            "probability": 0.0,
+            "probability": 1.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
-                'Audi_Q5': {'rotation': (0, -30, 0), 'position': (0.52, 0.0, 1.45) }, 
-                'Chevrolet_Menlo':  {'rotation': (0, -30, 0), 'position': (0.61, 0.0, 1.31) },
-                'Lexus_UX':         {'rotation': (0, -30, 0), 'position': (0.53, 0.005, 1.29) },
-                'Porsche_CayenneS': {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.45) },
-                'Unbranded_GenericSUV':    {'rotation': (0, -25, 0), 'position': (0.52, -0.005, 1.43) },
-                'Volkswagen_Passat': {'rotation': (0, -30, 0), 'position': (0.60, -0.027, 1.287)},
-                'Hyundai_Ioniq': {'rotation': (0, -35, 0), 'position': (0.58, -0.02, 1.315)},
-                'LandRover_Autobiography': {'rotation': (0, -30, 0), 'position': (0.50, 0.0, 1.6)},
+                'Audi_Q5': {'rotation': (0, -50, 0), 'position': (0.435, 0.0, 1.45) }, 
+                'Chevrolet_Menlo':  {'rotation': (0, -50, 0), 'position': (0.53, 0.0, 1.26) },
+                'Lexus_UX':         {'rotation': (0, -50, 0), 'position': (0.46, 0.005, 1.26) },
+                'Porsche_CayenneS': {'rotation': (0, -50, 0), 'position': (0.50, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (0, -50, 0), 'position': (0.485, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (0, -50, 0), 'position': (0.575, -0.027, 1.287)},
+                'Hyundai_Ioniq': {'rotation': (0, -50, 0), 'position': (0.45, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (0, -50, 0), 'position': (0.41, 0.0, 1.58)},
+                'Ford_Escape': {'rotation': (0, -35, 0), 'position': (0.42, 0.0, 1.37)},
+                'Honda_Jazz': {'rotation': (0, -40, 0), 'position': (0.35, 0.0, 1.3)},
+                'Kia_EV_GT': {'rotation': (0, -35, 0), 'position': (0.41, 0.0, 1.40)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -40, 0), 'position': (0.42, 0.0, 1.45)},
+                'Buick_LaCrosse': {'rotation': (0, -35, 0), 'position': (0.44, -0.03, 1.31)},
+                'Peugeot_3008': {'rotation': (0, -40, 0), 'position': (0.37, 0.0, 1.42)},
+                'Tesla_S': {'rotation': (0, -40, 0), 'position': (0.32, 0.0, 1.22)},
+                'Venucia_Star': {'rotation': (0, -35, 0), 'position': (0.50, 0.0, 1.46)},
                 'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         },
         "CC": { 
-            "probability": 1.0,
+            "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
@@ -66,15 +86,23 @@ incabin_config = {
                 'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
                 'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
                 'LandRover_Autobiography': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.22)},
+                'Ford_Escape': {'rotation': (0, -10, 0), 'position': (0.51, 0.0, 1.21)},
+                'Honda_Jazz': {'rotation': (0, -10, 0), 'position': (0.58, 0.0, 1.03)},
+                'Kia_EV_GT': {'rotation': (0, -10, 0), 'position': (0.65, 0.0, 1.175)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.18)},
+                'Buick_LaCrosse': {'rotation': (0, -10, 0), 'position': (0.66, 0.0, 1.03)},
+                'Peugeot_3008': {'rotation': (0, -20, 0), 'position': (0.58, 0.0, 1.23)},
+                'Tesla_S': {'rotation': (0, -10, 0), 'position': (0.61, 0.0, 0.98)},
+                'Venucia_Star': {'rotation': (0, -15, 0), 'position': (0.66, 0.0, 1.19)},
                 'default':           {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
             },
         }
     },
     "conditions": [ 
-        {'Day': True,  'Cond':'sunny',          'probability': 0.25},
-        {'Day': True,  'Cond':'scattered',      'probability': 0.25},
-        {'Day': True,  'Cond':'overcast',       'probability': 0.25},
-        {'Day': False, 'Cond':'interior-lights','probability': 0.25}
+        {'Day': True,  'Cond':'sunny',          'probability': 0.17},
+        {'Day': True,  'Cond':'scattered',      'probability': 0.17},
+        {'Day': True,  'Cond':'overcast',       'probability': 0.16},
+        {'Day': False, 'Cond':'interior-lights','probability': 0.50}
     ],
     "occupant_confs_probabilities": [ 
         {'Conf': 'Empty', 'probability': 0.0},
@@ -86,28 +114,28 @@ incabin_config = {
             {'name': 'Driver', 'occupancy': 1, 'probability': 1.0} 
         ],
         'copilot_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.1},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.2},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.6},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.1} 
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.2},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.1},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.4},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.3} 
         ],
         'backseat_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.25}
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.4},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.3},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.2},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.1}
         ],
         'middleseat_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.25},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.25},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.25},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.25} 
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.33},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.0},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.33},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.34} 
         ],
         'childseat_config': {
             'childseat_type_probabilities': [
-                {'Type': 'BabyChild', 'probability': 0.75},
-                {'Type': 'Convertible', 'probability': 0.25},
-                {'Type': 'Booster', 'probability': 0.0}
+                {'Type': 'BabyChild', 'probability': 0.1},
+                {'Type': 'Convertible', 'probability': 0.4},
+                {'Type': 'Booster', 'probability': 0.50}
             ],
             'childseat_occupancy_probabilities': [
                 {'name': 'Empty', 'occupancy': 0, 'probability': 0.25},
@@ -116,11 +144,11 @@ incabin_config = {
             ],
             'childseat_orientation_probabilities': [
                 {'Orientation': 'Forward', 'probability': 0.5},
-                {'Orientation': 'Backward', 'probability': 0.5}
+                {'Orientation': 'Backward', 'probability': 0.0}
             ],
             'childseat_rotation_max': 30
         },
-        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
@@ -136,20 +164,30 @@ incabin_config = {
         },
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
-                {'name': 'road', 'gaze': 0, 'probability': 0.7},
-                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.1},
-                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.05},
-                {'name': 'infotainment', 'gaze': 3, 'probability': 0.05},
-                {'name': 'passenger', 'gaze': 4, 'probability': 0.1},
-                {'name': 'rear', 'gaze': 5, 'probability': 0.0}
+                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
+                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
             ],
             'copilot_gaze_probabilities': [
-                {'name': 'road', 'gaze': 0, 'probability': 0.50},
-                {'name': 'ext_mirror', 'gaze': 1, 'probability': 0.05},
-                {'name': 'int_mirror', 'gaze': 2, 'probability': 0.1},
-                {'name': 'infotainment', 'gaze': 3, 'probability': 0.1},
-                {'name': 'passenger', 'gaze': 4, 'probability': 0.2},
-                {'name': 'rear', 'gaze': 5, 'probability': 0.05}
+                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
+                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
             ]
         },
         'expression_probabilities': [
@@ -183,73 +221,85 @@ def getCameraProbabilityList(incabin_config):
 icu = incabin.InCabinUtils(workspace, script_console)
 workspace.icu = icu
 
-if not hasattr(anyverse_platform, 'cars'):
+if iteration_index == 0:
     print('Loading car interiors...')
     anyverse_platform.cars = icu.queryCars(dynamic_material = True)
     #print(anyverse_platform.cars)
     print('Car list loaded!')
-workspace.cars = anyverse_platform.cars
     
-if not hasattr(anyverse_platform, 'characters'):
     print('Loading characters...')
     anyverse_platform.characters = icu.queryCharacters()
     #print(anyverse_platform.characters)
     print('Characters list loaded!')
-workspace.characters = anyverse_platform.characters
 
-if not hasattr(anyverse_platform, 'babies'):
     print('Loading babies...')
     anyverse_platform.babies = icu.queryBabies()
     #print(anyverse_platform.babies)
     print('Babies list loaded!')
-workspace.babies = anyverse_platform.babies
     
-if not hasattr(anyverse_platform, 'childseats'):
     print('Loading childseats...')
     anyverse_platform.childseats = icu.queryChildSeats()
     #print(anyverse_platform.childseats)
     print('Childseat list loaded!')
-workspace.childseats = anyverse_platform.childseats
     
-if not hasattr(anyverse_platform, 'childseatbelts'):
     print('Loading childseatbelts...')
     anyverse_platform.childseatbelts = icu.queryChildSeatBelts()
     #print(anyverse_platform.childseatbelts)
     print('Childseatbelts list loaded!')
-workspace.childseatbelts = anyverse_platform.childseatbelts
-    
-if not hasattr(anyverse_platform, 'objects'):
+
     print('Loading objects...')
     anyverse_platform.objects = icu.queryObjects()
     #print(anyverse_platform.objects)
     print('Objects list loaded!')
-workspace.objects = anyverse_platform.objects
     
-if not hasattr(anyverse_platform, 'accessories'):
     print('Loading accessories...')
     anyverse_platform.accessories = icu.queryAccessories()
     #print(anyverse_platform.accessories)
     print('Accessories list loaded!')
-workspace.accessories = anyverse_platform.accessories
 
-if not hasattr(anyverse_platform, 'backgrounds'):
     print('Loading backgrounds...')
     anyverse_platform.backgrounds = icu.queryBackgrounds()
     #print(anyverse_platform.backgrounds)
     print('Backgrounds list loaded!')
-workspace.backgrounds = anyverse_platform.backgrounds
 
-if not hasattr(anyverse_platform, 'materials'):
     print('Loading materials...')
-    anyverse_platform.materials = icu.queryMaterials()
+    anyverse_platform.materials = icu.queryMaterials(color_scheme=True)
     #print(anyverse_platform.materials)
     print('Materials list loaded!')
+
+workspace.cars = anyverse_platform.cars
+workspace.characters = anyverse_platform.characters
+workspace.babies = anyverse_platform.babies
+workspace.childseats = anyverse_platform.childseats
+workspace.childseatbelts = anyverse_platform.childseatbelts
+workspace.objects = anyverse_platform.objects
+workspace.accessories = anyverse_platform.accessories
+workspace.backgrounds = anyverse_platform.backgrounds
 workspace.materials = anyverse_platform.materials
+    
+    
+
 
 #__________________________________________________________
 # Get the workspace simulation id
 simulation_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Simulation)[0]
 generator_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Batch)[0]
+
+#__________________________________________________________
+# Set the random seed to whatever is in the seed field in
+# the WS depending on the boll variable fixed_seed
+# This useful to make the generation deterministic and be
+# able to reproduce problems 
+if workspace.fixed_seed:
+    ws_seed = workspace.get_entity_property_value(generator_id, 'BatchPropertiesComponent','seed')
+    if iteration_index % 10 == 0 and ws_seed != 0:
+        seed = ws_seed + iteration_index
+        print( "Using fixed seed: {}".format( seed ) )
+        random.seed( seed )
+# elif iteration_index == 0:
+#     random_seed = random.randrange(sys.maxsize)
+#     print( "Using random seed: {}".format( random_seed ) )
+#     random.seed( random_seed )
 
 #__________________________________________________________
 # Star setting up the scene for an iteration
@@ -272,14 +322,27 @@ icu.deleteAllOnBelts()
 # resources, log an error and keep the current car in the workspace
 # To use a uniform distribution of cars instead of probabilities,
 # set the 'use_car_interior_probabilities' in the config to False
+car_list = incabin_config['car_interior_probabilities']
 if incabin_config['use_car_interior_probabilities']:
     car_probabilities = incabin_config['car_interior_probabilities']
-    selected_car = icu.selectCar(car_probabilities)
+    if len(car_list) == total_iteration_count:
+        selected_car = icu.selectCar(car_probabilities, car_idx = iteration_index)
+    else:
+        selected_car = icu.selectCar(car_probabilities)
 else:
     selected_car = icu.selectCar() # Uniform car interior distribution
 car_name = 'default'
 if selected_car['entity_id'] != -1:
-    icu.buildCar(selected_car, the_car, dynamic_materials = True)
+    for idx, car in enumerate(car_list):
+        if selected_car['brand'].split(' ')[0] in car['car_name']:
+            normal_dist = car['normal_dist']
+            max_depth = car['front_seat_max_depth']
+            max_tilt = car['front_seat_max_tilt']
+    move_seats_conf = {'move_seats': incabin_config['adjust_front_seats'],
+                       'normal_dist' : normal_dist,
+                       'max_depth': max_depth,
+                       'max_tilt': max_tilt }
+    icu.buildCar(selected_car, the_car, dynamic_materials = True, move_seats_conf = move_seats_conf)
 
     # Set car info from car metadata and put it as custom metadata for annotations
     car_info = icu.setCarInfo(selected_car,the_car)
@@ -305,8 +368,8 @@ icu.resetLights()
 cameras = incabin_config["cameras"]
 # Global camera settings
 multiple_cameras = incabin_config["multiple_cameras"]
-nir_simulation = incabin_config["nir_at_night"]
-rgb_sensor_sim = incabin_config["rgb_sensor_sim"]
+nir_simulation = incabin_config["use_nir"]
+rgb_at_day = incabin_config["rgb_at_day"]
 # If multiple cameras,  
 # place each camera in its position relative to the ego.
 # The workspace needs to have an active light associated to each camera for NIR
@@ -344,7 +407,7 @@ if multiple_cameras:
             print('[ERROR] Missing {} camera in workspace'.format(camera))
         # place active light in the cam position
         light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
-        light_id = light_ids[0] if len(light_ids) == 1 else 0
+        light_id = light_ids[0] if len(light_ids) >= 1 else 0
         if light_id != 0:
             light_pos, _ = icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
             if camera == 'RVM':
@@ -376,12 +439,14 @@ else:
     print('Ego initial position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
     print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
 
-    # Advance the light 10 cm to avoid rvm casted shadows
-    light_pos = anyverse_platform.Vector3D(0.1, 0, 0)
-    incabin_lights = workspace.get_entities_by_type('Light')
-    if len(incabin_lights) > 0:
-        incabin_light = incabin_lights[0]
-    workspace.set_entity_property_value(incabin_light, 'RelativeTransformToComponent','position', light_pos)
+    # Advance the first light light 10 cm to avoid rvm casted shadows
+    light_ids = [ li for li in workspace.get_entities_by_type('Light') ]
+    light_id = light_ids[0] if len(light_ids) > 0 else 0
+    if light_id != 0:
+        light_pos = anyverse_platform.Vector3D(-0.1, 0, 0) if camera_selected =='RVM' else anyverse_platform.Vector3D(0, 0, 0)
+        workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
+    else:
+        print('[WARN] Missing lights in workspace')
 
     # Apply camera vibration simulation with normal distribution
     pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
@@ -400,14 +465,12 @@ if workspace.reduce_resolution and iteration_index == 0:
     print('Reducing all cameras resolution for testing')
     icu.reduceAllCameraResolution(2)
 if workspace.testing:
-    print('Setting render quality to Medium and denoiser off for testing')
+    print('Setting render quality to Medium for testing')
     workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','render_quality','Medium')
-    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','enable_denosier', False)
 else:
     print('PRODUCTION!!!!')
-    print('Setting render quality to Ultra and denoiser on for production')
+    print('Setting render quality to Ultra for production')
     workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','render_quality','Ultra')
-    workspace.set_entity_property_value(generator_id, 'BatchPropertiesComponent','enable_denosier', True)
 
 #__________________________________________________________
 # Set background, day/night and conditions for illumination
@@ -431,44 +494,46 @@ rvm_left_locator = icu.createRVMLocator(the_car, 'left')
 rvm_right_locator = icu.createRVMLocator(the_car, 'right')
 rvm_inside_locator = icu.createRVMLocator(the_car, 'inside')
 cc_info_locator = icu.createCCLocator(the_car)
+glove_locator = icu.createGloveCompLocator(the_car)
+floor_left_locator = icu.createFloorLocator(the_car, 'left')
+floor_right_locator = icu.createFloorLocator(the_car, 'right')
+headrest_left_locator = icu.createHeadrestLocator(the_car, 'left')
+headrest_right_locator = icu.createHeadrestLocator(the_car, 'right')
+seatbelt_left_locator = icu.createSeatbeltLocator(the_car, 'left')
+seatbelt_right_locator = icu.createSeatbeltLocator(the_car, 'right')
 
 # Set NIR sensor and NIR ISP for night scenes. Unset it for the rest
 if multiple_cameras:
     camera_ids = workspace.get_camera_entities()
     for camera_id in camera_ids:
-        if not day and nir_simulation:
+        if nir_simulation:
             icu.setSensor(camera_id, 'NIR-Sensor')
             icu.setIsp(camera_id, 'NIR-ISP')
             active_light = True
-            sensor_enabled = True
-        elif rgb_sensor_sim:
+        else:
             icu.setSensor(camera_id, 'RGB-Sensor')
             icu.setIsp(camera_id, 'RGB-ISP')
             active_light = False
-            sensor_enabled = True
-        else:
-            icu.setSensor(camera_id, None)
-            icu.setIsp(camera_id, None)
+        if day and rgb_at_day:
+            icu.setSensor(camera_id, 'RGB-Sensor')
+            icu.setIsp(camera_id, 'RGB-ISP')
             active_light = False
-            sensor_enabled = False
+
 else:
-    if not day and nir_simulation:
+    if nir_simulation:
         icu.setSensor(camera_id, 'NIR-Sensor')
         icu.setIsp(camera_id, 'NIR-ISP')
         active_light = True
-        sensor_enabled = True
-    elif rgb_sensor_sim:
+    else:
         icu.setSensor(camera_id, 'RGB-Sensor')
         icu.setIsp(camera_id, 'RGB-ISP')
         active_light = False
-        sensor_enabled = True
-    else:
-        icu.setSensor(camera_id, None)
-        icu.setIsp(camera_id, None)
+    if day and rgb_at_day:
+        icu.setSensor(camera_id, 'RGB-Sensor')
+        icu.setIsp(camera_id, 'RGB-ISP')
         active_light = False
-        sensor_enabled = False
 
-print('Sensor enabled? {}. Setting active lights to {}'.format(sensor_enabled, active_light))
+print('Sensor enabled? {}. Setting active lights to {}'.format(True, active_light))
 # set the illumination depending on day/night and conditions
 intensity = icu.setIllumination(day, cond, background, simulation_id, multiple_cameras, active_light = active_light)
 if day:
@@ -486,7 +551,7 @@ occupancy_distribution = incabin_config["occupancy_distribution"]
 
 conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
 if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
-    icu.EmptyDistribution(the_car)
+    icu.EmptyDistribution(the_car, occupancy_distribution)
 elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
     # occupant_dist = icu.AllAdultsDistribution(the_car)
     occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
