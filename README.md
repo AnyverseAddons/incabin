@@ -36,6 +36,10 @@ Clone this repo to your local machine, or if you want to contribute, fork the re
 - Added 8 new car cabin models from real brands and models. Now the total available car cabins is 16
 - New points inside the cabin to configure the gaze of the front occupants. Additionally there is new feature to make the characters reach to the gaze points to force more extreme poses.
 
+**January 2024**
+- Support to control the age group of driver and passengers based on probabilities (new block in the configuration dictionary)
+- Support place babies on passenger's laps based on a probability (new parameter in the configuration dictionary)
+
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
 
