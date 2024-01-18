@@ -2803,7 +2803,8 @@ class InCabinUtils:
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat['entity_id'])
                 # self.setSplitAction(seat_id, 'Split') # If the assets does not have the the 'compound' tag
             else:
-                print("[WARN] Locator {} exists but not its seat".format(self._workspace.get_entity_name(locator)) )
+                print("[ERROR] Locator {} exists but not its seat".format(self._workspace.get_entity_name(locator)) )
+                assert False
                 seat_id = anyverse_platform.invalid_entity_id
         else:
             # There is not a specific locator por this seat. Create it under the car directly
