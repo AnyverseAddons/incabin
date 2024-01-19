@@ -1235,11 +1235,13 @@ class InCabinUtils:
             print('[INFO] Rotating childseat {:.2f}º'.format(yaw))
             self.wiggleChildseatRandom(childseat_id, yaw , pitch = 0)
 
+            self.changeExposedMaterials(childseat_id, anyverse_platform.childseats)
+
             self.setExportAlwaysExcludeOcclusion(childseat_id)
             self.setChildseatInfo(childseat)
             self.setSeatInfo(childseat)
 
-            self._already_used_characters.append(childseat['resource_name'])
+            # self._already_used_characters.append(childseat['resource_name'])
         else:
             print('[WARN]: Could not find a {} childseat with orientation {}'.format(childseat_type, orientation))
 
@@ -2142,8 +2144,9 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryChildSeats(self):
         query = aux.ResourceQueryManager(self._workspace)
+        query.add_exists_attribute_filter('kind')
         query.add_attribute_filter("class", "ChildSeat")
-        query.add_attribute_filter("dynamic_material", False)
+        query.add_attribute_filter("dynamic_material", True)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
