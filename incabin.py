@@ -1175,9 +1175,12 @@ class InCabinUtils:
         else:
             filtered_childseats = self.filterCharacters(childseats, 'name', name)
 
-        # Filter by orientation if convertible
-        if key == 'kind' and value == 'Convertible' and orientation is not None:
+        # Filter by orientation
+        if key == 'kind' and orientation is not None:
             filtered_childseats = [ cs for cs in filtered_childseats if cs['aim looking'].lower() == orientation.lower() ]
+            # HACK for Sony avoid the generic and peg Perego baby childseats when backwads
+            if orientation.lower() == 'backward' and value == 'BabyChild':
+                filtered_childseats = [ cs for cs in filtered_childseats if 'generic' not in cs['name'].lower() or 'peg_perego' not in cs['name'].lower() ]
 
         # pick one randomly
         if len(filtered_childseats) > 0:
@@ -1214,7 +1217,8 @@ class InCabinUtils:
         if childseat_type == 'BabyChild':
             orientation_idx = self.choiceUsingProbabilities(orientation_probabilities)
             orientation = childseat_orientation_probabilities[orientation_idx]['Orientation']
-            childseat_asset_id, childseat = self.selectChildseat('kind',childseat_type, 'Backward', name)
+            # childseat_asset_id, childseat = self.selectChildseat('kind',childseat_type, 'Backward', name)
+            childseat_asset_id, childseat = self.selectChildseat('kind',childseat_type, orientation, name)
         else:
             orientation = 'Forward'
             childseat_asset_id, childseat = self.selectChildseat('kind',childseat_type, orientation, name)
@@ -1226,12 +1230,12 @@ class InCabinUtils:
 
             mu, sigma = 0, max_rotation/3.6
             yaw = random.normalvariate(mu, sigma)
-            if childseat_type == 'BabyChild' and orientation == 'Forward':
-                childseat['Orientation']  = orientation
-                yaw += 180
-                pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
-                pos.x += 0.65
-                self._workspace.set_entity_property_value(childseat_id,'RelativeTransformToComponent','position', pos)
+            # if childseat_type == 'BabyChild' and orientation == 'Forward':
+            #     childseat['Orientation']  = orientation
+            #     yaw += 180
+            #     pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
+            #     pos.x += 0.65
+            #     self._workspace.set_entity_property_value(childseat_id,'RelativeTransformToComponent','position', pos)
             print('[INFO] Rotating childseat {:.2f}º'.format(yaw))
             self.wiggleChildseatRandom(childseat_id, yaw , pitch = 0)
 
@@ -2212,13 +2216,21 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def queryMaterials(self, color_scheme = False):
-        query = aux.ResourceQueryManager(self._workspace)
-        query.add_exists_attribute_filter('compatibility')
-
+        query_color_scheme = aux.ResourceQueryManager(self._workspace)
+        query_color_scheme.add_exists_attribute_filter('compatibility')
         if color_scheme:
-            query.add_exists_attribute_filter('color_scheme')
+            query_color_scheme.add_exists_attribute_filter('color_scheme')
+        color_scheme_materials = self.queryResultToDic(query_color_scheme.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
 
-        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+        query_family = aux.ResourceQueryManager(self._workspace)
+        query_family.add_exists_attribute_filter('compatibility')
+        query_family.add_attribute_filter('family', 'textile')
+        textile_materials = self.queryResultToDic(query_family.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+        color_scheme_materials_set = {frozenset(d.items()) for d in color_scheme_materials}
+        textile_materials_set = {frozenset(d.items()) for d in textile_materials}
+        union_set = color_scheme_materials_set.union(textile_materials_set)
+        return [dict(s) for s in union_set]
 
     #_______________________________________________________________
     def getAssetExposedMaterials(self, fixed_id):
@@ -2247,7 +2259,11 @@ class InCabinUtils:
             material_name = self._workspace.get_entity_name(material)
             # Get compatible materials from asset
             if material_name in asset:
-                compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ]
+                if color_scheme:
+                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ]
+                else:
+                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] ]
+
                 if len(compatible_materials) != 0:
                     selected_material = compatible_materials[random.randrange(len(compatible_materials))]
                     # Take into account an equal probability to use the default material
