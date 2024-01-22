@@ -1354,7 +1354,13 @@ class InCabinUtils:
         print('[INFO] Placing baby {} in childseat {}'.format(baby['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
-        childseat_locator = self.getChildLocatorInChildSeat(childseat['fixed_entity_id'])
+        childseat_locators = [ l for l in self.getEntityLocators(childseat['fixed_entity_id']) if re.match("^child.*_locator$", self._workspace.get_entity_name(l).lower()) ]
+        if len(childseat_locators) == 1:
+            childseat_locator = childseat_locators[0]
+        else:
+            print('[ERROR] Child seat missing child or childseat locator with format ^child.*_locator$')
+            assert False
+
         if baby_asset_id != -1 and childseat_locator != -1:
             baby_id = self._workspace.create_fixed_entity(baby['name'], childseat_locator, baby_asset_id)
             baby['fixed_entity_id'] = baby_id
@@ -1412,7 +1418,13 @@ class InCabinUtils:
         print('[INFO] Placing child {} in childseat {}'.format(child['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
-        childseat_locator = self.getChildLocatorInChildSeat(childseat['fixed_entity_id'])
+        childseat_locators = [ l for l in self.getEntityLocators(childseat['fixed_entity_id']) if re.match("^child.*_locator$", self._workspace.get_entity_name(l).lower()) ]
+        if len(childseat_locators) == 1:
+            childseat_locator = childseat_locators[0]
+        else:
+            print('[ERROR] Child seat missing child or childseat locator with format ^child.*_locator$')
+            assert False
+
         if child_asset_id != -1 and childseat_locator != -1:
             child_id = self._workspace.create_fixed_entity(child['name'], childseat_locator, child_asset_id)
 
