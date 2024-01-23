@@ -193,7 +193,10 @@ The `occupancy_distribution` property is the most complex and allows you to cont
         'backseat_occupancy_probabilities': [ ...
         'middleseat_occupancy_probabilities': [ ...
         'childseat_config': { ...
-        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.5, 'mask': 0.5 },
+        'age_group_probabilities': [ ...
+        'baby_on_lap_probability': 0..1
+        'object_types: [ ...
+        'accessories_probabilities': { 'global': 0..1, 'glasses': 0..1, 'headwear': 0..1, 'mask': 0..1 },
         'seatbelts_distribution': { ...
         'gaze_probabilities': { ...
         'expression_probabilities': [ ...
@@ -226,22 +229,6 @@ For the driver seat, `driver_occupancy_probabilities`, you can set the probabili
         ],
 ```
 
-With the `age_group_probabilities` property you can control the age of the character placed as passengers and drivers. For child seats de characters will always be children or babies depending on the child seat type. Notice that you can configure a probability to place babies (0-3 age group), however, that is not currently supported. In the example below the age group distribution is uniform, bear in mind the distribution of available characters is not homogenous. It is more a gaussian distribution with the center in the 19-30 and 31-50 age groups. SO, you should probably have a higher probability for these if you want more character variability across your dataset.
-
-Additionally now, you can have the passenger to have a baby on their lap. The `baby_on_lap_probability` controls the probability of a character having a baby on his/her lap. Set it to 0 to disable this feature.
-
-```
-        'age_group_probabilities': [
-            {'age_group': '0-3', 'kind': 'Baby', 'probability': 0.0},
-            {'age_group': '4-12', 'kind': 'Child', 'probability': 0.20},
-            {'age_group': '13-18', 'kind': 'Child', 'probability': 0.20},
-            {'age_group': '19-30', 'kind': 'Adult', 'probability': 0.20},
-            {'age_group': '31-50', 'kind': 'Adult', 'probability': 0.20},
-            {'age_group': '50+', 'kind': 'Adult', 'probability': 0.20},
-        ],
-        'baby_on_lap_probability': 0.2,
-```
-
 With the `childseat_config` property, you have control on the probabilities for different types of child seats (`childseat_type_probabilities`), the probability that the child seat will be occupied (`childseat_occupancy_probabilities`) with a child or an object, or just leaving it empty. There is further control on the child seat orientation (only for BabyChild type child seats) with the `childseat_orientation property`. And finally you can define a maximum rotation angle (around Z) for the child seat with `childseat_rotation_max`.
 
 ```
@@ -262,6 +249,28 @@ With the `childseat_config` property, you have control on the probabilities for 
             ],
             'childseat_rotation_max': 30
         },
+```
+
+With the `accessories_probabilities` property you can optionally place different accessories to the characters placed in the different seats. The types of accessories available are glasses (sun and regular), head wear and face masks. First there is the `global` parameter that specifies the probability for every character to have accessories. A 0.0 value means no character will have accessories and 1.0 means all characters will have some kind of accessory depending on the other specific probabilities. the `glasses`, `headwear` and `mask` parameters represent the probabilities for the characters to have glasses, head wear (hats and caps) and face masks. Notice that settong all 3 parameters to non-zero values allows for a non-zero probability that the character wil have the 3 accessories at the same time. This an a example configuration for `accessories_probabilities`. 50% of placed characters will have accessories, and those will have a 50% probability to have glasses, 30% to have head wear and only 10% a face mask:
+
+```
+        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.3, 'mask': 0.1 },
+```
+
+With the `age_group_probabilities` property you can control the age of the character placed as passengers and drivers. For child seats de characters will always be children or babies depending on the child seat type. Notice that you can configure a probability to place babies (0-3 age group), however, that is not currently supported. In the example below the age group distribution is uniform, bear in mind the distribution of available characters is not homogenous. It is more a gaussian distribution with the center in the 19-30 and 31-50 age groups. SO, you should probably have a higher probability for these if you want more character variability across your dataset.
+
+Additionally now, you can have the passenger to have a baby on their lap. The `baby_on_lap_probability` controls the probability of a character having a baby on his/her lap. Set it to 0 to disable this feature.
+
+```
+        'age_group_probabilities': [
+            {'age_group': '0-3', 'kind': 'Baby', 'probability': 0.0},
+            {'age_group': '4-12', 'kind': 'Child', 'probability': 0.20},
+            {'age_group': '13-18', 'kind': 'Child', 'probability': 0.20},
+            {'age_group': '19-30', 'kind': 'Adult', 'probability': 0.20},
+            {'age_group': '31-50', 'kind': 'Adult', 'probability': 0.20},
+            {'age_group': '50+', 'kind': 'Adult', 'probability': 0.20},
+        ],
+        'baby_on_lap_probability': 0.2,
 ```
 
 For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
