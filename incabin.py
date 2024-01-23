@@ -600,18 +600,22 @@ class InCabinUtils:
         return ret
 
     #_______________________________________________________________
-    def selectObject(self, name = None, version = None, big_object = None):
+    def selectObject(self, name = None, version = None, object_types = None, big_object = None):
         objects = self._workspace.objects
+        print('[INFO] Selecting object types: {}'.format(object_types))
 
         if name == None:
-            if big_object == None:
-                picked_object = objects[random.randrange(len(objects))]
-            elif big_object:
-                big_objects = [ o for o in objects if 'big_object' in o and o['big_object']  ]
-                picked_object = big_objects[random.randrange(len(big_objects))]
+            if object_types:
+                filtered_objects = [ o for o in objects if o['class'] in object_types ]
             else:
-                small_objects = [ o for o in objects if 'big_object' in o and not o['big_object']]
-                picked_object = small_objects[random.randrange(len(small_objects))]
+                filtered_objects = objects
+
+            if big_object:
+                filtered_objects = [ o for o in filtered_objects if 'big_object' in o and o['big_object']  ]
+            else:
+                filtered_objects = [ o for o in filtered_objects if 'big_object' in o and not o['big_object'] ]
+
+            picked_object = filtered_objects[random.randrange(len(filtered_objects))] if len(filtered_objects) > 0 else None
         else:
             for idx, object in enumerate(objects):
                 if name == object['name'] and version == object['version']:
@@ -861,16 +865,17 @@ class InCabinUtils:
         return baby
 
     #_______________________________________________________________
-    def placeObjectInChildseat(self, seat_locator, childseat, name = None, version = None):
+    def placeObjectInChildseat(self, seat_locator, childseat, object_types = None, name = None, version = None):
         seat_id = childseat['fixed_entity_id']
         print('[INFO] Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
 
         big_object = False
 
-        # select a named object from resoures
-        object = self.selectObject(name, version, big_object)
-        print('[INFO] Object to place {}'.format(object['resource_name']))
-        if object['entity_id'] != -1:
+        # select an object from resources, of specified name and version,
+        # or from specified types list, or from all in-cabin compliant objects 
+        object = self.selectObject(name, version, object_types, big_object)
+        if object and object['entity_id'] != -1:
+            print('[INFO] Object to place {}'.format(object['resource_name']))
             # Create the object fixed entity
             try:
                 object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['entity_id'])
@@ -952,15 +957,17 @@ class InCabinUtils:
         return object
 
     #_______________________________________________________________
-    def placeObjectOnSeat(self, seat_locator, seat_id, name = None, version = None):
+    def placeObjectOnSeat(self, seat_locator, seat_id, object_types = None, name = None, version = None):
         print('[INFO] Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
 
         big_object = True if random.uniform(0,1) >= 0.75 and not self.isMiddleBackSeat(seat_locator) else False
+        print('[INFO] Big object: {}'.format(big_object))
 
-        # select a named object from resources
-        object = self.selectObject(name, version, big_object)
-        print('[INFO] Object to place {}'.format(object['resource_name']))
-        if object['entity_id'] != -1:
+        # select an object from resources, of specified name and version,
+        # or from specified types list, or from all in-cabin compliant objects 
+        object = self.selectObject(name, version, object_types, big_object)
+        if object and object['entity_id'] != -1:
+            print('[INFO] Object to place {}'.format(object['resource_name']))
             # Create the object fixed entity
             try:
                 object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['entity_id'])
@@ -1029,91 +1036,6 @@ class InCabinUtils:
             self.setExportAlwaysExcludeOcclusion(object_entity_id)
             object['Seatbelt_on'] = False
             object['Seatbelt_placement'] = 'Off'
-            object['Face'] = ''
-            self.setObjectInfo(object)
-            self.setSeatInfo(object)
-            object['Accessory'] = 'None'
-
-        else:
-            # No matching objects found returning id -1
-            object_entity_id = -1
-            object = None
-
-        return object
-
-    #_______________________________________________________________
-    def placeObject(self, seat_locator, name = None, version = None):
-        print('[INFO] Placing object in {}'.format(self._workspace.get_entity_name(seat_locator).split('_')[0]))
-
-        big_object = True if random.uniform(0,1) >= 0.5 else False
-
-        print('[INFO] Big object: {}'.format(big_object))
-
-        # select a random object from resoures
-        object = self.selectObject(name, version, big_object)
-        print('[INFO] Object to place {}'.format(object['resource_name']))
-        if object['entity_id'] != -1:
-            # Create the object fixed entity
-            object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['entity_id'])
-            scale_factor = random.uniform(0.9, 1.1)
-            if scale_factor != 1:
-                print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
-                self.scaleEntity(object_entity_id,round(scale_factor, 2))
-            object['fixed_entity_id'] = object_entity_id
-
-            # Delete existing region if it exists
-            existing_landing_region = self._workspace.get_entities_by_name('landing_region')
-            if len(existing_landing_region) > 0:
-                self._workspace.delete_entity(existing_landing_region[0])
-
-            # Create a reagion around the seat locator. Default 1x1x1 meters
-            landing_region_id = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Region, 'landing_region', seat_locator)
-
-            # Resize the region to fit the seat
-            if self.isMiddleBackSeat(seat_locator):
-                width = 0.25
-                depth = 0.35
-                pos_offset_y = 0.0
-            elif self.isRightBackSeat(seat_locator):
-                width = 0.4
-                depth = 0.5
-                pos_offset_y = 0.1
-            elif self.isLeftBackSeat(seat_locator):
-                width = 0.4
-                depth = 0.5
-                pos_offset_y = -0.1
-            else:
-                width = 0.5
-                depth = 0.5
-                pos_offset_y = 0
-            self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','width', width)
-            # self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','height', 0.7)
-            self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','depth', depth)
-
-            # Apply position offset to separate from the back of the seat to avoid "flying" objects
-            pos_offset_x = 0.1
-            landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
-            landing_region_pos.x += pos_offset_x
-            landing_region_pos.y += pos_offset_y
-            self._workspace.set_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position',landing_region_pos)
-
-            # Get the car id and insert it in the set of port entities
-            # The car is goign to be the only one for the time being
-            the_car = self._workspace.get_entities_by_name('The_Car')[0]
-            port_entities = city_builder.core.EntitySet()
-            port_entities.insert(the_car)
-
-            # place the object in the in the region and land it in the car seat
-            self._workspace.placement.place_entity_on_entities(object_entity_id, port_entities, landing_region_id)
-            self._workspace.set_entity_property_value(object_entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
-
-            # WORKAROUND: Set instance if possible ALWAYS to False so custom metadata
-            # for identical objects is always exported. Until ANYS-3660 is fixed
-            self.setInstanceIfPossible(object_entity_id, False)
-
-            # Set custom meta data for the object
-            self.setExportAlwaysExcludeOcclusion(object_entity_id)
-            object['Seatbelt_on'] = False
             object['Face'] = ''
             self.setObjectInfo(object)
             self.setSeatInfo(object)
@@ -3179,7 +3101,7 @@ class InCabinUtils:
 
 
     #_______________________________________________________________
-    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None):
+    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None, object_types = None):
         the_car = self.getCars()[0]
         car_name = self._workspace.get_entity_name(self._workspace.get_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id'))
         if occupancy == 0:
@@ -3218,7 +3140,7 @@ class InCabinUtils:
                 elif childseat_occupancy == 2: # Object
                     childseat_locator = self.getChildLocatorInChildSeat(childseat['fixed_entity_id'])
                     if childseat_locator != -1:
-                        object = self.placeObjectInChildseat(childseat_locator, childseat)
+                        object = self.placeObjectInChildseat(childseat_locator, childseat, object_types)
                     else:
                         print('[WARN] Cannot place object without a locator in child seat.')
                         object = None
@@ -3235,10 +3157,8 @@ class InCabinUtils:
                 print('[WARN]: Could not find a passenger to place')
             ret = passenger
         elif occupancy == 4:
-            if 'v0' in car_name:
-                object = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator))
-            else:
-                object = self.placeObject(seat_locator)
+            object = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types)
+
             if object == None:
                 print('[WARN]: Could not find a object to place')
             ret = object
@@ -3298,17 +3218,25 @@ class InCabinUtils:
             else:
                 age_group_probabilities = None
 
+            if 'object_types' in occupancy_distribution:
+                object_types = occupancy_distribution['object_types']
+            else:
+                object_types = None
+
             seat_occupant = self.fillSeat(occupancy,seat_locator,
                                         childseat_config = occupancy_distribution['childseat_config'],
                                         seatbelts_distribution = occupancy_distribution['seatbelts_distribution'],
                                         accessories_probabilities = occupancy_distribution['accessories_probabilities'],
                                         expression_probabilities = expression_probabilities,
                                         baby_on_lap_probability = baby_on_lap_probability,
-                                        age_group_probabilities = age_group_probabilities
+                                        age_group_probabilities = age_group_probabilities,
+                                        object_types = object_types
                                         )
 
             # Build a return list with a dict with the occupancy of every seat
-            if 'isEmpty' in seat_occupant:
+            if not seat_occupant:
+                ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': False})
+            elif 'isEmpty' in seat_occupant:
                 ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': seat_occupant['Seatbelt_on']})
             else:
                 if type(seat_occupant) != list:

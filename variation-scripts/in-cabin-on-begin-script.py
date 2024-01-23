@@ -156,8 +156,10 @@ incabin_config = {
             {'age_group': '31-50', 'kind': 'Adult', 'probability': 0.20},
             {'age_group': '50+', 'kind': 'Adult', 'probability': 0.20},
         ],
-        'baby_on_lap_probability': 0.5,
+        'baby_on_lap_probability': 0.1,
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
+        # 'object_types': ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'Coffee', 'Consumer_electronics', 'Dog', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
+        'object_types': ['Backpack', 'Consumer_electronics', 'Dog', 'Handbag', 'Mobile Phone', 'Paper_Bag', 'Snack', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
