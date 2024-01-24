@@ -1276,7 +1276,7 @@ class InCabinUtils:
         print('[INFO] Placing baby {} in childseat {}'.format(baby['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
-        childseat_locators = [ l for l in self.getEntityLocators(childseat['fixed_entity_id']) if re.match("^child.*_locator$", self._workspace.get_entity_name(l).lower()) ]
+        childseat_locators = [ l for l in self.getEntityLocators(childseat['fixed_entity_id']) if re.match("child.*_locator$", self._workspace.get_entity_name(l).lower()) ]
         if len(childseat_locators) == 1:
             childseat_locator = childseat_locators[0]
         else:
