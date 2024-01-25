@@ -39,6 +39,7 @@ Clone this repo to your local machine, or if you want to contribute, fork the re
 **January 2024**
 - Support to control the age group of driver and passengers based on probabilities (new block in the configuration dictionary)
 - Support place babies on passenger's laps based on a probability (new parameter in the configuration dictionary)
+- SUpport to decide what object types to place on seats (new parameter in the configuration dictionary)
 
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
