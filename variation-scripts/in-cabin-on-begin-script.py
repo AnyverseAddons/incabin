@@ -54,14 +54,14 @@ incabin_config = {
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
-                'Audi_Q5': {'rotation': (0, -50, 0), 'position': (0.435, 0.0, 1.45) }, 
-                'Chevrolet_Menlo':  {'rotation': (0, -50, 0), 'position': (0.53, 0.0, 1.26) },
-                'Lexus_UX':         {'rotation': (0, -50, 0), 'position': (0.46, 0.005, 1.26) },
-                'Porsche_CayenneS': {'rotation': (0, -50, 0), 'position': (0.50, 0.0, 1.45) },
-                'Unbranded_GenericSUV':    {'rotation': (0, -50, 0), 'position': (0.485, -0.005, 1.43) },
-                'Volkswagen_Passat': {'rotation': (0, -50, 0), 'position': (0.575, -0.027, 1.287)},
-                'Hyundai_Ioniq': {'rotation': (0, -50, 0), 'position': (0.45, -0.02, 1.315)},
-                'LandRover_Autobiography': {'rotation': (0, -50, 0), 'position': (0.41, 0.0, 1.58)},
+                'Audi_Q5': {'rotation': (0, -40, 0), 'position': (0.435, 0.0, 1.45) }, 
+                'Chevrolet_Menlo':  {'rotation': (0, -35, 0), 'position': (0.53, 0.0, 1.26) },
+                'Lexus_UX':         {'rotation': (0, -35, 0), 'position': (0.46, 0.005, 1.26) },
+                'Porsche_CayenneS': {'rotation': (0, -40, 0), 'position': (0.50, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (0, -40, 0), 'position': (0.485, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (0, -35, 0), 'position': (0.575, -0.027, 1.287)},
+                'Hyundai_Ioniq': {'rotation': (0, -40, 0), 'position': (0.45, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (0, -40, 0), 'position': (0.41, 0.0, 1.58)},
                 'Ford_Escape': {'rotation': (0, -35, 0), 'position': (0.42, 0.0, 1.37)},
                 'Honda_Jazz': {'rotation': (0, -40, 0), 'position': (0.35, 0.0, 1.3)},
                 'Kia_EV_GT': {'rotation': (0, -35, 0), 'position': (0.41, 0.0, 1.40)},
@@ -159,7 +159,7 @@ incabin_config = {
         'baby_on_lap_probability': 0.1,
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
         # 'object_types': ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'Coffee', 'Consumer_electronics', 'Dog', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
-        'object_types': ['Backpack', 'Consumer_electronics', 'Dog', 'Handbag', 'Mobile Phone', 'Paper_Bag', 'Snack', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
+        'object_types': ['Backpack', 'briefcase', 'Consumer_electronics', 'Dog', 'duffle' 'Handbag', 'laptop_case' 'Mobile Phone', 'Paper_Bag', 'Snack', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
         'seatbelts_distribution': {
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
@@ -175,30 +175,30 @@ incabin_config = {
         },
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
-                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
-                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
-                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
-                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
-                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
-                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
-                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
-                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
-                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
-                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
-                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
+                {'name': 'road', 'id': 0, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'id': 1, 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'id': 2, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'id': 3, 'gaze': 0.5, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'id': 4, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'id': 5, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'id': 6, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'id': 7, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'id': 8, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
+                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': False, 'probability':  0.14}
             ],
             'copilot_gaze_probabilities': [
-                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
-                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
-                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
-                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
-                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
-                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
-                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
-                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
-                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
-                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
-                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
+                {'name': 'road', 'id': 0, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'id': 1, 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'id': 2, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'id': 3, 'gaze': 0.5, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'id': 4, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'id': 5, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'id': 6, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'id': 7, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'id': 8, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
+                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': False, 'probability':  0.14}
             ]
         },
         'expression_probabilities': [
@@ -534,7 +534,7 @@ else:
     if nir_simulation:
         icu.setSensor(camera_id, 'NIR-Sensor')
         icu.setIsp(camera_id, 'NIR-ISP')
-        active_light = True
+        active_light = True if not day else False
     else:
         icu.setSensor(camera_id, 'RGB-Sensor')
         icu.setIsp(camera_id, 'RGB-ISP')
