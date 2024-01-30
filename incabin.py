@@ -678,7 +678,7 @@ class InCabinUtils:
                         self.setAccessoryInfo(glasses)
                         ret.append(glasses)
                     else:
-                        print('[ERROR] Could NOT find accessories of class Sunglasses or Glasses')
+                        print('[WARN] Could NOT find accessories of class Sunglasses or Glasses')
             if can_headwear:
                 put_hat = True if random.uniform(0,1) < headwear_prob else False
                 if put_hat:
@@ -699,7 +699,7 @@ class InCabinUtils:
                         self.setAccessoryInfo(hat)
                         ret.append(hat)
                     else:
-                        print('[ERROR] Could NOT find accessories of class Hat or Baseball_cap')
+                        print('[WARN] Could NOT find accessories of class Hat or Baseball_cap')
             if can_mask:
                 put_mask = True if random.uniform(0,1) < mask_prob else False
                 if put_mask:
@@ -715,7 +715,7 @@ class InCabinUtils:
                         self.setAccessoryInfo(mask)
                         ret.append(mask)
                     else:
-                        print('[ERROR] Could NOT find accessories of class Facemask')
+                        print('[WARN] Could NOT find accessories of class Facemask')
 
         return ret
 
@@ -1333,7 +1333,7 @@ class InCabinUtils:
             self._already_used_characters.append(baby['model'])
         elif baby_asset_id == -1:
             # No matching children found returning id -1
-            print('[ERROR]: could not find suitable baby for childseat')
+            print('[WARN]: could not find suitable baby for childseat')
             baby_id = -1
             baby['fixed_entity_id'] = baby_id
         else:
@@ -1495,7 +1495,7 @@ class InCabinUtils:
             self._already_used_characters.append(child['model'])
         elif child_asset_id == -1:
             # No matching children found returning id -1
-            print('[ERROR]: could not find suitable child for childseat')
+            print('[WARN]: could not find suitable child for childseat')
             child_id = -1
             child['fixed_entity_id'] = child_id
         else:
@@ -1519,10 +1519,10 @@ class InCabinUtils:
             else:
                 # No matching passengers found returning id -1
                 if passenger == None:
-                    print('[ERROR]: Could not find valid passenger to place')
+                    print('[WARN]: Could not find valid passenger to place')
                     stop_searching = True
                 else:
-                    print('[ERROR]: Could not find a passenger {} to place. Trying another one...'.format(passenger['name']))
+                    print('[WARN]: Could not find a passenger {} to place. Trying another one...'.format(passenger['name']))
                 passenger_id = -1
 
         body_min_weight = 0
@@ -2421,7 +2421,8 @@ class InCabinUtils:
                     self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
                     # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                 else:
-                    print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+                    # print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
+                    continue
 
             else:
                 print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
@@ -2453,7 +2454,8 @@ class InCabinUtils:
                 material_name = self._workspace.get_entity_name(material)
                 # Get compatible materials from asset
                 if material_name in asset:
-                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ]
+                    compatibility = asset[material_name]
+                    compatible_materials = [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] ]
                     if len(compatible_materials) != 0:
                         if material_name in cached_materials:
                             selected_material = cached_materials[material_name]
