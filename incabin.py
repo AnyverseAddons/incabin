@@ -3189,6 +3189,10 @@ class InCabinUtils:
             passenger = self.placePassenger(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities, baby_on_lap = baby_on_lap)
             if passenger == None:
                 print('[WARN]: Could not find a passenger to place')
+            # move the arms free around xiphoid
+            elif not self.isCopilotSeat(seat_locator) and not baby_on_lap:
+                self.setBackSeatPassengerPose(seat_locator) if random.uniform(0, 1) < 0.75 else True
+
             ret = passenger
         elif occupancy == 4:
             object = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types)
@@ -3463,6 +3467,22 @@ class InCabinUtils:
             self.setCustomMetadata(passenger, 'gaze', gaze_info)
         else:
             print('[WARN]: Cannot set gaze, no passenger.')
+
+    #_______________________________________________________________
+    def setBackSeatPassengerPose(self, seat_locator):
+        passenger_l = [ ent for ent in self._workspace.get_hierarchy(seat_locator) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        passenger = passenger_l[0] if len(passenger_l) > 0 else anyverse_platform.invalid_entity_id
+
+        animation, weight = self.selectAdultAnimation('head', 0, 1)
+        self.setAnimation('head', animation, weight, passenger)
+        print('[INFO] setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
+        both_hands = False if random.uniform(0,1) >= 0.5 else True
+        if both_hands:
+            self.reachXiphoidLocator(passenger, 'left')
+            self.reachXiphoidLocator(passenger, 'right')
+        else:
+            hand = 'left' if random.uniform(0,1) >= 0.5 else 'right' 
+            self.reachXiphoidLocator(passenger, hand)
 
     #_______________________________________________________________
     def getOccupant(self, seat_locator, occupant_dist):
