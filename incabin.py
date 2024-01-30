@@ -3152,7 +3152,7 @@ class InCabinUtils:
                 if change_gaze:
                     self.LookAtSeatbelt(driver, the_car, 'left')
                 if reach:
-                    self.reachSeatbelt(driver, 'left')
+                    self.reachSeatbelt(driver, 'right')
             elif gaze_id == 9: # floor own side
                 if change_gaze:
                     self.LookAtFloor(driver, the_car, 'left')
@@ -3230,7 +3230,7 @@ class InCabinUtils:
                 if change_gaze:
                     self.LookAtSeatbelt(passenger, the_car, 'right')
                 if reach:
-                    self.reachSeatbelt(passenger, 'right')
+                    self.reachSeatbelt(passenger, 'left')
             elif gaze_id == 9 and not is_child: # floor own side
                 if change_gaze:
                     self.LookAtFloor(passenger, the_car, 'right')
