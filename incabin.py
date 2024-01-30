@@ -2408,9 +2408,9 @@ class InCabinUtils:
         exposed_materials = self.getAssetExposedMaterials(fixed_id)
         for material in exposed_materials:
             material_name = self._workspace.get_entity_name(material)
-            compatibility = asset[material_name]
             # Get compatible materials from asset
             if material_name in asset:
+                compatibility = asset[material_name]
                 compatible_materials = [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] ]
                 if len(compatible_materials) == 0:
                     print('[WARN] No compatible materials found for exposed material {} Trying in the DB...'.format(material_name))
@@ -2421,7 +2421,7 @@ class InCabinUtils:
                     self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
                     # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                 else:
-                    print('[ERROR] No compatible materials found for exposed material {}'.format(material_name))
+                    print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
 
             else:
                 print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
