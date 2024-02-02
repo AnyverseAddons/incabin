@@ -900,7 +900,7 @@ class InCabinUtils:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
             object['fixed_entity_id'] = object_entity_id
-            is_animal = True if object['class'].lower() == 'dog' else False
+            is_animal = True if object['class'].lower() == ['dog', 'cat'] else False
 
             if 'dynamic_material' in object and object['dynamic_material']:
                 self.changeExposedMaterials(object_entity_id, object)
