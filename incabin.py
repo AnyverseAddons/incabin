@@ -722,8 +722,15 @@ class InCabinUtils:
         print('[INFO] Object to place {}'.format(object['resource_name']))
         if object['Asset_id'] != -1:
             # Create the object fixed entity
-            object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['Version'], seat_locator, object['Asset_id'])
-            scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
+            try:
+                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['Asset_id'])
+                scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
+            except KeyError as ke:
+                print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
+                if 'version' in str(ke):
+                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
+                    scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
+
             if scale_factor != 1:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
@@ -798,12 +805,12 @@ class InCabinUtils:
             # Create the object fixed entity
             try:
                 object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['Asset_id'])
-                scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
+                scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
                 if 'version' in str(ke):
                     object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
-                    scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
+                    scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
 
             if scale_factor != 1:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
@@ -889,12 +896,12 @@ class InCabinUtils:
             # Create the object fixed entity
             try:
                 object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['Asset_id'])
-                scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
+                scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
                 if 'version' in str(ke):
                     object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
-                    scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
+                    scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
 
             if scale_factor != 1:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
