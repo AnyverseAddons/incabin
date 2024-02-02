@@ -19,6 +19,7 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
+        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle' ]
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -2078,6 +2079,7 @@ class InCabinUtils:
         maxicosi_excluded_colors = ['Beige', 'Blue', 'Brown']
         cybex_excluded_colors = ['Dark', 'Green', 'LightGray', 'Orange']
 
+
         if 'BabyChild' == asset['kind'] and 'Maxi-Cosi' == asset['brand'] and asset['version'] in maxicosi_excluded_colors:
             ret = True
         if 'BabyChild' == asset['kind'] and 'Cybex' == asset['brand'] and asset['version'] in cybex_excluded_colors:
@@ -2119,7 +2121,7 @@ class InCabinUtils:
             if 'childseat' in tags:
                 if not self.excludeAsset(dic):
                     result.append(dic)
-            else:
+            elif dic ['name'] not in self._excluded_objects:
                 result.append(dic)
             processed += 1
             # self.update_progress(processed/total)
