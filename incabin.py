@@ -525,9 +525,9 @@ class InCabinUtils:
         # list of babies dictionaries
         babies = self._workspace.babies
         if name == None:
-            baby_characters = self.filterCharacters(babies, key, value)
+            baby_characters = self.filterCharacters(babies, key, value, check_twins=False)
         else:
-            baby_characters = self.filterCharacters(babies, 'name', name)
+            baby_characters = self.filterCharacters(babies, 'name', name, check_twins=False)
         
         # pick one randomly taking into account the type of baby that goes in each place
         baby_idx = random.randrange(len(baby_characters))
@@ -2472,13 +2472,13 @@ class InCabinUtils:
                     print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
 
     #_______________________________________________________________
-    def filterCharacters(self, characters, key, value):
+    def filterCharacters(self, characters, key, value, check_twins = True):
         filtered_characters = [c for c in characters if key.lower() in c and c[key.lower()] == value]
 
         elegible_chars = filtered_characters.copy()
         # Discard the characters already used
         for character in filtered_characters:
-            if character['model'] in self._already_used_characters:
+            if check_twins and character['model'] in self._already_used_characters:
                 # print('[WARN]: Character {} used. Removing from elegible...'.format(character['resource_name']))
                 elegible_chars.remove(character)
         return elegible_chars
