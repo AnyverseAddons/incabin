@@ -573,6 +573,32 @@ class InCabinUtils:
         return character_asset_id, character
 
     #_______________________________________________________________
+    def selectChildTeen(self, max_height):
+        # list of characters dictionaries from CSV file
+        characters = self._workspace.characters
+        # filter characters from CSV by characteristic and discard if already been used
+        children = self.filterCharacters(characters, 'agegroup', '4-12')
+        teens = self.filterCharacters(characters, 'agegroup', '13-18')
+
+        children_teens = children + teens
+        # print('All children/teens ({}): {}'.format(len(children_teens), children_teens))
+
+        filtered_characters = [ c for c in children_teens if c['suitableseat'] == 'None' and int(c['height']) <= max_height]
+        print('Filtered children ({}): {}'.format(len(filtered_characters), filtered_characters))
+
+        if len(filtered_characters) > 0:
+            # pick one randomly
+            character_idx = random.randrange(len(filtered_characters))
+            character = filtered_characters[character_idx]
+            character_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, character["resource_id"])
+            # print('[INFO] Selected character: {}'.format(character['resource_name']))
+        else:
+            character_asset_id = -1
+            character = None
+
+        return character_asset_id, character
+
+    #_______________________________________________________________
     def checkCharacter(self, name = None):
         ret = None
         # list of all character assets from resources
@@ -1464,14 +1490,17 @@ class InCabinUtils:
         return child
 
     #_______________________________________________________________
-    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
+    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, children = False):
         print('[INFO] Placing Passenger in {} ({})'.format(self._workspace.get_entity_name(seat_locator).split('_')[0], seat_locator))
         # select a random adult character
         # select a random childseat of the given type
         passenger_found = False
         stop_searching = False
         while not passenger_found and not stop_searching:
-            passenger_asset_id, passenger = self.selectCharacter('kind','Adult', name)
+            if children:
+                passenger_asset_id, passenger = self.selectChildTeen(max_height=159) # HACK max_height set by Sony
+            else:
+                passenger_asset_id, passenger = self.selectCharacter('kind','Adult', name)
             if passenger_asset_id != -1:
                 passenger_id = self._workspace.create_fixed_entity(passenger['resource_name'], seat_locator, passenger_asset_id)
                 passenger_found = True
@@ -2484,9 +2513,9 @@ class InCabinUtils:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 300)
             return sky_light_intensity, sun_light_intensity
         else:
-            # HACK for Sony -> complete black background. no illumination coming from the outside
-            # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None') # HACK don't use any exterior illumination at might
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
+            # For Sony single cabin datasets-> complete black background. no illumination coming from the outside
+            # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None') # don't use any exterior illumination at might
             ibl_light_intensity = random.uniform(1, 1)
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
 
@@ -2960,6 +2989,12 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None):
+        # 0: Empty
+        # 1: Driver
+        # 2: Childseat
+        # 3: Passenger
+        # 4: Object
+        # 5: Child without childseat
         the_car = self.getCars()[0]
         car_name = self._workspace.get_entity_name(self._workspace.get_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id'))
         if occupancy == 0:
@@ -3015,6 +3050,11 @@ class InCabinUtils:
             if object == None:
                 print('[WARN]: Could not find a object to place')
             ret = object
+        elif occupancy == 5:
+            passenger = self.placePassenger(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities, children=True)
+            if passenger == None:
+                print('[WARN]: Could not find a passenger to place')
+            ret = passenger
         else:
             print('[ERROR] Invalid filling seat action')
 
