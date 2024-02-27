@@ -1627,7 +1627,8 @@ class InCabinUtils:
             self.setAvoidArmsAutoCollision(passenger_id)
             self.setSeatCollision(passenger_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(passenger_id)
-            self.applyCharacterOffset(passenger)
+            if not children:
+                self.applyCharacterOffset(passenger)
             self.setCharacterInfo(passenger)
             self.setCharacterPoseInfo(passenger)
             self.setSeatInfo(passenger)
