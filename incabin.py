@@ -584,7 +584,6 @@ class InCabinUtils:
         # print('All children/teens ({}): {}'.format(len(children_teens), children_teens))
 
         filtered_characters = [ c for c in children_teens if c['suitableseat'] == 'None' and int(c['height']) <= max_height]
-        print('Filtered children ({}): {}'.format(len(filtered_characters), filtered_characters))
 
         if len(filtered_characters) > 0:
             # pick one randomly
