@@ -2513,9 +2513,9 @@ class InCabinUtils:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 300)
             return sky_light_intensity, sun_light_intensity
         else:
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
+            # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
             # For Sony single cabin datasets-> complete black background. no illumination coming from the outside
-            # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None') # don't use any exterior illumination at might
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'None') # don't use any exterior illumination at might
             ibl_light_intensity = random.uniform(1, 1)
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
 
