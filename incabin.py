@@ -1240,12 +1240,15 @@ class InCabinUtils:
 
             mu, sigma = 0, max_rotation/3.6
             yaw = random.normalvariate(mu, sigma)
-            if childseat_type == 'BabyChild' and orientation == 'Forward':
-                childseat['Orientation']  = orientation
-                yaw += 180
-                pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
-                pos.x += 0.65
-                self._workspace.set_entity_property_value(childseat_id,'RelativeTransformToComponent','position', pos)
+            # REMOVE this code. It doesn't make sense. I think it was left here from a customer request
+            # who wanted all baby childseats facing backwards, but even so the orientation metadata was wrong!!!
+            #
+            # if childseat_type == 'BabyChild' and orientation == 'Forward':
+            #     childseat['Orientation']  = orientation
+            #     yaw += 180
+            #     pos = self._workspace.get_entity_property_value(childseat_id,'RelativeTransformToComponent','position')
+            #     pos.x += 0.65
+            #     self._workspace.set_entity_property_value(childseat_id,'RelativeTransformToComponent','position', pos)
             print('[INFO] Rotating childseat {:.2f}º'.format(yaw))
             self.wiggleChildseatRandom(childseat_id, yaw , pitch = 0)
 
