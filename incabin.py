@@ -1478,11 +1478,13 @@ class InCabinUtils:
         self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
         self.removeMotionBlur(child_id)
         self.setCharacterInfo(child)
-        self.setSeatInfo(child)
+        info = self.setSeatInfo(child)
+        print('Child metadata: {}'.format(info))
 
         # Because of the occupancy we have to overwrite the child seat custom metadata
         self.setChildseatInfo(childseat)
-        self.setSeatInfo(childseat)
+        info = self.setSeatInfo(childseat)
+        print('Childseat metadata: {}'.format(info))
 
         self._already_used_characters.append(child['resource_name'])
 
