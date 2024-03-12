@@ -1155,10 +1155,12 @@ class InCabinUtils:
 
             if fasten_seatbelt and not self._script_console:
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), driver_id, self._car_brand, self._car_model, seatbelts_distribution = seatbelts_distribution)
-                if belt_placement is None:
-                    print('[ERROR] Cannot create belt')                    
+                if belt_placement:
+                    driver['Seatbelt_placement'] = belt_placement
                 else:
-                    driver['Seatbelt_placement'] = belt_placement     
+                    driver['Seatbelt_placement'] = 'Off'
+                    driver['Seatbelt_on'] = False
+                    print('[ERROR] Cannot create belt')                    
 
             self.setExportAlwaysExcludeOcclusion(driver_id)
             self.setAvoidArmsAutoCollision(driver_id, True)
@@ -1438,10 +1440,12 @@ class InCabinUtils:
                 if fasten_seatbelt and not self._script_console:
                     print('[INFO] Setting seat belt for booster...')
                     belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), child_id, self._car_brand, self._car_model, seatbelts_distribution)
-                    if belt_placement is None:
-                        print('[ERROR] Cannot create belt')
-                    else:
+                    if belt_placement:
                         child['Seatbelt_placement'] = belt_placement
+                    else:
+                        child['Seatbelt_placement'] = 'Off'
+                        child['Seatbelt_on'] = False
+                        print('[ERROR] Cannot create belt')                    
 
             if childseat['kind'] == 'Convertible':
                 if fasten_seatbelt and not self._script_console:
@@ -1612,6 +1616,8 @@ class InCabinUtils:
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), passenger_id, self._car_brand, self._car_model, seatbelts_distribution = seatbelts_distribution)
                 # Move the children 7 cm forward when sitting on the seatbelt
                 if belt_placement is None:
+                    passenger['Seatbelt_placement'] = 'Off'
+                    passenger['Seatbelt_on'] = False
                     print('[ERROR] Cannot create belt')
                 else:
                     if belt_placement == 'CharacterOverSeatbelt' and passenger['kind'] == 'Child':
