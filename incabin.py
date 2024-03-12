@@ -1465,7 +1465,11 @@ class InCabinUtils:
             if fasten_seatbelt and not self._script_console:
                 print('[INFO] Setting seat belt for booster...')
                 belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), child_id, self._car_brand, self._car_model, seatbelts_distribution)
-                child['Seatbelt_placement'] = belt_placement
+                if belt_placement:
+                    child['Seatbelt_placement'] = belt_placement
+                else:
+                    child['Seatbelt_placement'] = 'Off'
+                    child['Seatbelt_on'] = False
 
         if childseat['kind'] == 'Convertible':
             if fasten_seatbelt and not self._script_console:
@@ -2640,7 +2644,7 @@ class InCabinUtils:
         picked_car = self._workspace.cars[idx]
         new_car_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_car["resource_id"])
         picked_car['entity_id'] = new_car_id
-        self._car_brand = picked_car['brand'].replace(" ", "")
+        self._car_brand = picked_car['brand']
         self._car_model = picked_car['model']
         return picked_car
 
