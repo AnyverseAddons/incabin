@@ -1474,8 +1474,9 @@ class InCabinUtils:
                 if fasten_seatbelt and not self._script_console:
                     print('[INFO] Setting seat belt for booster...')
                     belt_placement = self.createBeltFor(self.getSeatPos(seat_locator), child_id, self._car_brand, self._car_model, seatbelts_distribution)
-                if belt_placement:
-                    child['Seatbelt_placement'] = belt_placement
+                    if belt_placement:
+                        child['Seatbelt_placement'] = belt_placement
+                        child['Seatbelt_on'] = True
                 else:
                     child['Seatbelt_placement'] = 'Off'
                     child['Seatbelt_on'] = False
