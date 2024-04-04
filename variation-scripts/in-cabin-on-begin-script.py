@@ -156,7 +156,7 @@ incabin_config = {
             {'age_group': '31-50', 'kind': 'Adult', 'probability': 0.20},
             {'age_group': '50+', 'kind': 'Adult', 'probability': 0.20},
         ],
-        'baby_on_lap_probability': 0.1,
+        'baby_on_lap_probability': 0.0,
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
         # 'object_types': ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'cat', 'Coffee', 'Consumer_electronics', 'Dog', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
         'object_types': ['Backpack', 'briefcase', 'cat', 'Consumer_electronics', 'Dog', 'duffle' 'Handbag', 'laptop_case' 'Mobile Phone', 'Paper_Bag', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
@@ -229,54 +229,63 @@ def getCameraProbabilityList(incabin_config):
     return [ x for x in incabin_config["cameras"] ], [ incabin_config["cameras"][x]['probability'] for x in incabin_config["cameras"] ]
 
 # Create the InCabinUtils object and asign it to the workspace
-icu = incabin.InCabinUtils(workspace, script_console)
+icu = incabin.InCabinUtils(workspace, resources, script_console)
 workspace.icu = icu
 
 if iteration_index == 0:
-    print('Loading car interiors...')
-    anyverse_platform.cars = icu.queryCars(dynamic_material = True)
-    #print(anyverse_platform.cars)
-    print('Car list loaded!')
+    if not hasattr(anyverse_platform, 'cars'):
+        print('Loading car interiors...')
+        anyverse_platform.cars = icu.queryCars(dynamic_material = True)
+        #print(anyverse_platform.cars)
+        print('Car list loaded!')
     
-    print('Loading characters...')
-    anyverse_platform.characters = icu.queryCharacters()
-    #print(anyverse_platform.characters)
-    print('Characters list loaded!')
+    if not hasattr(anyverse_platform, 'characters'):
+        print('Loading characters...')
+        anyverse_platform.characters = icu.queryCharacters()
+        #print(anyverse_platform.characters)
+        print('Characters list loaded!')
 
-    print('Loading babies...')
-    anyverse_platform.babies = icu.queryBabies()
-    #print(anyverse_platform.babies)
-    print('Babies list loaded!')
+    if not hasattr(anyverse_platform, 'babies'):
+        print('Loading babies...')
+        anyverse_platform.babies = icu.queryBabies()
+        #print(anyverse_platform.babies)
+        print('Babies list loaded!')
     
-    print('Loading childseats...')
-    anyverse_platform.childseats = icu.queryChildSeats()
-    #print(anyverse_platform.childseats)
-    print('Childseat list loaded!')
+    if not hasattr(anyverse_platform, 'childseats'):
+        print('Loading childseats...')
+        anyverse_platform.childseats = icu.queryChildSeats()
+        #print(anyverse_platform.childseats)
+        print('Childseat list loaded!')
     
-    print('Loading childseatbelts...')
-    anyverse_platform.childseatbelts = icu.queryChildSeatBelts()
-    #print(anyverse_platform.childseatbelts)
-    print('Childseatbelts list loaded!')
+    if not hasattr(anyverse_platform, 'childseatbelts'):
+        print('Loading childseatbelts...')
+        anyverse_platform.childseatbelts = icu.queryChildSeatBelts()
+        #print(anyverse_platform.childseatbelts)
+        print('Childseatbelts list loaded!')
 
-    print('Loading objects...')
-    anyverse_platform.objects = icu.queryObjects()
-    #print(anyverse_platform.objects)
-    print('Objects list loaded!')
+    if not hasattr(anyverse_platform, 'objects'):
+        print('Loading objects...')
+        anyverse_platform.objects = icu.queryObjects()
+        #print(anyverse_platform.objects)
+        print('Objects list loaded!')
     
-    print('Loading accessories...')
-    anyverse_platform.accessories = icu.queryAccessories()
-    #print(anyverse_platform.accessories)
-    print('Accessories list loaded!')
+    if not hasattr(anyverse_platform, 'accessories'):
+        print('Loading accessories...')
+        anyverse_platform.accessories = icu.queryAccessories()
+        #print(anyverse_platform.accessories)
+        print('Accessories list loaded!')
 
-    print('Loading backgrounds...')
-    anyverse_platform.backgrounds = icu.queryBackgrounds()
-    #print(anyverse_platform.backgrounds)
-    print('Backgrounds list loaded!')
+    if not hasattr(anyverse_platform, 'backgrounds'):
+        print('Loading backgrounds...')
+        anyverse_platform.backgrounds = icu.queryBackgrounds()
+        #print(anyverse_platform.backgrounds)
+        print('Backgrounds list loaded!')
 
-    print('Loading materials...')
-    anyverse_platform.materials = icu.queryMaterials(color_scheme=True)
-    #print(anyverse_platform.materials)
-    print('Materials list loaded!')
+    if not hasattr(anyverse_platform, 'materials'):
+        print('Loading materials...')
+        anyverse_platform.materials = icu.queryMaterials(color_scheme=True)
+        #print(anyverse_platform.materials)
+        print('Materials list loaded!')
 
 workspace.cars = anyverse_platform.cars
 workspace.characters = anyverse_platform.characters

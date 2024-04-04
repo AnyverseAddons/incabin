@@ -8,9 +8,10 @@ import sys
 import anyverseaux as aux
 
 class InCabinUtils:
-    def __init__(self, workspace, script_console, iteration_index = None, total_iteration_count = None, seat_collision = False):
+    def __init__(self, workspace, resources, script_console, iteration_index = None, total_iteration_count = None, seat_collision = False):
         self._iteration_index = iteration_index
         self._workspace = workspace
+        self._resources = resources
         self._simulation_id = workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Simulation)[0]
         self._no_entry = anyverse_platform.invalid_entity_id
         self._ego_id = self._workspace.get_entities_by_name("Ego")[0]
@@ -543,7 +544,7 @@ class InCabinUtils:
             baby = baby_characters[baby_idx]
             tries += 1
 
-        baby_asset_id = baby['entity_id']
+        baby_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, baby['resource_id'])
 
         baby['Face'] = 'neutral'
 
@@ -571,7 +572,7 @@ class InCabinUtils:
             # pick one randomly
             character_idx = random.randrange(len(filtered_characters))
             character = filtered_characters[character_idx]
-            character_asset_id = character['entity_id']
+            character_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, character['resource_id'])
             # print('[INFO] Selected character: {}'.format(character['resource_name']))
         else:
             character_asset_id = -1
@@ -622,7 +623,8 @@ class InCabinUtils:
                 if name == object['name'] and version == object['version']:
                     picked_object = objects[idx]
                     break
-
+        entity_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_object['resource_id'])
+        picked_object['entity_id'] = entity_id
         return picked_object
 
     #_______________________________________________________________
@@ -636,7 +638,7 @@ class InCabinUtils:
 
         if len(filtered_accessories) > 0:
             picked_accessory = filtered_accessories[random.randrange(len(filtered_accessories))]
-
+            picked_accessory['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_accessory['resource_id'])
             # print('[INFO] Picked Accessory: {}'.format(picked_accessory["resource_name"]))
         else:
             picked_accessory = {}
@@ -810,9 +812,9 @@ class InCabinUtils:
         baby_id, baby = self.selectBaby('', '', True, name='Baby02') if random.uniform(0,1) < 0.5 else self.selectBaby('', '', False, name='Baby01')
         print('[INFO] Baby on character {}'.format(baby['resource_name']))
         
-        if baby['entity_id'] != -1:
+        if baby_id != -1:
             # Create the baby fixed entity
-            baby_entity_id = self._workspace.create_fixed_entity(baby['resource_name'], seat_locator, baby['entity_id'])
+            baby_entity_id = self._workspace.create_fixed_entity(baby['resource_name'], seat_locator, baby_id)
             scale_factor = random.uniform(0.75, 0.95) if '02' in baby['resource_name'] else 1
             if scale_factor != 1:
                 print('[INFO] Rescaling baby to {}'.format(round(scale_factor, 2)))
@@ -1222,7 +1224,7 @@ class InCabinUtils:
             childseat = filtered_childseats[childseat_idx]
             # Pick the only possible asset and set the orientation from the childseat dictionary
             childseat['Orientation'] = childseat['aim looking']
-            childseat_asset_id = childseat['entity_id']
+            childseat_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, childseat['resource_id'])
         else:
             childseat_asset_id = -1
             childseat = None
@@ -1276,7 +1278,7 @@ class InCabinUtils:
             print('[INFO] Rotating childseat {:.2f}º'.format(yaw))
             self.wiggleChildseatRandom(childseat_id, yaw , pitch = 0)
 
-            self.changeExposedMaterials(childseat_id, anyverse_platform.childseats)
+            self.changeExposedMaterials(childseat_id, childseat)
 
             self.setExportAlwaysExcludeOcclusion(childseat_id)
             self.setChildseatInfo(childseat)
@@ -2184,28 +2186,16 @@ class InCabinUtils:
         print('[INFO] {} assets'.format(total))
         processed = 0
         for elem in queryResult:
-            try:
-                entityId = self._workspace.add_resource_to_workspace(workspaceEntityType, elem)
-            except RuntimeError as rte:
-                print('[WARN] asset_resource_id = {}'.format(elem))
-                print('[WARN] Latest version of the asset above is not compatible with current Anyverse studio version, skipping it... Update Anyverse Studio to support it')
-                continue
-            attrs = self._workspace.get_attribute_list_from_entity(entityId)
+            attributes_string = self._resources.get_resource_attributes(workspaceEntityType, elem)
+
+            attrs = json.loads(attributes_string)
             dic = {}
-            for att in attrs:
-                dic[att.lower()] = self._workspace.get_attribute_value_as_string_from_entity(entityId, att)
-                if dic[att.lower()].lower() == 'false':
-                    dic[att.lower()] = False
-                    continue
-                if dic[att.lower()].lower() == 'true':
-                    dic[att.lower()] = True
-                # if re.match("[-+]?(([0-9]*[.]?[0-9]+([eE][-+]?[0-9]+)?))", dic[att.lower()]):
-                #     dic[att.lower()] = float(dic[att.lower()])
+            for attr_name in attrs.keys():
+                dic[attr_name.lower()] = attrs[attr_name]['value']
 
             dic["resource_id"] = elem
-            dic["entity_id"] = entityId
-            dic["resource_name"] = self._workspace.get_entity_name(entityId)
-            if dic ['name'] not in self._excluded_objects:
+            dic["resource_name"] = dic['name']
+            if dic['name'] not in self._excluded_objects:
                 result.append(dic)
             processed += 1
             # self.update_progress(processed/total)
@@ -2421,14 +2411,15 @@ class InCabinUtils:
             # Get compatible materials from asset
             if material_name in asset:
                 compatibility = asset[material_name]
-                compatible_materials = [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] ]
+                compatible_materials = [ cm for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm for cm in materials_list if compatibility == cm['compatibility'] ]
                 if len(compatible_materials) == 0:
                     print('[WARN] No compatible materials found for exposed material {} Trying in the DB...'.format(material_name))
-                    compatible_materials = [ cm['entity_id'] for cm in self.queryCompatibleMaterials(compatibility, color_scheme) ]
+                    compatible_materials = [ cm for cm in self.queryCompatibleMaterials(compatibility, color_scheme) ]
                 if len(compatible_materials) !=0:
                     selected_material = compatible_materials[random.randrange(len(compatible_materials))]
+                    selected_material['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Material, selected_material['resource_id'])
                     # Take into account an equal probability to use the default material
-                    self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
+                    self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material['entity_id'])
                     # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                 else:
                     # print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
@@ -2465,15 +2456,16 @@ class InCabinUtils:
                 # Get compatible materials from asset
                 if material_name in asset:
                     compatibility = asset[material_name]
-                    compatible_materials = [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm['entity_id'] for cm in materials_list if compatibility == cm['compatibility'] ]
+                    compatible_materials = [ cm for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm for cm in materials_list if compatibility == cm['compatibility'] ]
                     if len(compatible_materials) != 0:
                         if material_name in cached_materials:
                             selected_material = cached_materials[material_name]
                         else:
                             selected_material = compatible_materials[random.randrange(len(compatible_materials))]
                             cached_materials[material_name] = selected_material
+                        selected_material['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Material, selected_material['resource_id'])
                         # Take into account an equal probability to use the default material
-                        self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
+                        self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material['entity_id'])
                         # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                     else:
                         # print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
@@ -2603,13 +2595,14 @@ class InCabinUtils:
                     print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
                     self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
         elif len(incabin_lights) > 0: # No multiple cameras, turn on the first light we find
-            incabin_light = incabin_lights[0]
-            if active_light:
-                print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-            else:
-                print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
+            # incabin_light = incabin_lights[0]
+            for incabin_light in incabin_lights:
+                if active_light:
+                    print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
+                else:
+                    print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
         elif active_light:
             print('[WARN] Active light set to True, but no active light defined in the workspace')
 
@@ -2732,6 +2725,7 @@ class InCabinUtils:
                     break
         selected_background = backgrounds[selected_background_idx]
 
+        selected_background['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Background, selected_background['resource_id'])
         ws_bckgnd_id = selected_background['entity_id']
         # ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
         # selected_background['fixed_entity_id'] = ws_bckgnd_id
@@ -2752,6 +2746,8 @@ class InCabinUtils:
         if car_idx is not None:
             idx = car_idx
         picked_car = self._workspace.cars[idx]
+        entity_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_car['resource_id'])
+        picked_car['entity_id'] = entity_id
         self._car_brand = picked_car['brand']
         self._car_model = picked_car['model']
         return picked_car
@@ -2778,6 +2774,7 @@ class InCabinUtils:
             # There is a specific locator por this seat
             seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
+                seat['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat['resource_id'])
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat['entity_id'])
                 # self.setSplitAction(seat_id, 'Split') # If the assets does not have the the 'compound' tag
             else:
@@ -2788,6 +2785,7 @@ class InCabinUtils:
             # There is not a specific locator por this seat. Create it under the car directly
             seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
+                seat['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat['resource_id'])
                 seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat['entity_id'])
             else:
                 print("[INFO] Locator exists neither seat for position {}".format(seat_num) )
@@ -2854,11 +2852,13 @@ class InCabinUtils:
         self.deleteChildren(belt_locator)
         belts = self.queryCarBeltsOff(picked_car)
         for belt in belts:
+            belt['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, belt['resource_id'])
             beltoff_id = self._workspace.create_fixed_entity(belt['resource_name'], belt_locator, belt['entity_id'])
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
             seat_info = {}
-            seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
+            # seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
+            seat_info['number'] = 'seat{}'.format(belt_name[-2:])
             self.setCustomMetadata(beltoff_id, "Seat", seat_info)
 
     #_______________________________________________________________
@@ -2873,6 +2873,7 @@ class InCabinUtils:
             return False
         
         try:
+            belt_off['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, belt_off['resource_id'])
             belt_off_id = self._workspace.create_fixed_entity( belt_off['name'], childseat['fixed_entity_id'], belt_off['entity_id'] )
         except RuntimeError as rte:
             # TODO: show warning message here
@@ -2892,6 +2893,7 @@ class InCabinUtils:
             print("[ERROR] Cannot find clip for brand " + car_brand)
             return None
         
+        clip['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip['resource_id'])
         clip_asset = clip['entity_id']
         assert clip_asset != anyverse_platform.invalid_entity_id
 
@@ -3115,6 +3117,7 @@ class InCabinUtils:
             print('[ERROR] No belt ON found for child seat brand {} model {}'.format(childseat['brand'], childseat['model']))
             return False
         
+        belt_on['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, belt_on['resource_id'])
         belt_on_id = self._workspace.create_fixed_entity( belt_on['name'], childseat['fixed_entity_id'], belt_on['entity_id'] )
         self._workspace.set_entity_property_value(belt_on_id, 'ExportConfigurationComponent', 'export_always', True)
         self._workspace.set_entity_property_value(belt_on_id, 'ExportConfigurationComponent', 'exclude_from_occlusion_tests', True)
