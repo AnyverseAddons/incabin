@@ -983,8 +983,7 @@ class InCabinUtils:
 
         # select an object from resources, of specified name and version,
         # or from specified types list, or from all in-cabin compliant objects 
-        # object = self.selectObject(name, version, object_types, big_object)
-        object = self.selectObject('Beagle', 'Sitting', object_types, big_object)
+        object = self.selectObject(name, version, object_types, big_object)
         if object and object['entity_id'] != -1:
             print('[INFO] Object to place {}'.format(object['resource_name']))
             # Create the object fixed entity
