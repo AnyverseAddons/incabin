@@ -20,7 +20,7 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
-        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle' ]
+        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle' ]
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -983,7 +983,8 @@ class InCabinUtils:
 
         # select an object from resources, of specified name and version,
         # or from specified types list, or from all in-cabin compliant objects 
-        object = self.selectObject(name, version, object_types, big_object)
+        # object = self.selectObject(name, version, object_types, big_object)
+        object = self.selectObject('Beagle', 'Sitting', object_types, big_object)
         if object and object['entity_id'] != -1:
             print('[INFO] Object to place {}'.format(object['resource_name']))
             # Create the object fixed entity
@@ -996,6 +997,8 @@ class InCabinUtils:
                 if 'scale' in str(ke):
                     print('[WARN] Scale attributes missing')
                     scale_factor = 1
+            except AttributeError:
+                scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
 
             if scale_factor != 1:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
@@ -3008,10 +3011,15 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def removeOffBeltAt(self, pos):
-        offs = self._workspace.get_entities_by_name_including( str(pos) + "_Off")
+        try:
+            belts_off_loc = self._workspace.get_entities_by_name( 'belt_locator')[0]
+        except IndexError:
+            print('[ERROR] No belt_locator found in car')
+            return
+        offs = [ bo for bo in self._workspace.get_hierarchy(belts_off_loc) if self._workspace.get_entity_type(bo) == str(anyverse_platform.WorkspaceEntityType.FixedEntity) ]
         for off in offs:
-            if self._workspace.get_entity_type(off) == str(anyverse_platform.WorkspaceEntityType.FixedEntity):
-                # print('Deleting off belt {}'.format(off))
+            if pos in self._workspace.get_entity_name(off):
+                print('[INFO] Deleting off belt {}'.format(self._workspace.get_entity_name(off)))
                 self._workspace.delete_entity(off)
 
     #_______________________________________________________________
