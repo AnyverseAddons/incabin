@@ -258,11 +258,12 @@ With the `accessories_probabilities` property you can optionally place different
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.3, 'mask': 0.1 },
 ```
 
-With the `age_group_probabilities` property you can control the age of the character placed as passengers and drivers. For child seats de characters will always be children or babies depending on the child seat type. Notice that you can configure a probability to place babies (0-3 age group), however, that is not currently supported. In the example below the age group distribution is uniform, bear in mind the distribution of available characters is not homogenous. It is more a gaussian distribution with the center in the 19-30 and 31-50 age groups. SO, you should probably have a higher probability for these if you want more character variability across your dataset.
+With the `age_group_probabilities` property you can control the age of the character placed as passengers and drivers. For child seats de characters will always be children or babies depending on the child seat type. Notice that you can configure a probability to place babies (0-3 age group), however, that is not currently supported. In the example below the age group distribution is uniform, bear in mind the distribution of available characters is not homogenous. It is more a gaussian distribution with the center in the 19-30 and 31-50 age groups. So, you should probably have a higher probability for these if you want more character variability across your dataset. The `allow_child_driver` parameter helps to override the probabilities for children only for the driver seat, in the case you don't want children as drivers but still want to control the age group for other seats.
 
 Additionally now, you can have the passenger to have a baby on their lap. The `baby_on_lap_probability` controls the probability of a character having a baby on his/her lap. Set it to 0 to disable this feature.
 
 ```
+        'allow_child_driver': False,
         'age_group_probabilities': [
             {'age_group': '0-3', 'kind': 'Baby', 'probability': 0.0},
             {'age_group': '4-12', 'kind': 'Child', 'probability': 0.20},
