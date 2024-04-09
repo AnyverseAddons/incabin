@@ -2600,14 +2600,13 @@ class InCabinUtils:
                     print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
                     self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
         elif len(incabin_lights) > 0: # No multiple cameras, turn on the first light we find
-            # incabin_light = incabin_lights[0]
-            for incabin_light in incabin_lights:
-                if active_light:
-                    print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-                else:
-                    print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
+            incabin_light = incabin_lights[0]
+            if active_light:
+                print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
+                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
+            else:
+                print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
+                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
         elif active_light:
             print('[WARN] Active light set to True, but no active light defined in the workspace')
 
