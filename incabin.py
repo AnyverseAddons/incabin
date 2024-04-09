@@ -1070,13 +1070,16 @@ class InCabinUtils:
         return object
 
     #_______________________________________________________________
-    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, age_group_probabilities = None):
+    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, age_group_probabilities = None, allow_child_driver = False):
         print('[INFO] Placing Driver in {}'.format(self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
         # Select a random character based on age-group probabilities if not None
         # otherwise select a random adult 
         if age_group_probabilities:
-            age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
+            if allow_child_driver:
+                age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
+            else:
+                age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities if 'Adult' == o['kind'] ])
             age_group = age_group_probabilities[age_group_idx]['age_group']
             print('[INFO] driver age group: {}'.format(age_group))
             driver_asset_id, driver = self.selectCharacter('agegroup', age_group, name)
@@ -3155,7 +3158,7 @@ class InCabinUtils:
 
 
     #_______________________________________________________________
-    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None, object_types = None):
+    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None, object_types = None, allow_child_driver = False):
         the_car = self.getCars()[0]
         car_name = self._workspace.get_entity_name(self._workspace.get_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id'))
         if occupancy == 0:
@@ -3170,7 +3173,7 @@ class InCabinUtils:
             ret['isEmpty'] = True
             ret['Seatbelt_on'] = set_seatbel_on
         elif occupancy == 1:
-            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities, age_group_probabilities = age_group_probabilities)
+            driver = self.placeDriver(seat_locator, seatbelts_distribution = seatbelts_distribution, accessories_probabilities = accessories_probabilities, expression_probabilities = expression_probabilities, age_group_probabilities = age_group_probabilities, allow_child_driver = allow_child_driver)
             if driver == None:
                 print('[WARN]: Could not find a driver to place')
             ret = driver
@@ -3288,7 +3291,8 @@ class InCabinUtils:
                                         expression_probabilities = expression_probabilities,
                                         baby_on_lap_probability = baby_on_lap_probability,
                                         age_group_probabilities = age_group_probabilities,
-                                        object_types = object_types
+                                        object_types = object_types,
+                                        allow_child_driver = occupancy_distribution['allow_child_driver']
                                         )
 
             # Build a return list with a dict with the occupancy of every seat
