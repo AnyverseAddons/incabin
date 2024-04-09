@@ -148,6 +148,7 @@ incabin_config = {
             ],
             'childseat_rotation_max': 30
         },
+        'allow_child_driver': False,
         'age_group_probabilities': [
             {'age_group': '0-3', 'kind': 'Baby', 'probability': 0.0},
             {'age_group': '4-12', 'kind': 'Child', 'probability': 0.20},
