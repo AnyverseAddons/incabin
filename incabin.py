@@ -2320,13 +2320,21 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def queryMaterials(self, color_scheme = False):
-        query = aux.ResourceQueryManager(self._workspace)
-        query.add_exists_attribute_filter('compatibility')
-
+        query_color_scheme = aux.ResourceQueryManager(self._workspace)
+        query_color_scheme.add_exists_attribute_filter('compatibility')
         if color_scheme:
-            query.add_exists_attribute_filter('color_scheme')
+            query_color_scheme.add_exists_attribute_filter('color_scheme')
+        color_scheme_materials = self.queryResultToDic(query_color_scheme.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
 
-        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+        query_family = aux.ResourceQueryManager(self._workspace)
+        query_family.add_exists_attribute_filter('compatibility')
+        query_family.add_attribute_filter('family', 'textile')
+        textile_materials = self.queryResultToDic(query_family.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+        color_scheme_materials_set = {frozenset(d.items()) for d in color_scheme_materials}
+        textile_materials_set = {frozenset(d.items()) for d in textile_materials}
+        union_set = color_scheme_materials_set.union(textile_materials_set)
+        return [dict(s) for s in union_set]
 
     #_______________________________________________________________
     def queryCompatibleMaterials(self, compatibility, color_scheme = None):
@@ -3296,7 +3304,6 @@ class InCabinUtils:
                                         baby_on_lap_probability = baby_on_lap_probability,
                                         age_group_probabilities = age_group_probabilities,
                                         object_types = object_types,
-                                        # allow_child_driver = occupancy_distribution['allow_child_driver']
                                         allow_child_driver = allow_child_driver
                                         )
 
