@@ -3283,6 +3283,11 @@ class InCabinUtils:
             else:
                 object_types = None
 
+            if 'allow_child_driver' in occupancy_distribution:
+                allow_child_driver = occupancy_distribution['allow_child_driver']
+            else:
+                allow_child_driver = None
+
             seat_occupant = self.fillSeat(occupancy,seat_locator,
                                         childseat_config = occupancy_distribution['childseat_config'],
                                         seatbelts_distribution = occupancy_distribution['seatbelts_distribution'],
@@ -3291,7 +3296,8 @@ class InCabinUtils:
                                         baby_on_lap_probability = baby_on_lap_probability,
                                         age_group_probabilities = age_group_probabilities,
                                         object_types = object_types,
-                                        allow_child_driver = occupancy_distribution['allow_child_driver']
+                                        # allow_child_driver = occupancy_distribution['allow_child_driver']
+                                        allow_child_driver = allow_child_driver
                                         )
 
             # Build a return list with a dict with the occupancy of every seat
