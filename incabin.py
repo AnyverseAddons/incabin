@@ -2211,10 +2211,14 @@ class InCabinUtils:
     def queryCars(self, dynamic_material = False):
         query = aux.ResourceQueryManager(self._workspace)
         # query.add_tag_filter("compound")
-        query.add_tag_filter("car-interior")
-        query.add_exists_attribute_filter('brand')
-        query.add_exists_attribute_filter('model')
-        query.add_exists_attribute_filter('version')
+        # query.add_tag_filter("car-interior")
+        # query.add_exists_attribute_filter('brand')
+        # query.add_exists_attribute_filter('model')
+        # query.add_exists_attribute_filter('version')
+        query.add_attribute_filter('category', 'vehicle_cabin')
+        query.add_attribute_filter('adjustable_seats', True)
+        query.add_attribute_filter('detailed_interior', True)
+
 
         query.add_attribute_filter('dynamic_material', dynamic_material)
 
@@ -2810,8 +2814,15 @@ class InCabinUtils:
             normal = move_seat_conf['normal_dist']
             max_depth = move_seat_conf['max_depth']
             max_tilt = move_seat_conf['max_tilt']
-            depth = self.getDelta(0, max_depth, normal)
-            tilt = self.getDelta(0, max_tilt, normal)
+            if isinstance(normal, bool):
+                depth = self.getDelta(0, max_depth, normal)
+                tilt = self.getDelta(0, max_tilt, normal)
+            elif isinstance(normal, list):
+                depth = normal[0] if isinstance(normal[0], float) else 0
+                tilt = normal[1] if isinstance(normal[1], float) else 0
+            else:
+                depth = 0
+                tilt = 0
             seat_pos = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','position')
             seat_rot = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','rotation')
             seat_pos.x += depth
