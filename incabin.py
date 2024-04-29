@@ -8,10 +8,11 @@ import sys
 import anyverseaux as aux
 
 class InCabinUtils:
-    def __init__(self, workspace, script_console, iteration_index = None, total_iteration_count = None):
+    def __init__(self, workspace, resources, script_console, iteration_index = None, total_iteration_count = None):
         self._iteration_index = iteration_index
         self._total_iteration_count = total_iteration_count
         self._workspace = workspace
+        self._resources = resources
         self._no_entry = anyverse_platform.invalid_entity_id
         self._ego_id = self._workspace.get_entities_by_name("Ego")[0]
         self._already_used_characters = ['rp_fabienne_rigged_001_OP','rp_toshiro_rigged_007_OP','rp_sheila_rigged_002_OP','rp_toshiro_rigged_003_OP','rp_debra_rigged_001_OP','rp_toshiro_rigged_008_OP','rp_bianca_rigged_001_OP','rp_amit_rigged_003_OP'] # HACK trying to avoid these characters
@@ -1276,7 +1277,7 @@ class InCabinUtils:
             print('[INFO] Rotating childseat {:.2f}º'.format(yaw))
             self.wiggleChildseatRandom(childseat_id, yaw , pitch = 0)
 
-            self.changeExposedMaterials(childseat_id, anyverse_platform.childseats)
+            self.changeExposedMaterials(childseat_id, childseat)
 
             self.setExportAlwaysExcludeOcclusion(childseat_id)
             self.setChildseatInfo(childseat)
@@ -2125,42 +2126,26 @@ class InCabinUtils:
             ret = True
 
         return ret
-    #_______________________________________________________________
+   #_______________________________________________________________
     def queryResultToDic(self, queryResult, workspaceEntityType = anyverse_platform.WorkspaceEntityType.Asset):
         result = []
         total = len(queryResult)
         print('[INFO] {} assets'.format(total))
         processed = 0
         for elem in queryResult:
-            try:
-                entityId = self._workspace.add_resource_to_workspace(workspaceEntityType, elem)
-            except RuntimeError as rte:
-                print('[INFO] asset_resource_id = {}'.format(elem))
-                print('[WARN] Latest version of the asset above is not compatible with current Anyverse studio version, skipping it... Update Anyverse Studio to support it')
-                continue
-            attrs = self._workspace.get_attribute_list_from_entity(entityId)
-            try:
-                tags = self._workspace.get_tags_from_entity(entityId)
-            except RuntimeError as rte:
-                tags = []
+            attributes_string = self._resources.get_resource_attributes(workspaceEntityType, elem)
+
+            attrs = json.loads(attributes_string)
             dic = {}
-            for att in attrs:
-                dic[att.lower()] = self._workspace.get_attribute_value_as_string_from_entity(entityId, att)
-                if dic[att.lower()].lower() == 'false':
-                    dic[att.lower()] = False
-                    continue
-                if dic[att.lower()].lower() == 'true':
-                    dic[att.lower()] = True
-                # if re.match("[-+]?(([0-9]*[.]?[0-9]+([eE][-+]?[0-9]+)?))", dic[att.lower()]):
-                #     dic[att.lower()] = float(dic[att.lower()])
+            for attr_name in attrs.keys():
+                dic[attr_name.lower()] = attrs[attr_name]['value']
 
             dic["resource_id"] = elem
-            dic["entity_id"] = entityId
-            dic["resource_name"] = self._workspace.get_entity_name(entityId)
-            if 'childseat' in tags:
+            dic["resource_name"] = dic['name']
+            if 'childseat' == dic['class'].lower():
                 if not self.excludeAsset(dic):
                     result.append(dic)
-            elif dic ['name'] not in self._excluded_objects:
+            elif dic['name'] not in self._excluded_objects:
                 result.append(dic)
             processed += 1
             # self.update_progress(processed/total)
@@ -2292,6 +2277,16 @@ class InCabinUtils:
         return [dict(s) for s in union_set]
 
     #_______________________________________________________________
+    def queryCompatibleMaterials(self, compatibility, color_scheme = None):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_attribute_filter('compatibility', compatibility)
+
+        if color_scheme:
+            query.add_attribute_filter('color_scheme', color_scheme)
+
+        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+    #_______________________________________________________________
     def getAssetExposedMaterials(self, fixed_id):
         exposed_materials = [ m for m in self._workspace.get_hierarchy(fixed_id) if 'MaterialPartEntity' == self._workspace.get_entity_type(m) ]
 
@@ -2302,7 +2297,10 @@ class InCabinUtils:
         # Get the asset that correspond to the fixed entity that expose the materials
         asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
         if type(asset_set) is list: 
-            asset = [ a for a in asset_set if a['entity_id'] == asset_id ][0]
+            asset = [ a for a in asset_set if a['entity_id'] == asset_id ]
+            if len(asset) == 0:
+                return
+            asset = asset[0]
         else: 
             asset = asset_set
 
@@ -2318,19 +2316,21 @@ class InCabinUtils:
             material_name = self._workspace.get_entity_name(material)
             # Get compatible materials from asset
             if material_name in asset:
-                if color_scheme:
-                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ]
-                else:
-                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] ]
-
-                if len(compatible_materials) != 0:
+                compatibility = asset[material_name]
+                compatible_materials = [ cm for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm for cm in materials_list if compatibility == cm['compatibility'] ]
+                if len(compatible_materials) == 0:
+                    print('[WARN] No compatible materials found for exposed material {} Trying in the DB...'.format(material_name))
+                    compatible_materials = [ cm for cm in self.queryCompatibleMaterials(compatibility, color_scheme) ]
+                if len(compatible_materials) !=0:
                     selected_material = compatible_materials[random.randrange(len(compatible_materials))]
+                    selected_material['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Material, selected_material['resource_id'])
                     # Take into account an equal probability to use the default material
-                    self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
+                    self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material['entity_id'])
                     # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                 else:
                     # print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
                     continue
+
             else:
                 print('[ERROR] Cannot change material: No {} attribute in asset {}'.format(material_name, asset['resource_name']))
 
@@ -2338,6 +2338,10 @@ class InCabinUtils:
     def changeExposedMaterialsList(self, fixed_ids_list, asset_set, color_scheme = None):
         cached_materials = {}
         for fixed_id in fixed_ids_list:
+            if fixed_id == anyverse_platform.invalid_entity_id:
+                continue
+            
+            print('[INFO] Changing materials for {}'.format(self._workspace.get_entity_name(fixed_id)))
             # Get the asset that correspond to the fixed entity that expose the materials
             asset_id = self._workspace.get_entity_property_value(fixed_id, 'AssetEntityReferenceComponent','asset_entity_id')
             if type(asset_set) is list: 
@@ -2357,15 +2361,17 @@ class InCabinUtils:
                 material_name = self._workspace.get_entity_name(material)
                 # Get compatible materials from asset
                 if material_name in asset:
-                    compatible_materials = [ cm['entity_id'] for cm in materials_list if asset[material_name] == cm['compatibility'] and cm['color_scheme'] == color_scheme ] # and cm['family'] == 'Leather' ] # HACK to pick textile/Leather materials only
+                    compatibility = asset[material_name]
+                    compatible_materials = [ cm for cm in materials_list if compatibility == cm['compatibility'] and cm['color_scheme'] == color_scheme ] if color_scheme else [ cm for cm in materials_list if compatibility == cm['compatibility'] ]
                     if len(compatible_materials) != 0:
                         if material_name in cached_materials:
                             selected_material = cached_materials[material_name]
                         else:
                             selected_material = compatible_materials[random.randrange(len(compatible_materials))]
                             cached_materials[material_name] = selected_material
+                        selected_material['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Material, selected_material['resource_id'])
                         # Take into account an equal probability to use the default material
-                        self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material)
+                        self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', selected_material['entity_id'])
                         # print('[INFO] Changing material {} to {}'.format(material_name, self._workspace.get_entity_name(selected_material)))
                     else:
                         # print('[WARN] No compatible materials found for exposed material {}'.format(material_name))
@@ -2673,8 +2679,8 @@ class InCabinUtils:
             # There is a specific locator por this seat
             seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
-                seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
-                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat_asset)
+                seat['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat['resource_id'])
+                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], locator, seat['entity_id'])
                 # self.setSplitAction(seat_id, 'Split') # If the assets does not have the the 'compound' tag
             else:
                 print("[WARN] Locator {} exists but not its seat".format(self._workspace.get_entity_name(locator)) )
@@ -2683,8 +2689,8 @@ class InCabinUtils:
             # There is not a specific locator por this seat. Create it under the car directly
             seat = next((x for x in seats if seat_num in x["resource_name"].lower()), None)
             if seat != None:
-                seat_asset = self._workspace.create_entity_from_resource( anyverse_platform.WorkspaceEntityType.Asset, seat["resource_name"], seat["resource_id"], anyverse_platform.invalid_entity_id )
-                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat_asset)
+                seat['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat['resource_id'])
+                seat_id = self._workspace.create_fixed_entity(seat["resource_name"], the_car, seat['entity_id'])
             else:
                 print("[INFO] Locator exists neither seat for position {}".format(seat_num) )
                 seat_id = anyverse_platform.invalid_entity_id
@@ -2751,7 +2757,8 @@ class InCabinUtils:
         self.deleteChildren(belt_locator)
         belts = self.queryCarBeltsOff(picked_car)
         for belt in belts:
-            beltoff_id = self._workspace.create_fixed_entity(belt['resource_name'], belt_locator, belt['entity_id'])
+            beltoff_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, belt['resource_id'])
+            beltoff_id = self._workspace.create_fixed_entity(belt['resource_name'], belt_locator, beltoff_asset_id)
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
             self.setCustomMetadata(beltoff_id, "Placement", 'off')
@@ -2768,6 +2775,7 @@ class InCabinUtils:
             print("[ERROR] Cannot find clip for brand " + car_brand)
             return None
         
+        clip['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip['resource_id'])
         clip_asset = clip['entity_id']
         assert clip_asset != anyverse_platform.invalid_entity_id
 
