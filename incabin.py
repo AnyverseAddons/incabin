@@ -537,6 +537,7 @@ class InCabinUtils:
             tries += 1
 
         baby_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, baby["resource_id"])
+        baby['entity_id'] = baby_asset_id
 
         baby['Face'] = 'neutral'
 
@@ -565,6 +566,7 @@ class InCabinUtils:
             character_idx = random.randrange(len(filtered_characters))
             character = filtered_characters[character_idx]
             character_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, character["resource_id"])
+            character['entity_id'] = character_asset_id
             # print('[INFO] Selected character: {}'.format(character['resource_name']))
         else:
             character_asset_id = -1
@@ -590,6 +592,7 @@ class InCabinUtils:
             character_idx = random.randrange(len(filtered_characters))
             character = filtered_characters[character_idx]
             character_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, character["resource_id"])
+            character['entity_id'] = character_asset_id
             # print('[INFO] Selected character: {}'.format(character['resource_name']))
         else:
             character_asset_id = -1
@@ -638,7 +641,7 @@ class InCabinUtils:
                     break
 
         object_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_object["resource_id"])
-        picked_object['Asset_id'] = object_asset_id
+        picked_object['entity_id'] = object_asset_id
         return picked_object
 
     #_______________________________________________________________
@@ -655,10 +658,10 @@ class InCabinUtils:
 
             # print('[INFO] Picked Accessory: {}'.format(picked_accessory["resource_name"]))
             object_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_accessory["resource_id"])
-            picked_accessory['Asset_id'] = object_asset_id
+            picked_accessory['entity_id'] = object_asset_id
         else:
             picked_accessory = {}
-            picked_accessory['Asset_id'] = -1
+            picked_accessory['entity_id'] = -1
 
         return picked_accessory
 
@@ -686,9 +689,9 @@ class InCabinUtils:
                 if put_glasses:
                     glasses = self.selectHumanAccessory('class', ['Sunglasses', 'Glasses'])
                     glasses_locs = [ gl for gl in accessories_locators if 'glasses' in self._workspace.get_entity_name(gl).lower() ]
-                    if len(glasses_locs) > 0 and glasses['Asset_id'] != -1:
+                    if len(glasses_locs) > 0 and glasses['entity_id'] != -1:
                         glasses_loc = glasses_locs[0]
-                        glasses_id = self._workspace.create_fixed_entity(glasses['resource_name'], glasses_loc, glasses['Asset_id'])
+                        glasses_id = self._workspace.create_fixed_entity(glasses['resource_name'], glasses_loc, glasses['entity_id'])
                         glasses['fixed_entity_id'] = glasses_id
                         glasses['Character'] = character['resource_name']
                         self.setInstanceIfPossible(glasses_id, False)
@@ -707,9 +710,9 @@ class InCabinUtils:
                     elif can_hat:
                         hat = self.selectHumanAccessory('class', ['Hat'])
                     hat_locs = [ hl for hl in accessories_locators if 'headwear' in self._workspace.get_entity_name(hl).lower() ]
-                    if len(hat_locs) > 0 and hat['Asset_id'] != -1:
+                    if len(hat_locs) > 0 and hat['entity_id'] != -1:
                         hat_loc = hat_locs[0]
-                        hat_id = self._workspace.create_fixed_entity(hat['resource_name'], hat_loc, hat['Asset_id'])
+                        hat_id = self._workspace.create_fixed_entity(hat['resource_name'], hat_loc, hat['entity_id'])
                         hat['fixed_entity_id'] = hat_id
                         hat['Character'] = character['resource_name']
                         self.setInstanceIfPossible(hat_id, False)
@@ -723,9 +726,9 @@ class InCabinUtils:
                 if put_mask:
                     mask = self.selectHumanAccessory('class', ['Facemask'])
                     mask_locs = [ ml for ml in accessories_locators if 'facemask' in self._workspace.get_entity_name(ml).lower() ]
-                    if len(mask_locs) > 0 and mask['Asset_id'] != -1:
+                    if len(mask_locs) > 0 and mask['entity_id'] != -1:
                         mask_loc = mask_locs[0]
-                        mask_id = self._workspace.create_fixed_entity(mask['resource_name'], mask_loc, mask['Asset_id'])
+                        mask_id = self._workspace.create_fixed_entity(mask['resource_name'], mask_loc, mask['entity_id'])
                         mask['fixed_entity_id'] = mask_id
                         mask['Character'] = character['resource_name']
                         self.setInstanceIfPossible(mask_id, False)
@@ -746,15 +749,15 @@ class InCabinUtils:
         # select a named object from resoures
         object = self.selectObject(name, version, big_object)
         print('[INFO] Object to place {}'.format(object['resource_name']))
-        if object['Asset_id'] != -1:
+        if object['entity_id'] != -1:
             # Create the object fixed entity
             try:
-                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['Asset_id'])
+                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['entity_id'])
                 scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
                 if 'version' in str(ke):
-                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
+                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['entity_id'])
                     scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
 
             if scale_factor != 1:
@@ -827,15 +830,15 @@ class InCabinUtils:
         # select a named object from resoures
         object = self.selectObject(name, version, big_object)
         print('[INFO] Object to place {}'.format(object['resource_name']))
-        if object['Asset_id'] != -1:
+        if object['entity_id'] != -1:
             # Create the object fixed entity
             try:
-                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['Asset_id'])
+                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['entity_id'])
                 scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
                 if 'version' in str(ke):
-                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
+                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['entity_id'])
                     scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
 
             if scale_factor != 1:
@@ -918,15 +921,15 @@ class InCabinUtils:
         # select a named object from resources
         object = self.selectObject(name, version, big_object)
         print('[INFO] Object to place {}'.format(object['resource_name']))
-        if object['Asset_id'] != -1:
+        if object['entity_id'] != -1:
             # Create the object fixed entity
             try:
-                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['Asset_id'])
+                object_entity_id = self._workspace.create_fixed_entity(object['resource_name']+'_'+object['version'], seat_locator, object['entity_id'])
                 scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
             except KeyError as ke:
                 print('[WARN] wrong asset {}: {}'.format(object['resource_name'], ke))
                 if 'version' in str(ke):
-                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
+                    object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['entity_id'])
                     scale_factor = random.uniform(float(object['min_scale'].replace(',','.')), float(object['max_scale']))
 
             if scale_factor != 1:
@@ -1014,9 +1017,9 @@ class InCabinUtils:
         # select a random object from resoures
         object = self.selectObject(name, version, big_object)
         print('[INFO] Object to place {}'.format(object['resource_name']))
-        if object['Asset_id'] != -1:
+        if object['entity_id'] != -1:
             # Create the object fixed entity
-            object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['Asset_id'])
+            object_entity_id = self._workspace.create_fixed_entity(object['resource_name'], seat_locator, object['entity_id'])
             scale_factor = random.uniform(0.9, 1.1)
             if scale_factor != 1:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
@@ -1222,6 +1225,7 @@ class InCabinUtils:
             # Pick the only possible asset and set the orientation from the childseat dictionary
             childseat['Orientation'] = childseat['aim looking']
             childseat_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, childseat["resource_id"])
+            childseat['entity_id'] = childseat_asset_id
         else:
             childseat_asset_id = -1
             childseat = None
@@ -2622,9 +2626,8 @@ class InCabinUtils:
                     break
         selected_background = backgrounds[selected_background_idx]
 
-        ws_bckgnd_id = selected_background['entity_id']
-        # ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
-        # selected_background['fixed_entity_id'] = ws_bckgnd_id
+        ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
+        selected_background['entity_id'] = ws_bckgnd_id
 
         return selected_background, ws_bckgnd_id
 
