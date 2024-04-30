@@ -2142,7 +2142,7 @@ class InCabinUtils:
 
             dic["resource_id"] = elem
             dic["resource_name"] = dic['name']
-            if 'childseat' == dic['class'].lower():
+            if workspaceEntityType == anyverse_platform.WorkspaceEntityType.Asset and 'childseat' == dic['class'].lower():
                 if not self.excludeAsset(dic):
                     result.append(dic)
             elif dic['name'] not in self._excluded_objects:
