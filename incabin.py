@@ -167,10 +167,10 @@ class InCabinUtils:
         else:
             delta = random.uniform(center - interval,center + interval)
 
-        if delta > interval:
-            delta = interval
-        if delta < -interval:
-            delta = -interval
+        if delta > center + interval:
+            delta = center + interval
+        if delta < center - interval:
+            delta = center - interval
         
         return delta
 
