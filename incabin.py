@@ -897,6 +897,8 @@ class InCabinUtils:
                 if 'scale' in str(ke):
                     print('[WARN] Scale attributes missing')
                     scale_factor = 1
+            except AttributeError:
+                scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
 
             if scale_factor != 1:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
