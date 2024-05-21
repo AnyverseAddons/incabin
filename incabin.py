@@ -37,6 +37,7 @@ class InCabinUtils:
                 'LapBeltUnder': anyverse_platform.SeatBeltPlacement.LapBeltUnder,
                 'UnderShoulderLapBeltUnder': anyverse_platform.SeatBeltPlacement.UnderShoulderLapBeltUnder
             }
+        self._belt_material_id = anyverse_platform.invalid_entity_id
         self._look_and_reach_positions = {
                 'cc': {'center': (0.6, 0.0, 1.04)},
                 'glove': {'right': (0.6, -0.5, 0.84)},
@@ -1078,10 +1079,13 @@ class InCabinUtils:
         # Select a random character based on age-group probabilities if not None
         # otherwise select a random adult 
         if age_group_probabilities:
+            print('[INFO] Allow child driver: {}'.format(allow_child_driver))
             if allow_child_driver:
                 age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
             else:
-                age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities if 'Adult' == o['kind'] ])
+                age_group_probabilities = [ o for o in age_group_probabilities if 'Adult' == o['kind'] ]
+                print(age_group_probabilities)
+                age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
             age_group = age_group_probabilities[age_group_idx]['age_group']
             print('[INFO] driver age group: {}'.format(age_group))
             driver_asset_id, driver = self.selectCharacter('agegroup', age_group, name)
@@ -2387,6 +2391,19 @@ class InCabinUtils:
         return self.setBrightPupil() and (self.isDriverSeat(seat_locator) or self.isCopilotSeat(seat_locator))
     
     #_______________________________________________________________
+    def queryBeltMaterials(self):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_attribute_filter('compatibility', 'seatbelt')
+
+        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+    #_______________________________________________________________
+    def getRandomBeltMaterial(self):
+        belt_materials = self.queryBeltMaterials()
+        idx = random.randrange(len(belt_materials))
+        return belt_materials[idx]
+
+    #_______________________________________________________________
     def getAssetExposedMaterials(self, fixed_id):
         exposed_materials = [ m for m in self._workspace.get_hierarchy(fixed_id) if 'MaterialPartEntity' == self._workspace.get_entity_type(m) ]
 
@@ -2771,7 +2788,7 @@ class InCabinUtils:
         return picked_car
 
     #_______________________________________________________________
-    def buildCar(self, picked_car, the_car, dynamic_materials = False, move_seats_conf = None):
+    def buildCar(self, picked_car, the_car, dynamic_materials = False, move_seats_conf = None, change_belt_material = False):
         self._workspace.set_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id', picked_car['entity_id'])
         print('[INFO] Using car: {}_{}_{}'.format(picked_car['brand'], picked_car['model'], picked_car['version']))
 
@@ -2782,7 +2799,8 @@ class InCabinUtils:
         print('[INFO] Changing materials for {}_{}'.format(picked_car['brand'], picked_car['model']))
         self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
 
-        self.setCarSeatbeltsOff(picked_car)
+        print('[INFO] Change belt material: {}'.format(change_belt_material))
+        self.setCarSeatbeltsOff(picked_car, change_belt_material)
         self.setSeats(picked_car, the_car, dynamic_materials, color_scheme, move_seats_conf)
 
     #_______________________________________________________________
@@ -2872,13 +2890,20 @@ class InCabinUtils:
         self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         
     #_______________________________________________________________
-    def setCarSeatbeltsOff(self, picked_car):
+    def setCarSeatbeltsOff(self, picked_car, change_belt_material = False):
         belt_locator = self._workspace.get_entities_by_name('belt_locator')[0]
         self.deleteChildren(belt_locator)
         belts = self.queryCarBeltsOff(picked_car)
+        if change_belt_material:
+            belt_material = self.getRandomBeltMaterial()
+            print('[INFO] Using material {} for belts'.format(belt_material['name']))
+            self._belt_material_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Material, belt_material['resource_id'])
+
         for belt in belts:
             belt['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, belt['resource_id'])
             beltoff_id = self._workspace.create_fixed_entity(belt['resource_name'], belt_locator, belt['entity_id'])
+            if change_belt_material:
+                self.changeMaterial(beltoff_id, 'belt', self._belt_material_id)
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
             seat_info = {}
@@ -3007,6 +3032,8 @@ class InCabinUtils:
             beltType = 'Normal'
             beltPlacement = self._beltOptions[beltType]
         else:
+            random_belt_material = seatbelts_distribution['random_belt_material']
+            differentiate_segments = seatbelts_distribution['differentiate_segments']
             beltType = ""
             if beltUserEntityId == anyverse_platform.invalid_entity_id:
                 beltPlacement = anyverse_platform.SeatBeltPlacement.WithoutCharacter
@@ -3017,8 +3044,13 @@ class InCabinUtils:
                 beltType = toList[idx][0]
                 beltPlacement = self._beltOptions[beltType]
                 # print('[INFO] beltPlacement: {}'.format(beltPlacement))
-
         args.append( beltPlacement )
+
+        # The belt material has been set when placing the seatbelts off or it is invalid_entity_id by default
+        args.append(self._belt_material_id)            
+
+        print('[INFO] Differentiate belt segments: {}'.format(differentiate_segments))
+        args.append(differentiate_segments)
 
         beltId = self._workspace.create_seat_belt( *args )
         anyverse_platform.entitiesToClear.append(beltId)
