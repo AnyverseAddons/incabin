@@ -50,7 +50,7 @@ incabin_config = {
     "rgb_at_day": False, # Override the use of NIR sensor for day light
     "cameras":{
         "RVM": {
-            "probability": 1.0,
+            "probability": 0.5,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
@@ -74,7 +74,7 @@ incabin_config = {
             },
         },
         "CC": { 
-            "probability": 0.0,
+            "probability": 0.5,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
@@ -162,6 +162,8 @@ incabin_config = {
         # 'object_types': ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'cat', 'Coffee', 'Consumer_electronics', 'Dog', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
         'object_types': ['Backpack', 'briefcase', 'cat', 'Consumer_electronics', 'Dog', 'duffle' 'Handbag', 'laptop_case' 'Mobile Phone', 'Paper_Bag', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
         'seatbelts_distribution': {
+            'random_belt_material': True,
+            'differentiate_segments': True,
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
                 'Normal': 0.70,
@@ -363,7 +365,8 @@ if selected_car['entity_id'] != -1:
                        'normal_dist' : normal_dist,
                        'max_depth': max_depth,
                        'max_tilt': max_tilt }
-    icu.buildCar(selected_car, the_car, dynamic_materials = True, move_seats_conf = move_seats_conf)
+    change_belt_material = incabin_config['occupancy_distribution']['seatbelts_distribution']['random_belt_material']
+    icu.buildCar(selected_car, the_car, dynamic_materials = True, move_seats_conf = move_seats_conf, change_belt_material = change_belt_material)
 
     # Set car info from car metadata and put it as custom metadata for annotations
     car_info = icu.setCarInfo(selected_car,the_car)
