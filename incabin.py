@@ -3007,14 +3007,7 @@ class InCabinUtils:
 
         beltId = -1
 
-        dummy_id = None
-        userId = beltUserEntityId
-
-        if beltUserEntityId == anyverse_platform.invalid_entity_id:
-            dummy_id = self._workspace.create_fixed_entity("dummy", anyverse_platform.invalid_entity_id, self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Asset)[0])
-            userId = dummy_id
-
-        args = [ userId,
+        args = [ beltUserEntityId,
                 seat_beltA_step01, seat_beltB_step01,
                 seat_beltA_step04, seat_beltB_step04,
                 clip_beltA_step02, clip_beltB_step02,
