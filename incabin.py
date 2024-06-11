@@ -3051,9 +3051,6 @@ class InCabinUtils:
         self.setCustomMetadata(beltId, "Placement", beltType)
         self.removeOffBeltAt(seatId)
 
-        if dummy_id != None:
-            self._workspace.delete_entity(dummy_id)
-
         return beltId, beltType
 
     #_______________________________________________________________
