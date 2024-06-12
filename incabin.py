@@ -20,7 +20,7 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
-        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle' ]
+        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle', '0076_20220809_v0' ]
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -1938,9 +1938,9 @@ class InCabinUtils:
         light_position.x = 0
         light_position.y = 0
         light_position.z = 0
-        light_rotation.x = 0
-        light_rotation.y = 90
-        light_rotation.z = 0
+        # light_rotation.x = 0
+        # light_rotation.y = 90
+        # light_rotation.z = 0
 
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_position)
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','rotation', light_rotation)
@@ -2606,6 +2606,11 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl)
 
     #_______________________________________________________________
+    def setAnalogGain(self, camera_id, analog_gain):
+        sensor_id = self._workspace.get_entity_property_value(camera_id, 'CameraReferencesComponent','sensor')
+        self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','misc.analogGain', analog_gain)
+
+    #_______________________________________________________________
     def setIllumination(self, day, conditions, background, simulation_id, multiple_cameras = False, active_light = False):
         if conditions == 'scattered' or conditions == 'overcast':
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', conditions.title())
@@ -2630,14 +2635,15 @@ class InCabinUtils:
                 else:
                     print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
                     self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
-        elif len(incabin_lights) > 0: # No multiple cameras, turn on the first light we find
-            incabin_light = incabin_lights[0]
-            if active_light:
-                print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-            else:
-                print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
+        elif len(incabin_lights) > 0: # No multiple cameras, turn on all the lights we find
+            # incabin_light = incabin_lights[0]
+            for incabin_light in incabin_lights:
+                if active_light:
+                    print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
+                else:
+                    print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
         elif active_light:
             print('[WARN] Active light set to True, but no active light defined in the workspace')
 
