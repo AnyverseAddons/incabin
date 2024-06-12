@@ -74,7 +74,7 @@ incabin_config = {
             },
         },
         "CC": { 
-            "probability": 0.5,
+            "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
@@ -105,31 +105,31 @@ incabin_config = {
         {'Day': False, 'Cond':'interior-lights','probability': 0.50}
     ],
     "occupant_confs_probabilities": [ 
-        {'Conf': 'Empty', 'probability': 0.0},
-        {'Conf': 'Normal', 'probability': 1.0}
+        {'Conf': 'Empty', 'probability': 0.1},
+        {'Conf': 'Normal', 'probability': 0.9}
     ],
     "occupancy_distribution": {
         'driver_occupancy_probabilities': [
-            {'name': 'Empty',  'occupancy': 0, 'probability': 0.0},
-            {'name': 'Driver', 'occupancy': 1, 'probability': 1.0} 
+            {'name': 'Empty',  'occupancy': 0, 'probability': 0.1},
+            {'name': 'Driver', 'occupancy': 1, 'probability': 0.9} 
         ],
         'copilot_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.2},
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.1},
             {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.1},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.4},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.5},
             {'name': 'Object',    'occupancy': 4, 'probability': 0.3} 
         ],
         'backseat_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.4},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.3},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.2},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.1}
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.3},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.2},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.3},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.2}
         ],
         'middleseat_occupancy_probabilities': [
-            {'name': 'Empty',     'occupancy': 0, 'probability': 0.33},
-            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.0},
-            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.33},
-            {'name': 'Object',    'occupancy': 4, 'probability': 0.34} 
+            {'name': 'Empty',     'occupancy': 0, 'probability': 0.3},
+            {'name': 'ChildSeat', 'occupancy': 2, 'probability': 0.2},
+            {'name': 'Passenger', 'occupancy': 3, 'probability': 0.3},
+            {'name': 'Object',    'occupancy': 4, 'probability': 0.2} 
         ],
         'childseat_config': {
             'childseat_type_probabilities': [
@@ -139,12 +139,12 @@ incabin_config = {
             ],
             'childseat_occupancy_probabilities': [
                 {'name': 'Empty', 'occupancy': 0, 'probability': 0.25},
-                {'name': 'Child', 'occupancy': 1, 'probability': 0.5},
-                {'name': 'Object', 'occupancy': 2, 'probability': 0.25}
+                {'name': 'Child', 'occupancy': 1, 'probability': 0.75},
+                {'name': 'Object', 'occupancy': 2, 'probability': 0.0}
             ],
             'childseat_orientation_probabilities': [
                 {'Orientation': 'Forward', 'probability': 0.5},
-                {'Orientation': 'Backward', 'probability': 0.0}
+                {'Orientation': 'Backward', 'probability': 0.5}
             ],
             'childseat_rotation_max': 30
         },
@@ -159,22 +159,22 @@ incabin_config = {
         ],
         'baby_on_lap_probability': 0.0,
         'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
-        # 'object_types': ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'cat', 'Coffee', 'Consumer_electronics', 'Dog', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
-        'object_types': ['Backpack', 'briefcase', 'cat', 'Consumer_electronics', 'Dog', 'duffle' 'Handbag', 'laptop_case' 'Mobile Phone', 'Paper_Bag', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
+        'object_types': ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'cat', 'Coffee', 'Consumer_electronics', 'Dog', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
+        # 'object_types': ['Backpack', 'briefcase', 'cat', 'Consumer_electronics', 'Dog', 'duffle' 'Handbag', 'laptop_case' 'Mobile Phone', 'Paper_Bag', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
         'seatbelts_distribution': {
             'random_belt_material': True,
-            'differentiate_segments': True,
-            'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seatted on
+            'differentiate_segments': False,
+            'belt_on_probability': 0.875, # Probability for seatbelt on when there is a character seatted on
             'seatbelt_placement_probabilities': {
-                'Normal': 0.70,
-                'BehindTheBack': 0.05,
-                'UnderShoulder': 0.05,
-                'WrongSideOfHead': 0.05,
-                'CharacterOverSeatbelt': 0.05,
-                'LapBeltUnder': 0.05,
-                'UnderShoulderLapBeltUnder': 0.05
+                'Normal': 0.125,
+                'BehindTheBack': 0.125,
+                'UnderShoulder': 0.125,
+                'WrongSideOfHead': 0.125,
+                'CharacterOverSeatbelt': 0.125,
+                'LapBeltUnder': 0.125,
+                'UnderShoulderLapBeltUnder': 0.125
             },   
-            'belt_on_without_character_probability': 0.2, # Probability for seatbelt on when the seat is empty
+            'belt_on_without_character_probability': 0.0, # Probability for seatbelt on when the seat is empty
         },
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
@@ -187,8 +187,8 @@ incabin_config = {
                 {'name': 'headrest', 'id': 6, 'gaze': 1, 'reach': True, 'probability': 0.09},
                 {'name': 'glove', 'id': 7, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
                 {'name': 'seatbelt', 'id': 8, 'gaze': 1, 'reach': True, 'probability': 0.09},
-                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
-                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': False, 'probability':  0.14}
+                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.0},
+                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': True, 'probability':  0.14}
             ],
             'copilot_gaze_probabilities': [
                 {'name': 'road', 'id': 0, 'gaze': 1, 'reach': False, 'probability': 0.09},
@@ -200,8 +200,8 @@ incabin_config = {
                 {'name': 'headrest', 'id': 6, 'gaze': 1, 'reach': True, 'probability': 0.09},
                 {'name': 'glove', 'id': 7, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
                 {'name': 'seatbelt', 'id': 8, 'gaze': 1, 'reach': True, 'probability': 0.09},
-                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
-                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': False, 'probability':  0.14}
+                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.0},
+                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': True, 'probability':  0.14}
             ]
         },
         'expression_probabilities': [
@@ -430,16 +430,16 @@ if multiple_cameras:
         else:
             print('[ERROR] Missing {} camera in workspace'.format(camera))
         # place active light in the cam position
-        light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
-        light_id = light_ids[0] if len(light_ids) >= 1 else 0
-        if light_id != 0:
-            light_pos, _ = icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
-            if camera == 'RVM':
-                # Advance the light 10 cm to avoid rvm casted shadows
-                light_pos.x += 0.1
-                workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
-        else:
-            print('[WARN] Missing light for {} camera in workspace'.format(camera))
+        # light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
+        # light_id = light_ids[0] if len(light_ids) >= 1 else 0
+        # if light_id != 0:
+        #     light_pos, _ = icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
+        #     if camera == 'RVM':
+        #         # Advance the light 10 cm to avoid rvm casted shadows
+        #         light_pos.x += 0.1
+        #         workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
+        # else:
+        #     print('[WARN] Missing light for {} camera in workspace'.format(camera))
 # If not multiple cameras,  
 # Randomly select the camera to use and place the ego in the camera position,
 # apply vibration as configured and set the visibility to a single camera
@@ -464,13 +464,13 @@ else:
     print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
 
     # Advance the first light light 10 cm to avoid rvm casted shadows
-    light_ids = [ li for li in workspace.get_entities_by_type('Light') ]
-    light_id = light_ids[0] if len(light_ids) > 0 else 0
-    if light_id != 0:
-        light_pos = anyverse_platform.Vector3D(-0.1, 0, 0) if camera_selected =='RVM' else anyverse_platform.Vector3D(0, 0, 0)
-        workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
-    else:
-        print('[WARN] Missing lights in workspace')
+    # light_ids = [ li for li in workspace.get_entities_by_type('Light') ]
+    # light_id = light_ids[0] if len(light_ids) > 0 else 0
+    # if light_id != 0:
+    #     light_pos = anyverse_platform.Vector3D(-0.1, 0, 0) if camera_selected =='RVM' else anyverse_platform.Vector3D(0, 0, 0)
+    #     workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
+    # else:
+    #     print('[WARN] Missing lights in workspace')
 
     # Apply camera vibration simulation with normal distribution
     pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
@@ -533,7 +533,9 @@ if multiple_cameras:
         if nir_simulation:
             icu.setSensor(camera_id, 'NIR-Sensor')
             icu.setIsp(camera_id, 'NIR-ISP')
-            active_light = True
+            active_light = True # if not day else False
+            analog_gain = 15 if day else 7.5
+            icu.setAnalogGain(camera_id, analog_gain)
         else:
             icu.setSensor(camera_id, 'RGB-Sensor')
             icu.setIsp(camera_id, 'RGB-ISP')
@@ -548,6 +550,8 @@ else:
         icu.setSensor(camera_id, 'NIR-Sensor')
         icu.setIsp(camera_id, 'NIR-ISP')
         active_light = True if not day else False
+        analog_gain = 15 if day else 7.5
+        icu.setAnalogGain(camera_id, analog_gain)
     else:
         icu.setSensor(camera_id, 'RGB-Sensor')
         icu.setIsp(camera_id, 'RGB-ISP')
