@@ -2913,8 +2913,8 @@ class InCabinUtils:
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
             seat_info = {}
-            # seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
-            seat_info['number'] = 'seat{}'.format(belt_name[-2:])
+            seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
+            # seat_info['number'] = 'seat{}'.format(belt_name[-2:])
             self.setCustomMetadata(beltoff_id, "Seat", seat_info)
 
     #_______________________________________________________________
