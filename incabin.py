@@ -1490,10 +1490,13 @@ class InCabinUtils:
                     if belt_placement:
                         child['Seatbelt_placement'] = belt_placement
                         child['Seatbelt_on'] = True
+                    else:
+                        child['Seatbelt_placement'] = 'Off'
+                        child['Seatbelt_on'] = False
+                        print('[ERROR] Cannot create belt')                    
                 else:
                     child['Seatbelt_placement'] = 'Off'
                     child['Seatbelt_on'] = False
-                    print('[ERROR] Cannot create belt')                    
 
             if childseat['kind'] == 'Convertible':
                 if fasten_seatbelt and not self._script_console:
