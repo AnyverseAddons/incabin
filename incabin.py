@@ -1124,7 +1124,7 @@ class InCabinUtils:
             # setting spine animation 50% of the times
             set_spine_anim = True if random.uniform(0,1) <= 0.3 else False
             if set_spine_anim:
-                max_weight = 1 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
+                max_weight = 1 if self._seat_collision else 0.15 # Avoid extreme weights for leaning if no seat_collision
                 animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
                 spine_animation_name = self._workspace.get_entity_name(animation)
                 if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
