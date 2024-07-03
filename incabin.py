@@ -3718,7 +3718,7 @@ class InCabinUtils:
             if displace:
                 x += random.uniform(-0.2, 0.2)
                 y += random.uniform(0, 0.1) if side == 'right' else random.uniform(-0.1, 0)
-                z += random.uniform(-0.2, 0.2)
+                z += random.uniform(0, 0.2)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for seat belt side {}'.format(side))
