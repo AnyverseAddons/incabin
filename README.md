@@ -39,7 +39,12 @@ Clone this repo to your local machine, or if you want to contribute, fork the re
 **January 2024**
 - Support to control the age group of driver and passengers based on probabilities (new block in the configuration dictionary)
 - Support place babies on passenger's laps based on a probability (new parameter in the configuration dictionary)
-- SUpport to decide what object types to place on seats (new parameter in the configuration dictionary)
+- Support to decide what object types to place on seats (new parameter in the configuration dictionary)
+
+**June 2024**
+- Support to segment the 2 parts of a seat belt: lap belt and chest belt, in the annotations file
+- Support to dynamically and randomly change belt materials from the compatible ones available in Anyverse's material database
+- Added a default empty Anyverse Studio workspace file to use to start working with the ad-on
 
 ## Configure Anyverse Studio the use the add-on
 In Anyverse Studio User Settings, set the 'Python addons folder'  to your local repo directory.
@@ -51,11 +56,14 @@ This add-on has an incabin module and an on-begin-iteration script :
 
 - **incabin.py** - Incabin module with the InCabinUtils class that implements all the functionality you need to generate an in-cabin dataset. The class is used in the on-begin-iteration script.
 - **variation-scripts/in-cabin-on-begin-script.py** - Script to use in the generation On Begin Script property. This has all the in-cabin configuration and logic to select a car cabin, camera, environmental conditions and occupancy distribution, including seat belts, and gaze probabilities.
+- **In-Cabin-Workspace.json** - Default empty workspace to start using the add-on.
 
 ## Using the add-on
 The in-cabin add-on allows to generate a varied in-cabin dataset to train and validate different in-cabin monitoring use cases.
 
 As is, the add-on allows to generate static images datasets at scale manipulating the variability with the configuration dictionaries at the beginning of the on-begin-iteration script.
+
+If you can start using the empty workspace in this repo, loading the file in ANyverse Studio from the File menu choose the 'Load Workspace From Local FIle...' option. then just run the onbegin script from the console as described below.
 
 From Anyverse Studio you can test the set up and the on-begin-iteration script using the script console. From the Workspace perspective, open the script console selecting 'Show script console view' from the Views pull down menu.
 
@@ -275,10 +283,12 @@ Additionally now, you can have the passenger to have a baby on their lap. The `b
         'baby_on_lap_probability': 0.2,
 ```
 
-For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement.
+For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement. Additionally, yu can randomly change the seat belt material by setting the `random_belt_material` to True. And If you need to differentiate the 2 parts of the seat belt in the ground truth as different classes (seat_belt_chest, seat_belt_lap) when they are on, set the `differentiate_segments` property to True.
 
 ```
         'seatbelts_distribution': {
+            'random_belt_material': True,
+            'differentiate_segments': False,
             'belt_on_probability': 0.95, # Probability for seatbelt on when there is a character seated
             'seatbelt_placement_probabilities': {
                 'Normal': 0.70,
