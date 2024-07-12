@@ -20,7 +20,7 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
-        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle' ]
+        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle', '0076_20220809_v0' ]
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -37,6 +37,7 @@ class InCabinUtils:
                 'LapBeltUnder': anyverse_platform.SeatBeltPlacement.LapBeltUnder,
                 'UnderShoulderLapBeltUnder': anyverse_platform.SeatBeltPlacement.UnderShoulderLapBeltUnder
             }
+        self._belt_material_id = anyverse_platform.invalid_entity_id
         self._look_and_reach_positions = {
                 'cc': {'center': (0.6, 0.0, 1.04)},
                 'glove': {'right': (0.6, -0.5, 0.84)},
@@ -897,6 +898,8 @@ class InCabinUtils:
                 if 'scale' in str(ke):
                     print('[WARN] Scale attributes missing')
                     scale_factor = 1
+            except AttributeError:
+                scale_factor = random.uniform(float(object['min_scale']), float(object['max_scale']))
 
             if scale_factor != 1:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
@@ -1076,10 +1079,13 @@ class InCabinUtils:
         # Select a random character based on age-group probabilities if not None
         # otherwise select a random adult 
         if age_group_probabilities:
+            print('[INFO] Allow child driver: {}'.format(allow_child_driver))
             if allow_child_driver:
                 age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
             else:
-                age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities if 'Adult' == o['kind'] ])
+                age_group_probabilities = [ o for o in age_group_probabilities if 'Adult' == o['kind'] ]
+                print(age_group_probabilities)
+                age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
             age_group = age_group_probabilities[age_group_idx]['age_group']
             print('[INFO] driver age group: {}'.format(age_group))
             driver_asset_id, driver = self.selectCharacter('agegroup', age_group, name)
@@ -1118,7 +1124,7 @@ class InCabinUtils:
             # setting spine animation 50% of the times
             set_spine_anim = True if random.uniform(0,1) <= 0.3 else False
             if set_spine_anim:
-                max_weight = 1 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
+                max_weight = 1 if self._seat_collision else 0.15 # Avoid extreme weights for leaning if no seat_collision
                 animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
                 spine_animation_name = self._workspace.get_entity_name(animation)
                 if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
@@ -1484,10 +1490,13 @@ class InCabinUtils:
                     if belt_placement:
                         child['Seatbelt_placement'] = belt_placement
                         child['Seatbelt_on'] = True
+                    else:
+                        child['Seatbelt_placement'] = 'Off'
+                        child['Seatbelt_on'] = False
+                        print('[ERROR] Cannot create belt')                    
                 else:
                     child['Seatbelt_placement'] = 'Off'
                     child['Seatbelt_on'] = False
-                    print('[ERROR] Cannot create belt')                    
 
             if childseat['kind'] == 'Convertible':
                 if fasten_seatbelt and not self._script_console:
@@ -1932,9 +1941,9 @@ class InCabinUtils:
         light_position.x = 0
         light_position.y = 0
         light_position.z = 0
-        light_rotation.x = 0
-        light_rotation.y = 90
-        light_rotation.z = 0
+        # light_rotation.x = 0
+        # light_rotation.y = 90
+        # light_rotation.z = 0
 
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_position)
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','rotation', light_rotation)
@@ -2211,10 +2220,14 @@ class InCabinUtils:
     def queryCars(self, dynamic_material = False):
         query = aux.ResourceQueryManager(self._workspace)
         # query.add_tag_filter("compound")
-        query.add_tag_filter("car-interior")
-        query.add_exists_attribute_filter('brand')
-        query.add_exists_attribute_filter('model')
-        query.add_exists_attribute_filter('version')
+        # query.add_tag_filter("car-interior")
+        # query.add_exists_attribute_filter('brand')
+        # query.add_exists_attribute_filter('model')
+        # query.add_exists_attribute_filter('version')
+        query.add_attribute_filter('category', 'vehicle_cabin')
+        query.add_attribute_filter('adjustable_seats', True)
+        query.add_attribute_filter('detailed_interior', True)
+
 
         query.add_attribute_filter('dynamic_material', dynamic_material)
 
@@ -2380,6 +2393,19 @@ class InCabinUtils:
         return False # TODO: Not setting bright iris yet. Define the conditions beyond active light on.
         return self.setBrightPupil() and (self.isDriverSeat(seat_locator) or self.isCopilotSeat(seat_locator))
     
+    #_______________________________________________________________
+    def queryBeltMaterials(self):
+        query = aux.ResourceQueryManager(self._workspace)
+        query.add_attribute_filter('compatibility', 'seatbelt')
+
+        return self.queryResultToDic(query.execute_query_on_materials(), anyverse_platform.WorkspaceEntityType.Material)
+
+    #_______________________________________________________________
+    def getRandomBeltMaterial(self):
+        belt_materials = self.queryBeltMaterials()
+        idx = random.randrange(len(belt_materials))
+        return belt_materials[idx]
+
     #_______________________________________________________________
     def getAssetExposedMaterials(self, fixed_id):
         exposed_materials = [ m for m in self._workspace.get_hierarchy(fixed_id) if 'MaterialPartEntity' == self._workspace.get_entity_type(m) ]
@@ -2583,6 +2609,11 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl)
 
     #_______________________________________________________________
+    def setAnalogGain(self, camera_id, analog_gain):
+        sensor_id = self._workspace.get_entity_property_value(camera_id, 'CameraReferencesComponent','sensor')
+        self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','misc.analogGain', analog_gain)
+
+    #_______________________________________________________________
     def setIllumination(self, day, conditions, background, simulation_id, multiple_cameras = False, active_light = False):
         if conditions == 'scattered' or conditions == 'overcast':
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', conditions.title())
@@ -2607,14 +2638,15 @@ class InCabinUtils:
                 else:
                     print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
                     self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
-        elif len(incabin_lights) > 0: # No multiple cameras, turn on the first light we find
-            incabin_light = incabin_lights[0]
-            if active_light:
-                print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-            else:
-                print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-                self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
+        elif len(incabin_lights) > 0: # No multiple cameras, turn on all the lights we find
+            # incabin_light = incabin_lights[0]
+            for incabin_light in incabin_lights:
+                if active_light:
+                    print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
+                else:
+                    print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
+                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
         elif active_light:
             print('[WARN] Active light set to True, but no active light defined in the workspace')
 
@@ -2765,7 +2797,7 @@ class InCabinUtils:
         return picked_car
 
     #_______________________________________________________________
-    def buildCar(self, picked_car, the_car, dynamic_materials = False, move_seats_conf = None):
+    def buildCar(self, picked_car, the_car, dynamic_materials = False, move_seats_conf = None, change_belt_material = False):
         self._workspace.set_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id', picked_car['entity_id'])
         print('[INFO] Using car: {}_{}_{}'.format(picked_car['brand'], picked_car['model'], picked_car['version']))
 
@@ -2776,7 +2808,8 @@ class InCabinUtils:
         print('[INFO] Changing materials for {}_{}'.format(picked_car['brand'], picked_car['model']))
         self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
 
-        self.setCarSeatbeltsOff(picked_car)
+        print('[INFO] Change belt material: {}'.format(change_belt_material))
+        self.setCarSeatbeltsOff(picked_car, change_belt_material)
         self.setSeats(picked_car, the_car, dynamic_materials, color_scheme, move_seats_conf)
 
     #_______________________________________________________________
@@ -2810,8 +2843,15 @@ class InCabinUtils:
             normal = move_seat_conf['normal_dist']
             max_depth = move_seat_conf['max_depth']
             max_tilt = move_seat_conf['max_tilt']
-            depth = self.getDelta(0, max_depth, normal)
-            tilt = self.getDelta(0, max_tilt, normal)
+            if isinstance(normal, bool):
+                depth = self.getDelta(0, max_depth, normal)
+                tilt = self.getDelta(0, max_tilt, normal)
+            elif isinstance(normal, list):
+                depth = normal[0] if isinstance(normal[0], float) else 0
+                tilt = normal[1] if isinstance(normal[1], float) else 0
+            else:
+                depth = 0
+                tilt = 0
             seat_pos = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','position')
             seat_rot = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','rotation')
             seat_pos.x += depth
@@ -2859,18 +2899,25 @@ class InCabinUtils:
         self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         
     #_______________________________________________________________
-    def setCarSeatbeltsOff(self, picked_car):
+    def setCarSeatbeltsOff(self, picked_car, change_belt_material = False):
         belt_locator = self._workspace.get_entities_by_name('belt_locator')[0]
         self.deleteChildren(belt_locator)
         belts = self.queryCarBeltsOff(picked_car)
+        if change_belt_material:
+            belt_material = self.getRandomBeltMaterial()
+            print('[INFO] Using material {} for belts'.format(belt_material['name']))
+            self._belt_material_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Material, belt_material['resource_id'])
+
         for belt in belts:
             belt['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, belt['resource_id'])
             beltoff_id = self._workspace.create_fixed_entity(belt['resource_name'], belt_locator, belt['entity_id'])
+            if change_belt_material:
+                self.changeMaterial(beltoff_id, 'belt', self._belt_material_id)
             self.setExportAlwaysExcludeOcclusion(beltoff_id)
             belt_name = self._workspace.get_entity_name(beltoff_id)
             seat_info = {}
-            # seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
-            seat_info['number'] = 'seat{}'.format(belt_name[-2:])
+            seat_info['number'] = 'seat{}'.format(belt_name.split('_')[-2][-2:])
+            # seat_info['number'] = 'seat{}'.format(belt_name[-2:])
             self.setCustomMetadata(beltoff_id, "Seat", seat_info)
 
     #_______________________________________________________________
@@ -2969,14 +3016,7 @@ class InCabinUtils:
 
         beltId = -1
 
-        dummy_id = None
-        userId = beltUserEntityId
-
-        if beltUserEntityId == anyverse_platform.invalid_entity_id:
-            dummy_id = self._workspace.create_fixed_entity("dummy", anyverse_platform.invalid_entity_id, self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Asset)[0])
-            userId = dummy_id
-
-        args = [ userId,
+        args = [ beltUserEntityId,
                 seat_beltA_step01, seat_beltB_step01,
                 seat_beltA_step04, seat_beltB_step04,
                 clip_beltA_step02, clip_beltB_step02,
@@ -2994,6 +3034,8 @@ class InCabinUtils:
             beltType = 'Normal'
             beltPlacement = self._beltOptions[beltType]
         else:
+            random_belt_material = seatbelts_distribution['random_belt_material']
+            differentiate_segments = seatbelts_distribution['differentiate_segments']
             beltType = ""
             if beltUserEntityId == anyverse_platform.invalid_entity_id:
                 beltPlacement = anyverse_platform.SeatBeltPlacement.WithoutCharacter
@@ -3004,17 +3046,19 @@ class InCabinUtils:
                 beltType = toList[idx][0]
                 beltPlacement = self._beltOptions[beltType]
                 # print('[INFO] beltPlacement: {}'.format(beltPlacement))
-
         args.append( beltPlacement )
+
+        # The belt material has been set when placing the seatbelts off or it is invalid_entity_id by default
+        args.append(self._belt_material_id)            
+
+        print('[INFO] Differentiate belt segments: {}'.format(differentiate_segments))
+        args.append(differentiate_segments)
 
         beltId = self._workspace.create_seat_belt( *args )
         anyverse_platform.entitiesToClear.append(beltId)
 
         self.setCustomMetadata(beltId, "Placement", beltType)
         self.removeOffBeltAt(seatId)
-
-        if dummy_id != None:
-            self._workspace.delete_entity(dummy_id)
 
         return beltId, beltType
 
@@ -3674,7 +3718,7 @@ class InCabinUtils:
             if displace:
                 x += random.uniform(-0.2, 0.2)
                 y += random.uniform(0, 0.1) if side == 'right' else random.uniform(-0.1, 0)
-                z += random.uniform(-0.2, 0.2)
+                z += random.uniform(0, 0.2)
             loc_position = anyverse_platform.Vector3D(x, y, z)
         except KeyError as ke:
             print('[WARN] No position defined for seat belt side {}'.format(side))
