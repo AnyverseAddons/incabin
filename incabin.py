@@ -3442,11 +3442,16 @@ class InCabinUtils:
         return ret, occupied_seats
 
     #_______________________________________________________________
+    def isPerson(self, ent):
+        entityType = self._workspace.get_entity_type(ent)
+        return entityType == 'AnimatedEntity' or ( 'FixedEntity' == entityType and 'rp_' in self._workspace.get_entity_name(ent) )
+
+    #_______________________________________________________________
     def setDriverGaze(self, gaze_probabilities):
         the_car = self.getCars()[0]
         seat_locators = self.getSeatLocators(the_car)
         driver_seat = [ ent for ent in seat_locators if 'seat01' in self._workspace.get_entity_name(ent).lower() ][0]
-        driver_l = [ ent for ent in self._workspace.get_hierarchy(driver_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        driver_l = [ ent for ent in self._workspace.get_hierarchy(driver_seat) if self.isPerson(ent)]
         driver = driver_l[0] if len(driver_l) > 0 else anyverse_platform.invalid_entity_id
         # We consider the passenger what ever is placed in the copilot seat:
         # (character, object, child seat, child on child seat, object on child seat or the seat itself if empty)
@@ -3530,11 +3535,11 @@ class InCabinUtils:
         # We consider the driver what ever is placed in the driver seat:
         # (a character or the seat itself if empty)
         driver_seat = self.getParent([ ent for ent in seat_locators if 'seat01' in self._workspace.get_entity_name(ent).lower() ][0])
-        driver_l = [ ent for ent in self._workspace.get_hierarchy(driver_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        driver_l = [ ent for ent in self._workspace.get_hierarchy(driver_seat)  if self.isPerson(ent)]
         driver = driver_l[len(driver_l)-1] if len(driver_l) > 0 else driver_seat
 
         passenger_seat = self.getParent([ ent for ent in seat_locators if 'seat02' in self._workspace.get_entity_name(ent).lower() ][0])
-        passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        passenger_l = [ ent for ent in self._workspace.get_hierarchy(passenger_seat)  if self.isPerson(ent)]
         passenger = passenger_l[0] if len(passenger_l) > 0 else anyverse_platform.invalid_entity_id
 
         gaze_info = {}
@@ -3609,7 +3614,7 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def setBackSeatPassengerPose(self, seat_locator):
-        passenger_l = [ ent for ent in self._workspace.get_hierarchy(seat_locator) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
+        passenger_l = [ ent for ent in self._workspace.get_hierarchy(seat_locator) if self.isPerson(ent) ]
         passenger = passenger_l[0] if len(passenger_l) > 0 else anyverse_platform.invalid_entity_id
 
         animation, weight = self.selectAdultAnimation('head', 0, 1, user=passenger)
@@ -4038,7 +4043,7 @@ class InCabinUtils:
     def LookAtOtherCharacter(self, looker, looked_at):
         looked_at_name = self._workspace.get_entity_name(looked_at)
 
-        if looked_at != anyverse_platform.invalid_entity_id and 'rp_' in looked_at_name:
+        if looked_at != anyverse_platform.invalid_entity_id and self.isPerson(looked_at):
             char_locators = [ ent for ent in self._workspace.get_hierarchy(looked_at) if self._workspace.get_entity_type(ent) == 'Locator' ]
             if len(char_locators) >= 1:
                 lookat_locator = char_locators[0]
