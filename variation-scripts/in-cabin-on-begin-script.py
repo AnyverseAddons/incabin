@@ -151,14 +151,14 @@ incabin_config = {
         'allow_child_driver': False,
         'age_group_probabilities': [
             {'age_group': '0-3', 'kind': 'Baby', 'probability': 0.0},
-            {'age_group': '4-12', 'kind': 'Child', 'probability': 0.20},
-            {'age_group': '13-18', 'kind': 'Child', 'probability': 0.20},
-            {'age_group': '19-30', 'kind': 'Adult', 'probability': 0.20},
-            {'age_group': '31-50', 'kind': 'Adult', 'probability': 0.20},
-            {'age_group': '50+', 'kind': 'Adult', 'probability': 0.20},
+            {'age_group': '4-12', 'kind': 'Child', 'probability': 0.0},
+            {'age_group': '13-18', 'kind': 'Child', 'probability': 0.0},
+            {'age_group': '19-30', 'kind': 'Adult', 'probability': 0.0},
+            {'age_group': '31-50', 'kind': 'Adult', 'probability': 1.},
+            {'age_group': '50+', 'kind': 'Adult', 'probability': 0.},
         ],
         'baby_on_lap_probability': 0.0,
-        'accessories_probabilities': { 'global': 0.5, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
+        'accessories_probabilities': { 'global': 0.0, 'glasses': 0.5, 'headwear': 0.0, 'mask': 0.0 },
         'object_types': ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'cat', 'Coffee', 'Consumer_electronics', 'Dog', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
         # 'object_types': ['Backpack', 'briefcase', 'cat', 'Consumer_electronics', 'Dog', 'duffle' 'Handbag', 'laptop_case' 'Mobile Phone', 'Paper_Bag', 'garbage bag', 'paper_bag', 'plastic bag', 'snack', 'wallet'],
         'seatbelts_distribution': {
