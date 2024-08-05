@@ -461,20 +461,20 @@ class InCabinUtils:
         if name is not None:
             filtered_animations = [ a for a in animations if name in self._workspace.get_entity_name(a).lower() ]
         elif anim_type == 'base':
-            filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in ['sitting_straight', 'arms_on_the_body']]
+            filtered_animations = [ ba for ba in animations if any(animkey in self._workspace.get_entity_name(ba).lower() for animkey in ['sitting_straight', 'arms_on_the_body'])]
         elif anim_type == 'spine':
             if self._seat_collision:
                 filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() ] # TESTING and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
             else:
                 filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() and self._workspace.get_entity_name(ba).lower() != 'leaning_backward' ]
         elif anim_type == 'left_arm':
-            filtered_animations = [ laa for laa in animations if re.search("^Arms_.*_body_L|_head_L$", self._workspace.get_entity_name(laa)) ]
+            filtered_animations = [ laa for laa in animations if re.search("^arms_.*_body_l|_head_l$", self._workspace.get_entity_name(laa).lower()) ]
             # filtered_animations = [ laa for laa in animations if re.search("^Arms_stretched_above_.*_L$", self._workspace.get_entity_name(laa)) ]
         elif anim_type == 'right_arm':
-            filtered_animations = [ raa for raa in animations if re.search("^Arms_.*_body_R|_head_R$", self._workspace.get_entity_name(raa)) ]
+            filtered_animations = [ raa for raa in animations if re.search("^arms_.*_body_r|_head_r$", self._workspace.get_entity_name(raa).lower()) ]
             # filtered_animations = [ raa for raa in animations if re.search("^Arms_stretched_above_.*_R$", self._workspace.get_entity_name(raa)) ]
         elif anim_type == 'head':
-            filtered_animations1 = [ ha for ha in animations if re.search("^Pose_Face_.*_0|50|45|90degrees$", self._workspace.get_entity_name(ha)) ]
+            filtered_animations1 = [ ha for ha in animations if re.search("^pose_face_.*_0|50|45|90degrees$", self._workspace.get_entity_name(ha).lower()) ]
             # Removing animations that may break the character
             filtered_animations = [ ha for ha in filtered_animations1 if 'turned_up' not in self._workspace.get_entity_name(ha).lower() ]
 
