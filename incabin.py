@@ -452,8 +452,12 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(character_id, 'CharacterAnimationConfigurationComponent', anim_config + '.weight',weight)
 
     #_______________________________________________________________
-    def selectAdultAnimation(self, anim_type, min_weight, max_weight, name = None):
-        animations = [ a for a in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation) if 'child' not in self._workspace.get_entity_name(a).lower() ]
+    def selectAdultAnimation(self, anim_type, min_weight, max_weight, user, name = None):
+        is_gen9 = self.isGen9character(user)
+        def condition(a):
+            return 'child' not in self._workspace.get_entity_name(a).lower()
+
+        animations = [ a for a in self.getWorkspaceAnimations(is_gen9) if condition(a)]
         if name is not None:
             filtered_animations = [ a for a in animations if name in self._workspace.get_entity_name(a).lower() ]
         elif anim_type == 'base':
