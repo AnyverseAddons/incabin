@@ -563,7 +563,8 @@ class InCabinUtils:
             # pick one randomly
             character_idx = random.randrange(len(filtered_characters))
             character = filtered_characters[character_idx]
-            character_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, character['resource_id'])
+            entity_type = self.getCharacterResourceEntityType(character)
+            character_asset_id = self._workspace.add_resource_to_workspace(entity_type, character['resource_id'])
             # print('[INFO] Selected character: {}'.format(character['resource_name']))
         else:
             character_asset_id = -1
@@ -1090,7 +1091,8 @@ class InCabinUtils:
             driver_asset_id, driver = self.selectCharacter('kind', 'Adult')
 
         if driver_asset_id != -1:
-            driver_id = self._workspace.create_fixed_entity(driver['name'], seat_locator, driver_asset_id)
+            driver_entity_type = self.getCharacterEntityType(driver_asset_id)
+            driver_id = self._workspace.create_entity(driver_entity_type, driver['name'], seat_locator, driver_asset_id)
 
             driver['fixed_entity_id'] = driver_id
 
@@ -1378,7 +1380,8 @@ class InCabinUtils:
             assert False
 
         if child_asset_id != -1 and childseat_locator != -1:
-            child_id = self._workspace.create_fixed_entity(child['name'], childseat_locator, child_asset_id)
+            child_entity_type = self.getCharacterEntityType(child_asset_id)
+            child_id = self._workspace.create_entity(child_entity_type, child['name'], childseat_locator, child_asset_id)
 
             child['fixed_entity_id'] = child_id
 
@@ -1539,7 +1542,8 @@ class InCabinUtils:
         while not passenger_found and not stop_searching:
             passenger_asset_id, passenger = self.selectCharacter('kind','Adult', occupant)
             if passenger_asset_id != -1:
-                passenger_id = self._workspace.create_fixed_entity(passenger['resource_name'], seat_locator, passenger_asset_id)
+                passenger_entity_type = self.getCharacterEntityType(passenger_asset_id)
+                passenger_id = self._workspace.create_entity(passenger_entity_type, passenger['resource_name'], seat_locator, passenger_asset_id)
                 passenger_found = True
             else:
                 # No matching passengers found returning id -1
