@@ -482,6 +482,15 @@ class InCabinUtils:
 
         # TODO: Protect empty filtered_animations 
 
+        if not filtered_animations:
+            # TODO: Gen9 - Remove this when all Gen9 animations are available
+            if is_gen9:
+                print( "[WARN] Some Gen9 animations are still missing! Using sitting straight instead" )
+                filtered_animations = [ ba for ba in animations if any(animkey in self._workspace.get_entity_name(ba).lower() for animkey in ['sitting_straight', 'arms_on_the_body'])]
+
+            else:
+                raise Exception( "[ERROR] No animations found matching criteria for animation type: {}".format(anim_type) )
+
         animation_idx = random.randrange(len(filtered_animations))
         animation = filtered_animations[animation_idx]
 
