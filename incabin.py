@@ -2248,6 +2248,40 @@ class InCabinUtils:
         return self.queryResultToDic(query.execute_query_on_assets())
 
     #_______________________________________________________________
+    def queryCharactersGen9(self):
+        query = aux.ResourceQueryManager(self._workspace)
+
+        # TODO: Gen9 - Restore query attributes when available in uploaded characters
+
+        # query.add_attribute_filter('texture', '8k')
+        # query.add_exists_attribute_filter('root_offset')
+        # query.add_exists_attribute_filter('kind')
+        # query.add_exists_attribute_filter('agegroup')
+        # query.add_exists_attribute_filter('ethnicity')
+        # query.add_exists_attribute_filter('gender')
+        # query.add_exists_attribute_filter('height')
+
+        resourcesDict = self.queryResultToDic(query.execute_query_on_characters(), anyverse_platform.WorkspaceEntityType.CharacterAsset)
+
+        # TODO: Gen9 - This hack adds missing metadata to currently uploaded characters.
+        # Remove it when gen9 characters metadata is available
+        for entry in resourcesDict:
+            entry['kind'] = 'Adult'
+            entry['agegroup'] = '31-50'
+            entry['gender'] = 'Male'
+            entry['ethnicity'] = 'White'
+            entry['height'] = 175.0
+            entry['model'] = entry['name']
+            entry['glasses'] = False
+            entry['cap'] = False
+            entry['hat'] = False
+            entry['facemask'] = False
+            entry['root_offset'] = "0.0"
+
+        return resourcesDict
+
+
+    #_______________________________________________________________
     def queryBabies(self):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_tag_filter("person")
