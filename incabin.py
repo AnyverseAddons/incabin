@@ -495,14 +495,19 @@ class InCabinUtils:
         return animations[idx], 1
 
     #_______________________________________________________________
-    def getChildSittingStraightAnimation(self, seat_locator):
+    def getChildSittingStraightAnimation(self, seat_locator, user):
         animation = 'sitting_straight_child_extended-legs' if self.isMiddleBackSeat(seat_locator) else 'sitting_straight_child'
-        animations = [ a for a in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation) if animation == self._workspace.get_entity_name(a).lower() ]
+        is_gen9 = self.isGen9character(user)
+        animations = [ a for a in self.getWorkspaceAnimations(is_gen9) if animation == self._workspace.get_entity_name(a).lower() ]
         return animations[0], 1
 
     #_______________________________________________________________
-    def selectChildAnimation(self, seat_locator, anim_type, min_weight, max_weight):
-        animations = [ a for a in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation) if 'child' in self._workspace.get_entity_name(a).lower() or 'pose_face' in self._workspace.get_entity_name(a).lower() ]
+    def selectChildAnimation(self, is_gen9, seat_locator, anim_type, min_weight, max_weight, user):
+        is_gen9 = self.isGen9character(user)
+
+        def condition(a):
+            return 'child' in self._workspace.get_entity_name(a).lower() or 'pose_face' in self._workspace.get_entity_name(a).lower()
+        animations = [ a for a in self.getWorkspaceAnimations(is_gen9) if condition(a) ]
 
         if anim_type == 'base':
             if self.isMiddleBackSeat(seat_locator):
