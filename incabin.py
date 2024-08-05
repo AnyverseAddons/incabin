@@ -3866,7 +3866,34 @@ class InCabinUtils:
         return locator_name
 
     #_______________________________________________________________
+    def reachPectoralLocator(self, char_id, hand, max_distance = 0.4):
+        pectoral_locators = [ ent for ent in self._workspace.get_hierarchy(char_id) if self._workspace.get_entity_type(ent) == 'Locator' and 'pectoral' in self._workspace.get_entity_name(ent) ]
+        for loc in pectoral_locators:
+            self._workspace.delete_entity(loc)
+
+        pectoral_joint_name = 'l_pectoral' if hand == 'left' else 'r_pectoral'
+        pectoral = [ b for b in self._workspace.get_hierarchy(char_id) if 'SkeletonJointEntity' == self._workspace.get_entity_type(b) and self._workspace.get_entity_name(b) == pectoral_joint_name ][0]
+        pectoral_locator = self._workspace.create_entity(anyverse_platform.WorkspaceEntityType.Locator, hand + 'pectoral_locator', pectoral)
+        pectoral_position = self._workspace.get_entity_local_position(pectoral_locator)
+        pectoral_position.x += random.uniform(0.1, max_distance)
+        pectoral_position.y += random.uniform(-max_distance, max_distance)
+        pectoral_position.z += random.uniform(-max_distance, max_distance)
+
+        self._workspace.set_entity_property_value(pectoral_locator, 'RelativeTransformToComponent','position', pectoral_position)
+
+        if hand == 'left':
+            self._workspace.set_entity_property_value(char_id, 'CharacterHandAttachmentComponent','left_hand_config.locator_entity_id', pectoral_locator)
+        else:
+            self._workspace.set_entity_property_value(char_id, 'CharacterHandAttachmentComponent','right_hand_config.locator_entity_id', pectoral_locator)
+
+        return pectoral_locator
+
+    #_______________________________________________________________
     def reachXiphoidLocator(self, char_id, hand, max_distance = 0.4):
+        if self.isGen9character(char_id):
+            # TODO: Gen9 - Implement when xiphoid joint available. Meanwhile use pectoral
+            return self.reachPectoralLocator(char_id, hand, max_distance)
+
         xiphoid_locators = [ ent for ent in self._workspace.get_hierarchy(char_id) if self._workspace.get_entity_type(ent) == 'Locator' and 'xiphoid' in self._workspace.get_entity_name(ent) ]
         for loc in xiphoid_locators:
             self._workspace.delete_entity(loc)
