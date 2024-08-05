@@ -4157,3 +4157,37 @@ class InCabinUtils:
             jaw_position = 1
 
         self.setFaceExpression(character_id, eyes_position, eyelids_position, eyebrows_positions, mouth_positions, jaw_position)
+
+    #_______________________________________________________________
+    def getCharacterResourceEntityType(self, character):
+        # This function expects a resource UUID
+        if character in self._workspace.characters_gen9:
+            return anyverse_platform.WorkspaceEntityType.CharacterAsset
+        else:
+            return anyverse_platform.WorkspaceEntityType.Asset
+
+    #_______________________________________________________________
+    def getCharacterEntityType(self, character_entity_id):
+        # This function expects a resource entity ID (CharacterAsset or Asset)
+        if self._workspace.get_entity_type(character_entity_id) == 'CharacterAsset':
+            entity_type = anyverse_platform.WorkspaceEntityType.AnimatedEntity
+        else:
+            entity_type = anyverse_platform.WorkspaceEntityType.FixedEntity
+
+        return entity_type
+
+    #_______________________________________________________________
+    def isGen9character(self, entity_id):
+        # This function expects the entity ID of an entity in the Simulation (AnimatedEntity or FixedEntity)
+        return self._workspace.get_entity_type(entity_id) == 'AnimatedEntity'
+
+    #_______________________________________________________________
+    def isGen9animation(self, animation_entity_id):
+        tags = self._workspace.get_tags_from_entity(animation_entity_id)
+        return 'gen9' in tags
+
+    #_______________________________________________________________
+    def getWorkspaceAnimations(self, is_gen9):
+        # Return compatible animations depending on if character is Gen9 or not
+        animations = [ a for a in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation) if self.isGen9animation(a) == is_gen9]
+        return animations
