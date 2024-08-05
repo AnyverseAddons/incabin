@@ -244,7 +244,13 @@ if iteration_index == 0:
     
     if not hasattr(anyverse_platform, 'characters'):
         print('Loading characters...')
+        # NOTE: anyverse_platform.characters contains all characters.
+        #       anyverse_platform.characters_gen9 contains gen9 characters only
         anyverse_platform.characters = icu.queryCharacters()
+        anyverse_platform.characters_gen9 = icu.queryCharactersGen9()
+        
+        anyverse_platform.characters += anyverse_platform.characters_gen9
+
         #print(anyverse_platform.characters)
         print('Characters list loaded!')
 
@@ -292,6 +298,7 @@ if iteration_index == 0:
 
 workspace.cars = anyverse_platform.cars
 workspace.characters = anyverse_platform.characters
+workspace.characters_gen9 = anyverse_platform.characters_gen9
 workspace.babies = anyverse_platform.babies
 workspace.childseats = anyverse_platform.childseats
 workspace.childseatbelts = anyverse_platform.childseatbelts
