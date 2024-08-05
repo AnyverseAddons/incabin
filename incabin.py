@@ -484,13 +484,20 @@ class InCabinUtils:
         return animation, weight
 
     #_______________________________________________________________
-    def getAdultSittingStraightAnimation(self, seat_locator):
+    def getAdultSittingStraightAnimation(self, seat_locator, user):
         # animations = [ a for a in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation) if 'child' not in self._workspace.get_entity_name(a).lower() and self._workspace.get_entity_name(a).lower() in ['sitting_straight', 'arms_on_the_body']]
-        if self.isCopilotSeat(seat_locator):
+        is_gen9 = self.isGen9character(user)
+
+        # TODO: Gen9 - Use 'sitting_straight_adult_copilot_op_script' for Gen9 too when available
+        if self.isCopilotSeat(seat_locator) and not is_gen9:
             animation_key = 'sitting_straight_adult_copilot_op_script'
         else:
             animation_key = 'sitting_straight'
-        animations = [ a for a in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation) if 'child' not in self._workspace.get_entity_name(a).lower() and self._workspace.get_entity_name(a).lower() in [animation_key]]
+
+        def condition(a):
+            return 'child' not in self._workspace.get_entity_name(a).lower() and animation_key in self._workspace.get_entity_name(a).lower()
+
+        animations = [ a for a in self.getWorkspaceAnimations(is_gen9) if condition(a)]
         idx = random.randint(0, len(animations) - 1)
         return animations[idx], 1
 
