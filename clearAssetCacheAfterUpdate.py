@@ -1,5 +1,6 @@
 delattr(anyverse_platform, 'cars')    
 delattr(anyverse_platform, 'characters')
+delattr(anyverse_platform, 'characters_gen9')
 delattr(anyverse_platform, 'babies')
 delattr(anyverse_platform, 'childseats')
 delattr(anyverse_platform, 'childseatbelts')
