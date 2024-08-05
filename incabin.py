@@ -1139,7 +1139,7 @@ class InCabinUtils:
                 print('[INFO] Iris should be bright under NIR light')
 
             # set driver pose
-            animation = self.getAnimIdByName('Driving')
+            animation = self.getAnimIdByName('Driving', driver_id)
             self.setAnimation('base', animation, 1.0, driver_id)
             # Grab the steering wheel by default
             self.grabSteeringWheel(driver_id)
@@ -1148,7 +1148,7 @@ class InCabinUtils:
             set_spine_anim = True if random.uniform(0,1) <= 0.3 else False
             if set_spine_anim:
                 max_weight = 1 if self._seat_collision else 0.15 # Avoid extreme weights for leaning if no seat_collision
-                animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
+                animation, weight = self.selectAdultAnimation('spine', 0, max_weight, user=driver_id)
                 spine_animation_name = self._workspace.get_entity_name(animation)
                 if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
                     weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
@@ -1163,9 +1163,9 @@ class InCabinUtils:
                 arms = ['left_arm', 'right_arm']
                 arm = random.randint(0,1)
                 if arm == 1:
-                    animation, weight = self.selectAdultAnimation(arms[arm], 0, 0.5)
+                    animation, weight = self.selectAdultAnimation(arms[arm], 0, 0.5, user=driver_id)
                 else:
-                    animation, weight = self.selectAdultAnimation(arms[arm], 0, 1)
+                    animation, weight = self.selectAdultAnimation(arms[arm], 0, 1, user=driver_id)
                 self.setAnimation(arms[arm], animation, weight, driver_id)
 
             # setting head animation
@@ -1445,10 +1445,10 @@ class InCabinUtils:
                 if fasten_seatbelt:
                     animation, weight = self.getChildSittingStraightAnimation(seat_locator)
                 else:
-                    animation, weight = self.selectChildAnimation(seat_locator, 'base', 0, 0.6)
+                    animation, weight = self.selectChildAnimation(seat_locator, 'base', 0, 0.6, user=child_id)
                 self.setAnimation('base', animation, weight, child_id)
                 # Set spine animation
-                animation, weight = self.selectChildAnimation(seat_locator, 'spine', 0, 1)
+                animation, weight = self.selectChildAnimation(seat_locator, 'spine', 0, 1, user=child_id)
                 self.setAnimation('spine', animation, weight, child_id)
                 # Set arms animation
                 if self.isCopilotSeat(seat_locator) or self.isRightBackSeat(seat_locator):
@@ -1473,16 +1473,16 @@ class InCabinUtils:
 
                 if animate_left_arm:
                     arm = 'left_arm'
-                    animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, left_arm_max_weight)
+                    animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, left_arm_max_weight, user=child_id)
                     self.setAnimation(arm, animation, weight, child_id)
                 # Animate right arm
                 if animate_right_arm:
                     arm = 'right_arm'
-                    animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, right_arm_max_weight)
+                    animation, weight = self.selectChildAnimation(seat_locator, arm, arms_min_weight, right_arm_max_weight, user=child_id)
                     self.setAnimation(arm, animation, weight, child_id)
 
                 # setting head animation
-                animation, weight = self.selectChildAnimation(seat_locator, 'head', 0, 1)
+                animation, weight = self.selectChildAnimation(seat_locator, 'head', 0, 1, user=child_id)
                 self.setAnimation('head', animation, weight, child_id)
 
                 # Set an expression based on probabilities
@@ -1603,9 +1603,9 @@ class InCabinUtils:
 
             # set passenger pose. If we fasten the seat belt the base pose will always by sitting straight
             if (self.isCopilotSeat(seat_locator)): # and fasten_seatbelt:
-                animation, weight = self.getAdultSittingStraightAnimation(seat_locator)
+                animation, weight = self.getAdultSittingStraightAnimation(seat_locator, user=passenger_id)
             else:
-                animation, weight = self.selectAdultAnimation('base', body_min_weight, body_max_weight)
+                animation, weight = self.selectAdultAnimation('base', body_min_weight, body_max_weight, user=passenger_id)
 
             self.setAnimation('base', animation, weight, passenger_id)
             base_animation_name = self._workspace.get_entity_name(animation)
@@ -1617,7 +1617,7 @@ class InCabinUtils:
                     max_weight = 1 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
                 else:
                     max_weight = 0.5 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
-                animation, weight = self.selectAdultAnimation('spine', 0, max_weight)
+                animation, weight = self.selectAdultAnimation('spine', 0, max_weight, user=passenger_id)
                 spine_animation_name = self._workspace.get_entity_name(animation)
                 if 'side_ward' in spine_animation_name or 'backward' in spine_animation_name:
                     weight = 0.8 if weight >= 0.8 else weight # cap the weight until extreme cases work properly with the colliders
@@ -1644,19 +1644,19 @@ class InCabinUtils:
             arms_min_weight = 0.2 if set_spine_anim and 'extreme' not in spine_animation_name else 0.5
             if animate_left_arm:
                 arm = 'left_arm'
-                animation, weight = self.selectAdultAnimation(arm, 0.35, left_arm_max_weight) # left arm min weight enough to avoid seatbelt collision
+                animation, weight = self.selectAdultAnimation(arm, 0.35, left_arm_max_weight, user=passenger_id) # left arm min weight enough to avoid seatbelt collision
                 self.setAnimation(arm, animation, weight, passenger_id)
             # Animate right arm
             if animate_right_arm:
                 arm = 'right_arm'
-                animation, weight = self.selectAdultAnimation(arm, arms_min_weight, right_arm_max_weight)
+                animation, weight = self.selectAdultAnimation(arm, arms_min_weight, right_arm_max_weight, user=passenger_id)
                 self.setAnimation(arm, animation, weight, passenger_id)
 
             # setting head animation
             # For copilot this is controlled by the gaze settings. 
             # For other passengers we set a head animation
             if  not self.isCopilotSeat(seat_locator):
-                animation, weight = self.selectAdultAnimation('head', 0, 0.8)
+                animation, weight = self.selectAdultAnimation('head', 0, 0.8, user=passenger_id)
                 self.setAnimation('head', animation, weight, passenger_id)
 
             # Place accessories on the passenger according to external probabilities
@@ -3512,9 +3512,9 @@ class InCabinUtils:
                 if reach:
                     self.reachFloor(driver, 'left')
             elif gaze_id == 10:
-                animation, weight = self.selectAdultAnimation('head', 0, 1)
+                animation, weight = self.selectAdultAnimation('head', 0, 1, user=driver)
                 self.setAnimation('head', animation, weight, driver)
-                print('[INFO] setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
+                print('[INFO] Setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
                 hand = 'left' if random.uniform(0,1) >= 0.5 else 'right'
                 self.reachXiphoidLocator(driver, hand, 0.3)
                 gaze_info['reach'] = True
@@ -3591,9 +3591,9 @@ class InCabinUtils:
                 if reach:
                     self.reachFloor(passenger, 'right')
             elif gaze_id == 10:
-                animation, weight = self.selectAdultAnimation('head', 0, 1)
+                animation, weight = self.selectAdultAnimation('head', 0, 1, user=passenger)
                 self.setAnimation('head', animation, weight, passenger)
-                print('[INFO] setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
+                print('[INFO] Setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
                 both_hands = False if random.uniform(0,1) >= 0.5 else True
                 if both_hands:
                     self.reachXiphoidLocator(passenger, 'left')
@@ -3612,7 +3612,7 @@ class InCabinUtils:
         passenger_l = [ ent for ent in self._workspace.get_hierarchy(seat_locator) if 'FixedEntity' == self._workspace.get_entity_type(ent) and 'rp_' in self._workspace.get_entity_name(ent)]
         passenger = passenger_l[0] if len(passenger_l) > 0 else anyverse_platform.invalid_entity_id
 
-        animation, weight = self.selectAdultAnimation('head', 0, 1)
+        animation, weight = self.selectAdultAnimation('head', 0, 1, user=passenger)
         self.setAnimation('head', animation, weight, passenger)
         print('[INFO] setting {}({}) head animation'.format(self._workspace.get_entity_name(animation), weight))
         both_hands = False if random.uniform(0,1) >= 0.5 else True
@@ -3876,7 +3876,7 @@ class InCabinUtils:
         the_car = self.getCars()[0]
 
         # Make the character lean forward to some extent
-        animation, weight = self.selectAdultAnimation('spine', 0.5, 1, 'leaning_forward_extreme')
+        animation, weight = self.selectAdultAnimation('spine', 0.5, 1, user=character_id, name='leaning_forward_extreme')
         self.setAnimation('spine', animation, weight, character_id)
 
         side = hand
@@ -3897,7 +3897,7 @@ class InCabinUtils:
             side = 'right'
 
          # Make the character lean forward to some extent
-        animation, weight = self.selectAdultAnimation('spine', 0, 0.1, 'leaning_forward')
+        animation, weight = self.selectAdultAnimation('spine', 0, 0.1, user=character_id, name='leaning_forward')
         self.setAnimation('spine', animation, weight, character_id)
 
         seatbelt_locator = self.getSeatbeltLocator(the_car, side)
@@ -3914,7 +3914,7 @@ class InCabinUtils:
         side = hand
 
          # Make the character lean forward to some extent
-        animation, weight = self.selectAdultAnimation('spine', 0.3, 0.5, 'leaning_forward')
+        animation, weight = self.selectAdultAnimation('spine', 0.3, 0.5, user=character_id, name='leaning_forward')
         self.setAnimation('spine', animation, weight, character_id)
 
         headrest_locator = self.getHeadrestLocator(the_car, side)
@@ -3929,7 +3929,7 @@ class InCabinUtils:
         the_car = self.getCars()[0]
 
          # Make the character lean forward to some extent
-        animation, weight = self.selectAdultAnimation('spine', 0.5, 1, 'leaning_forward_extreme')
+        animation, weight = self.selectAdultAnimation('spine', 0.5, 1, user=character_id, name='leaning_forward_extreme')
         self.setAnimation('spine', animation, weight, character_id)
 
         glove_locator = self.getGloveCompLocator(the_car)
@@ -4015,15 +4015,15 @@ class InCabinUtils:
         if side == 'right':
             seat_number = '05'
             self.letGoWheel(looker, side)
-            animation, weight = self.selectAdultAnimation('right_arm', 0.25, 0.5, 'above_the_head_r')
+            animation, weight = self.selectAdultAnimation('right_arm', 0.25, 0.5, user=looker, name='above_the_head_r')
             self.setAnimation('right_arm', animation, weight, looker)
         elif side == 'left':
             seat_number = '03'
-            animation, weight = self.selectAdultAnimation('right_arm', 0.25, 0.35, 'above_the_head_r')
+            animation, weight = self.selectAdultAnimation('right_arm', 0.25, 0.35, user=looker, name='above_the_head_r')
             self.setAnimation('right_arm', animation, weight, looker)
 
         # Make the character lean forward to some extent
-        animation, weight = self.selectAdultAnimation('spine', 0, 1, 'leaning_forward')
+        animation, weight = self.selectAdultAnimation('spine', 0, 1, user=looker, name='leaning_forward')
         self.setAnimation('spine', animation, weight, looker)
 
         seat_locators = [ ent for ent in self.getSeatLocators(the_car) if self._workspace.get_entity_type(ent) == 'Locator' and 'seat'+seat_number in self._workspace.get_entity_name(ent).lower() ]
