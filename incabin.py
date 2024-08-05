@@ -244,10 +244,13 @@ class InCabinUtils:
         return cars
 
     #_______________________________________________________________
-    def getAnimIdByName(self, anim_name):
-        anims = self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.Animation)
+    def getAnimIdByName(self, anim_name, user):
+        is_gen9 = self.isGen9character(user)
+        anims = self.getWorkspaceAnimations(is_gen9)
+
+        anim_name_lower = anim_name.lower()
         for anim in anims:
-            if self._workspace.get_entity_name(anim) == anim_name or anim_name in self._workspace.get_entity_name(anim):
+            if self._workspace.get_entity_name(anim) == anim_name_lower or anim_name_lower in self._workspace.get_entity_name(anim):
                 return anim
         return -1
 
