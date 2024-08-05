@@ -345,6 +345,7 @@ the_car = icu.getCars()[0]
 print('Deleting current occupants...')
 icu.clearDescendantFixedEntities(the_car)
 icu.deleteAllOnBelts()
+
 #__________________________________________________________
 # Pick a random car with probabilities from list of cars, 
 # load it as an asset in the workspace and set it as "the_car" 
@@ -596,6 +597,8 @@ elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
 # Set entities visualization mode to Mesh if testing
 if workspace.testing or script_console:
     fixed_entities = workspace.get_fixed_entities()
+    animated_entities = workspace.get_entities_by_type("AnimatedEntity")
+    fixed_entities.extend(animated_entities)
         
     for entity_id in fixed_entities:
         if workspace.get_entity_type(entity_id) != 'Locator' and workspace.has_entity_component(entity_id, "Viewport3DEntityConfigurationComponent"):
