@@ -4150,6 +4150,18 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def setNamedFaceExpression(self, character_id, expression_code):
+        if self.isGen9character(character_id):
+            return self.setNamedFaceExpressionGen9(character_id, expression_code)
+        else:
+            return self.setNamedFaceExpressionLegacy(character_id, expression_code)
+
+    #_______________________________________________________________
+    def setNamedFaceExpressionGen9(self, character_id, expression_code):
+        # TODO: Gen9 - Implement face expressions for Gen9 characters
+        pass
+
+    #_______________________________________________________________
+    def setNamedFaceExpressionLegacy(self, character_id, expression_code):
         if expression_code == 0: # neutral
             eyes_position = anyverse_platform.Vector3D(0, 0, 0)
             eyelids_position = (1, 1)
