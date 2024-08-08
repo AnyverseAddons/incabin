@@ -139,14 +139,11 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def clearDescendantFixedEntities(self, entity_id):
-        entity_name = self._workspace.get_entity_name(entity_id)
-        # descendant_fixed_entities_list = self.vectorToList(self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.FixedEntity))
         descendant_fixed_entities_list = [ fe for fe in self._workspace.get_hierarchy(entity_id) if 'FixedEntity' == self._workspace.get_entity_type(fe) ]
         descendant_fixed_entities_list.reverse()
 
         for fixed_entity_id in descendant_fixed_entities_list:
-            fixed_entity_name = self._workspace.get_entity_name(fixed_entity_id)
-            if fixed_entity_name != entity_name:
+            if fixed_entity_id != entity_id:
                 self._workspace.delete_entity(fixed_entity_id)
 
     #_______________________________________________________________
