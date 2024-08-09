@@ -283,7 +283,7 @@ Additionally now, you can have the passenger to have a baby on their lap. The `b
         'baby_on_lap_probability': 0.2,
 ```
 
-For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement. Additionally, yu can randomly change the seat belt material by setting the `random_belt_material` to True. And If you need to differentiate the 2 parts of the seat belt in the ground truth as different classes (seat_belt_chest, seat_belt_lap) when they are on, set the `differentiate_segments` property to True.
+For seat belts, `seatbelts_distribution`, on one hand, you can decide the probability that a given passenger (including children in child seats) have a seat belt on. The how is that seat belt placed, normal or with a wrong placement. Additionally, you can randomly change the seat belt material by setting the `random_belt_material` to True. And If you need to differentiate the 2 parts of the seat belt in the ground truth as different classes (seat_belt_chest, seat_belt_lap) when they are on, set the `differentiate_segments` property to True.
 
 ```
         'seatbelts_distribution': {
@@ -308,30 +308,30 @@ For the driver and the copilot, you can control their gaze (`gaze_probabilities`
 ```
         'gaze_probabilities': {
             'driver_gaze_probabilities':  [
-                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
-                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
-                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
-                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
-                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
-                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
-                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
-                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
-                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
-                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
-                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
+                {'name': 'road', 'id': 0, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'id': 1, 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'id': 2, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'id': 3, 'gaze': 0.5, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'id': 4, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'id': 5, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'id': 6, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'id': 7, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'id': 8, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.0},
+                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': True, 'probability':  0.14}
             ],
             'copilot_gaze_probabilities': [
-                {'name': 'road', 'gaze': 0, 'reach': False, 'probability': 0.09},
-                {'name': 'ext_mirror', 'gaze': 1, 'reach': False, 'probability': 0.08},
-                {'name': 'int_mirror', 'gaze': 2, 'reach': False, 'probability':  0.08},
-                {'name': 'infotainment', 'gaze': 3, 'reach': True, 'probability':  0.08},
-                {'name': 'passenger', 'gaze': 4, 'reach': False, 'probability':  0.08},
-                {'name': 'rear', 'gaze': 5, 'reach': False, 'probability': 0.09},
-                {'name': 'headrest', 'gaze': 6, 'reach': True, 'probability': 0.09},
-                {'name': 'glove', 'gaze': 7, 'reach': True, 'probability': 0.09},
-                {'name': 'seatbelt', 'gaze': 8, 'reach': True, 'probability': 0.09},
-                {'name': 'floor', 'gaze': 9, 'reach': True, 'probability': 0.09},
-                {'name': 'free', 'gaze': 10, 'reach': False, 'probability':  0.14}
+                {'name': 'road', 'id': 0, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'ext_mirror', 'id': 1, 'gaze': 1, 'reach': False, 'probability': 0.08},
+                {'name': 'int_mirror', 'id': 2, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'infotainment', 'id': 3, 'gaze': 0.5, 'reach': True, 'probability':  0.08},
+                {'name': 'passenger', 'id': 4, 'gaze': 1, 'reach': False, 'probability':  0.08},
+                {'name': 'rear', 'id': 5, 'gaze': 1, 'reach': False, 'probability': 0.09},
+                {'name': 'headrest', 'id': 6, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'glove', 'id': 7, 'gaze': 0.5, 'reach': True, 'probability': 0.09},
+                {'name': 'seatbelt', 'id': 8, 'gaze': 1, 'reach': True, 'probability': 0.09},
+                {'name': 'floor', 'id': 9, 'gaze': 0.5, 'reach': True, 'probability': 0.0},
+                {'name': 'free', 'id': 10, 'gaze': 1, 'reach': True, 'probability':  0.14}
             ]
         },
 ```

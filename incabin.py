@@ -139,14 +139,11 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def clearDescendantFixedEntities(self, entity_id):
-        entity_name = self._workspace.get_entity_name(entity_id)
-        # descendant_fixed_entities_list = self.vectorToList(self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.FixedEntity))
         descendant_fixed_entities_list = [ fe for fe in self._workspace.get_hierarchy(entity_id) if 'FixedEntity' == self._workspace.get_entity_type(fe) ]
         descendant_fixed_entities_list.reverse()
 
         for fixed_entity_id in descendant_fixed_entities_list:
-            fixed_entity_name = self._workspace.get_entity_name(fixed_entity_id)
-            if fixed_entity_name != entity_name:
+            if fixed_entity_id != entity_id:
                 self._workspace.delete_entity(fixed_entity_id)
 
     #_______________________________________________________________
@@ -169,27 +166,14 @@ class InCabinUtils:
         return self._workspace.get_entity_property_value(entityId, 'VisibleComponent','visible')
 
     #_______________________________________________________________
-    def setCustomMetadata(self, entityId, key, value):
+    def setCustomMetadata(self, entityId, key, value, replace = False):
         old_metadata = self._workspace.get_entity_property_value(entityId, 'UserMetadataComponent','json_metadata')
-        if not old_metadata:
+        if not old_metadata or replace:
             old_metadata = "{}"
         metadata_dict = json.loads(old_metadata)
         metadata_dict[key] = value
         new_metadata = json.dumps(metadata_dict)
         self._workspace.set_entity_property_value(entityId, 'UserMetadataComponent','json_metadata', new_metadata)
-
-    #_______________________________________________________________
-    def hasCustomMetadata(self, entity_id):
-        ret = False
-        try:
-            custom_metadata = json.loads(self._workspace.get_entity_property_value(entity_id, 'UserMetadataComponent','json_metadata'))
-        except json.decoder.JSONDecodeError as jde:
-            ret = False
-            custom_metadata = None
-        if isinstance(custom_metadata, dict):
-            ret = True
-
-        return ret
 
     #_______________________________________________________________
     def removeMotionBlur(self, entity_id):
