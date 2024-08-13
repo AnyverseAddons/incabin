@@ -2599,7 +2599,7 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def setIllumination(self, day, conditions, background, simulation_id, multiple_cameras = False, active_light = False):
-        if conditions == 'scattered' or conditions == 'overcast':
+        if day:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', conditions.title())
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', 'Clear')
@@ -2741,7 +2741,7 @@ class InCabinUtils:
         self.setCustomMetadata(simulation_id, "backgroundInfo", bkg_info)
 
     #_______________________________________________________________
-    def selectBackground(self, day, bg_list = None, bg_name = None):
+    def selectBackground(self, day, conditions, bg_list = None, bg_name = None):
         if bg_list == None:
             if day :
                 backgrounds = [ b for b in self._workspace.backgrounds if b['day'] ]
@@ -2750,13 +2750,23 @@ class InCabinUtils:
         else:
             backgrounds = bg_list
 
-        selected_background_idx = random.randrange(0,len(backgrounds))
         if bg_name:
             for idx, background in enumerate(backgrounds):
                 if bg_name == background['name']:
-                    selected_background_idx = idx
+                    selected_background = backgrounds[idx]
                     break
-        selected_background = backgrounds[selected_background_idx]
+        else:
+            selected_background_idx = random.randrange(0,len(backgrounds))
+            found = False
+            while not found:
+                selected_background = backgrounds[selected_background_idx]
+                if 'weather' in selected_background.keys() and selected_background['weather'] != 'undefined' and selected_background['weather'] == conditions:
+                    found = True
+                elif not day:
+                    found = True
+                else:
+                    selected_background_idx = random.randrange(0,len(backgrounds))
+
 
         selected_background['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Background, selected_background['resource_id'])
         ws_bckgnd_id = selected_background['entity_id']

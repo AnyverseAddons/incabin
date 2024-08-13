@@ -99,7 +99,7 @@ incabin_config = {
         }
     },
     "conditions": [ 
-        {'Day': True,  'Cond':'sunny',          'probability': 0.17},
+        {'Day': True,  'Cond':'clear',          'probability': 0.17},
         {'Day': True,  'Cond':'scattered',      'probability': 0.17},
         {'Day': True,  'Cond':'overcast',       'probability': 0.16},
         {'Day': False, 'Cond':'interior-lights','probability': 0.50}
@@ -506,7 +506,7 @@ day, cond = icu.selectConditions(conditions)
 print('Day scene: {}, Lighting conditions: {}'.format(day, cond))
 
 # pick and set a background depending if its day/night
-background, bckgnd_id = icu.selectBackground(day)
+background, bckgnd_id = icu.selectBackground(day, cond)
 print('Setting background {}'.format(workspace.get_entity_name(bckgnd_id)))
 icu.setBackground(background, simulation_id)
 
