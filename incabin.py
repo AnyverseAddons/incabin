@@ -2311,7 +2311,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryBackgrounds(self):
         query = aux.ResourceQueryManager(self._workspace)
-        query.add_exists_attribute_filter('Scattering')
+        query.add_exists_attribute_filter('IBL_intensity')
 
         return self.queryResultToDic(query.execute_query_on_backgrounds(), anyverse_platform.WorkspaceEntityType.Background)
 
@@ -2605,7 +2605,7 @@ class InCabinUtils:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', 'Clear')
 
         scattering = 600
-        if background != None:
+        if background != None and 'scattering' in background.keys():
             scattering = background['scattering']
 
         self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', scattering)
@@ -2653,8 +2653,9 @@ class InCabinUtils:
             return sky_light_intensity, sun_light_intensity
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
-            ibl_light_intensity = random.uniform(1, 1)
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
+            ibl_light_intensity = background['ibl_intensity']
+            # ibl_light_intensity = random.uniform(1, 1)
+            # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
 
             background_weight = 1
             if background != None:
@@ -2724,13 +2725,17 @@ class InCabinUtils:
     def setBackground(self, background, simulation_id, dawn = False):
         if not dawn:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',background['entity_id'])
-            self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background['background_intensity'])
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', background['ibl_intensity'])
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',self._no_entry)
 
         # Dump the background info in the simulation custom metadata
         bkg_info = {}
         bkg_info['background'] = background['name']
+        bkg_info['day'] = background['day']
+        bkg_info['IBL_intensity'] = background['ibl_intensity']
+        bkg_info['environment'] = background['environment']
+        bkg_info['sky_type'] = background['sky_type']
         bkg_info['env-weight'] = self._workspace.get_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight')
 
         self.setCustomMetadata(simulation_id, "backgroundInfo", bkg_info)
