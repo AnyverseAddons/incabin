@@ -990,7 +990,7 @@ class InCabinUtils:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
             object['fixed_entity_id'] = object_entity_id
-            is_animal = True if object['class'].lower() == 'dog' else False
+            is_animal = True if object['class'].lower() == 'dog' or object['class'].lower() == 'cat' else False
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
@@ -1057,7 +1057,7 @@ class InCabinUtils:
         return object
 
     #_______________________________________________________________
-    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, age_group_probabilities = None, allow_child_driver = False):
+    def placeDriver(self, seat_locator, occupant = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, age_group_probabilities = None, allow_child_driver = False):
         print('[INFO] Placing Driver in {}'.format(self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
         # Select a random character based on age-group probabilities if not None
@@ -1072,11 +1072,13 @@ class InCabinUtils:
                 age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
             age_group = age_group_probabilities[age_group_idx]['age_group']
             print('[INFO] driver age group: {}'.format(age_group))
-            driver_asset_id, driver = self.selectCharacter('agegroup', age_group, name)
+            driver_asset_id, driver = self.selectCharacter('agegroup', age_group)
             # kind = age_group_probabilities['age_group_idx']['kind']
             # driver_asset_id, driver = self.selectCharacter('kind', kind, name)
+        elif occupant:
+            driver_asset_id, driver = occupant['entity_id'], occupant
         else:
-            driver_asset_id, driver = self.selectCharacter('kind', 'Adult', name)
+            driver_asset_id, driver = self.selectCharacter('kind', 'Adult')
 
         if driver_asset_id != -1:
             driver_id = self._workspace.create_fixed_entity(driver['name'], seat_locator, driver_asset_id)
@@ -1513,11 +1515,17 @@ class InCabinUtils:
         return child
 
     #_______________________________________________________________
-    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap = False):
+    def placePassenger(self, seat_locator, occupant = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap = False):
         print('[INFO] Placing Passenger in {} ({})'.format(self._workspace.get_entity_name(seat_locator).split('_')[0], seat_locator))
         # select a random adult character
         # select a random childseat of the given type
-        passenger_found = False
+        
+        if occupant:
+            passenger = occupant
+            passenger_id = self._workspace.create_fixed_entity(occupant['resource_name'], seat_locator, occupant['entity_id'])
+            passenger_found = True
+        else:
+            passenger_found = False
         stop_searching = False
         while not passenger_found and not stop_searching:
             passenger_asset_id, passenger = self.selectCharacter('kind','Adult', name)
@@ -3208,7 +3216,7 @@ class InCabinUtils:
 
 
     #_______________________________________________________________
-    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None, object_types = None, allow_child_driver = False):
+    def fillSeat(self, occupancy, seat_locator, childseat_config, asset = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None, object_types = None, allow_child_driver = False):
         the_car = self.getCars()[0]
         car_name = self._workspace.get_entity_name(self._workspace.get_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id'))
         if occupancy == 0:
@@ -3609,6 +3617,110 @@ class InCabinUtils:
                     seat_occupant = self.placePassenger(seat_locator, name=occupant['Occupant']+'_OP', seatbelts_distribution=seatbelts_distribution)
 
             # Build a return list with adict with the occupancy of every seat
+            if seat_occupant == None:
+                ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': False})
+            else:
+                if type(seat_occupant) != list:
+                    ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': seat_occupant['name'], 'Seatbelt_on': seat_occupant['Seatbelt_on'], 'Seatbelt_mode': seat_occupant['Seatbelt_placement'], 'Accessory': seat_occupant['Accessory']})
+                else:
+                    if seat_occupant[1] != None:
+                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': seat_occupant[1]['name'], 'Seatbelt_on': seat_occupant[1]['Seatbelt_on']})
+                    else:
+                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': 'None', 'Seatbelt_on': False})
+
+        if 'gaze_probabilities' in occupancy_distribution:
+            gaze_distribution = occupancy_distribution['gaze_probabilities']
+        else:
+            gaze_distribution = None
+            print('[WARN] No gaze probabilities')
+
+        # After occupancy is complete we adjust the driver's and copilot's gaze
+        # according to configuration 
+        if gaze_distribution:
+            driver_gaze = gaze_distribution['driver_gaze_probabilities']
+            self.setDriverGaze(driver_gaze) 
+            copilot_gaze = gaze_distribution['copilot_gaze_probabilities']
+            self.setPassengerGaze(copilot_gaze)
+
+        return ret
+
+    #_______________________________________________________________
+    def getOccupantByType(self, occupant_type):
+        occupant = (-1, None)
+        gender = None
+        if occupant_type == 'man':
+            gender = 'Male'
+        elif occupant_type == 'woman':
+            gender = 'Female'
+
+        if gender:
+            occupant = self.selectCharacter('gender', gender)
+
+        if occupant[1]:
+            occupant[1]['entity_id'] = occupant[0]
+
+        return occupant[1]
+    
+    #_______________________________________________________________
+    def getSeatOccupancyFromGemini(self, seat_locator, occupancy):
+        seat_name = self._workspace.get_entity_name(seat_locator).split("_")[0]
+        for seat_occupancy in occupancy:
+            if seat_occupancy['seat'] == seat_name:
+                return seat_occupancy
+    
+    #_______________________________________________________________
+    def applyOccupantDistributionFromGemini(self, the_car, occupancy_distribution, occupant_dist_json):
+        occupant_dist = json.loads(occupant_dist_json)
+        seat_locators = self.getSeatLocators(the_car)
+        seatbelts_distribution = {
+            'random_belt_material': True,
+            'differentiate_segments': False,
+            'belt_on_probability': 0.0, # Probability for seatbelt on when there is a character seated on
+            'seatbelt_placement_probabilities': {
+                'Normal': 1.0,
+                'BehindTheBack': 0.0,
+                'UnderShoulder': 0.0,
+                'WrongSideOfHead': 0.0,
+                'CharacterOverSeatbelt': 0.0
+            },   
+            'belt_on_without_character_probability': 0.0, # Probability for seatbelt on when the seat is empty
+        }
+        animal_types = ['cat', 'Dog']
+        object_types = ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'Coffee', 'Consumer_electronics', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
+
+        ret = []
+        for seat_locator in seat_locators:
+            seat_locator_name = self._workspace.get_entity_name(seat_locator).split('_')[0]
+            seat_occupancy = self.getSeatOccupancyFromGemini(seat_locator, occupant_dist['occupancy'])
+            occupied = seat_occupancy['occupant'] != 'empty'
+            if seat_occupancy['seat_belt_on']:
+                seatbelts_distribution['belt_on_probability'] = 1.0
+                
+            seat_occupant = None
+            occupant_type = seat_occupancy['occupant']
+            occupant = self.getOccupantByType(occupant_type)
+            print(occupant_type)
+            print(occupant)
+            if self.isDriverSeat(seat_locator) and occupied:
+                seat_occupant = self.placeDriver(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
+            else:
+                if occupant_type == 'child':
+                    chilldseat_config = occupancy_distribution['childseat_config']
+                    childseat = self.placeChildseat(seat_locator, chilldseat_config, only_baby_in_copilot = False)
+                    if childseat['kind'] == 'BabyChild' and occupied:
+                        child = self.placeBabyInChildseat(childseat, seat_locator, seatbelts_distribution=seatbelts_distribution)
+                    else:
+                        child = self.placeChildInChildseat(childseat, seat_locator,  seatbelts_distribution=seatbelts_distribution)
+                    seat_occupant = [childseat, child]
+                elif (occupant_type == 'man' or occupant_type == 'woman') and occupied:
+                    seat_occupant = self.placePassenger(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
+                elif occupied:
+                    if occupant_type == 'animal':
+                        seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = animal_types)
+                    else:
+                        seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = object_types)
+
+            # Build a return list with a dict with the occupancy of every seat
             if seat_occupant == None:
                 ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': False})
             else:
