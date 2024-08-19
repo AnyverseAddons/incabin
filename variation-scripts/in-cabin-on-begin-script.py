@@ -22,6 +22,10 @@ except NameError:
     total_iteration_count = 1
 print('Script Console: {}'.format(script_console))
 
+# This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
+gemini_distribution = "{ \"day\": true, \"occupancy\": [ { \"seat\": \"seat01\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"woman\", \"seat_belt_on\": true }, { \"seat\": \"seat02\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"man\", \"seat_belt_on\": true }, { \"seat\": \"seat03\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"woman\", \"seat_belt_on\": true }, { \"seat\": \"seat04\", \"child_seat\": false, \"occupied\": false, \"occupant\": \"empty\", \"seat_belt_on\": false }, { \"seat\": \"seat05\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"man\", \"seat_belt_on\": true } ] }"
+
+
 #__________________________________________
 # Global config: Cameras, environmental conditions, Occupant distribution, childseats, seat belts, additional props, gaze
 incabin_config = {
@@ -109,6 +113,7 @@ incabin_config = {
         {'Conf': 'Normal', 'probability': 0.9}
     ],
     "occupancy_distribution": {
+        "use_gemini_distribution": True, 
         'driver_occupancy_probabilities': [
             {'name': 'Empty',  'occupancy': 0, 'probability': 0.1},
             {'name': 'Driver', 'occupancy': 1, 'probability': 0.9} 
@@ -577,14 +582,18 @@ occupant_confs_probabilities = incabin_config["occupant_confs_probabilities"]
 # Production occupancy settings
 occupancy_distribution = incabin_config["occupancy_distribution"]
 
-conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
-if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
-    icu.EmptyDistribution(the_car, occupancy_distribution)
-elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
-    # occupant_dist = icu.AllAdultsDistribution(the_car)
-    occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
-    # occupant_dist = icu.ChildseatDistribution(the_car)
-    print('Occupant_dist: {}'.format(occupant_dist))
+if occupancy_distribution['use_gemini_distribution']:
+    icu.applyOccupantDistributionFromGemini(the_car, occupancy_distribution, gemini_distribution)
+else:
+    conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
+    if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
+        icu.EmptyDistribution(the_car, occupancy_distribution)
+    elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
+        # occupant_dist = icu.AllAdultsDistribution(the_car)
+        occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
+        # occupant_dist = icu.ChildseatDistribution(the_car)
+        print('Occupant_dist: {}'.format(occupant_dist))
+
 
 # Set entities visualization mode to Mesh if testing
 if workspace.testing or script_console:
