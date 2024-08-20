@@ -3670,7 +3670,10 @@ class InCabinUtils:
     
     #_______________________________________________________________
     def applyOccupantDistributionFromGemini(self, the_car, occupancy_distribution, occupant_dist_json):
-        occupant_dist = json.loads(occupant_dist_json)
+        if occupancy_distribution['from_file']:
+            occupant_dist = occupant_dist_json
+        else:
+            occupant_dist = json.loads(occupant_dist_json)
         seat_locators = self.getSeatLocators(the_car)
         seatbelts_distribution = {
             'random_belt_material': True,

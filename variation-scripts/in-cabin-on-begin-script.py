@@ -22,10 +22,6 @@ except NameError:
     total_iteration_count = 1
 print('Script Console: {}'.format(script_console))
 
-# This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
-gemini_distribution = "{ \"day\": true, \"occupancy\": [ { \"seat\": \"seat01\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"woman\", \"seat_belt_on\": true }, { \"seat\": \"seat02\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"man\", \"seat_belt_on\": true }, { \"seat\": \"seat03\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"woman\", \"seat_belt_on\": true }, { \"seat\": \"seat04\", \"child_seat\": false, \"occupied\": false, \"occupant\": \"empty\", \"seat_belt_on\": false }, { \"seat\": \"seat05\", \"child_seat\": false, \"occupied\": true, \"occupant\": \"man\", \"seat_belt_on\": true } ] }"
-
-
 #__________________________________________
 # Global config: Cameras, environmental conditions, Occupant distribution, childseats, seat belts, additional props, gaze
 incabin_config = {
@@ -113,7 +109,8 @@ incabin_config = {
         {'Conf': 'Normal', 'probability': 0.9}
     ],
     "occupancy_distribution": {
-        "use_gemini_distribution": True, 
+        "use_gemini_distribution": True,
+        "from_file": True, 
         'driver_occupancy_probabilities': [
             {'name': 'Empty',  'occupancy': 0, 'probability': 0.1},
             {'name': 'Driver', 'occupancy': 1, 'probability': 0.9} 
@@ -226,11 +223,24 @@ incabin_config = {
 #__________________________________________
 import random
 import sys
+import json
+import os
 import incabin
 import importlib
 del sys.modules['incabin.incabin']
 importlib.reload(incabin)
 
+# This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
+gemini_distribution = '{ "day": true, "occupancy": [ { "seat": "seat01", "child_seat": false, "occupied": true, "occupant": "woman", "seat_belt_on": true }, { "seat": "seat02", "child_seat": false, "occupied": true, "occupant": "man", "seat_belt_on": true }, { "seat": "seat03", "child_seat": false, "occupied": true, "occupant": "child", "seat_belt_on": true }, { "seat": "seat04", "child_seat": false, "occupied": true, "occupant": "animal", "seat_belt_on": false }, { "seat": "seat05", "child_seat": false, "occupied": false, "occupant": "empty", "seat_belt_on": false } ] }'
+
+if incabin_config['occupancy_distribution']['from_file']:
+    gemini_out_file_dir = incabin.__path__[0]
+    gemini_out_file_name = 'gemini_output.json'
+    gemini_out_file_path = os.path.join(gemini_out_file_dir, gemini_out_file_name)
+
+    with open(gemini_out_file_path, 'r') as file:
+        gemini_distribution = json.load(file)
+    print(gemini_distribution)
 
 #__________________________________________
 def getCameraProbabilityList(incabin_config):
