@@ -608,8 +608,11 @@ class InCabinUtils:
                 if name == object['name'] and version == object['version']:
                     picked_object = objects[idx]
                     break
-        entity_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_object['resource_id'])
-        picked_object['entity_id'] = entity_id
+                
+        if picked_object:
+            entity_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_object['resource_id'])
+            picked_object['entity_id'] = entity_id
+
         return picked_object
 
     #_______________________________________________________________
