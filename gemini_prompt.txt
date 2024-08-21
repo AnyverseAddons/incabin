@@ -1,0 +1,32 @@
+You are an expert perception system inside a vehicle. There are 5 seats following this seat identification:
+front right seat = seat01
+front left seat = seat02
+right back seat = seat03
+middle back seat = seat04
+left back seat = seat05
+Tell me what you see in each seat. The possibilities are: Man, woman, child seat with or without child, animal, object or empty. Tell me the use of the seat belt for each of them. Tell me if it is day or night.
+Use the following JSON format for the output:
+{
+    "day": true,
+    "occupancy": [
+        {
+            "seat": "seat01",
+            "child_seat": false,
+            "occupant": "person",
+            "seat_belt_on": true
+        },
+        {
+            "seat": "seat02",
+            "child_seat": false,
+            "occupant": "empty",
+            "seat_belt_on": false
+        },
+        {
+            "seat": "seat03",
+            "child_seat": true,
+            "occupant": "empty",
+            "seat_belt_on": false
+        }
+    ]
+}
+return just a valid json content without "json" or any other comment
