@@ -608,7 +608,7 @@ class InCabinUtils:
                 if name == object['name'] and version == object['version']:
                     picked_object = objects[idx]
                     break
-                
+
         if picked_object:
             entity_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_object['resource_id'])
             picked_object['entity_id'] = entity_id
@@ -1531,7 +1531,7 @@ class InCabinUtils:
             passenger_found = False
         stop_searching = False
         while not passenger_found and not stop_searching:
-            passenger_asset_id, passenger = self.selectCharacter('kind','Adult', name)
+            passenger_asset_id, passenger = self.selectCharacter('kind','Adult', occupant)
             if passenger_asset_id != -1:
                 passenger_id = self._workspace.create_fixed_entity(passenger['resource_name'], seat_locator, passenger_asset_id)
                 passenger_found = True
