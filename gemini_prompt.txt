@@ -1,10 +1,14 @@
-You are an expert perception system inside a vehicle. There are 5 seats following this seat identification:
-front right seat = seat01
-front left seat = seat02
-right back seat = seat03
-middle back seat = seat04
-left back seat = seat05
-Tell me what you see in each seat. The possibilities are: Man, woman, child seat with or without child, animal, object or empty. Tell me the use of the seat belt for each of them. Tell me if it is day or night.
+You are an expert perception system inside a vehicle. 
+There are 5 seats following this seat identification:
+driver seat is seat01
+copilot seat is seat02
+seat behind driver is seat03
+middle back seat is seat04
+seat behind copilot is seat05
+Tell me what you see in each seat. The possibilities are only: man, woman, child seat with or without child, animal, object or empty. 
+Tell me the use of the seat belt for each of them. 
+Tell me if it is day or night.
+
 Use the following JSON format for the output:
 {
     "day": true,
@@ -12,7 +16,7 @@ Use the following JSON format for the output:
         {
             "seat": "seat01",
             "child_seat": false,
-            "occupant": "person",
+            "occupant": "man",
             "seat_belt_on": true
         },
         {
@@ -29,4 +33,5 @@ Use the following JSON format for the output:
         }
     ]
 }
+
 return just a valid json content without "json" or any other comment
