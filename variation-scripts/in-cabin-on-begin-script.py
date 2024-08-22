@@ -240,7 +240,10 @@ if incabin_config['occupancy_distribution']['from_file']:
 
     with open(gemini_out_file_path, 'r') as file:
         gemini_distribution = json.load(file)
-    print(gemini_distribution)
+else:
+    gemini_distribution = json.loads(gemini_distribution)
+
+print(gemini_distribution)
 
 #__________________________________________
 def getCameraProbabilityList(incabin_config):
@@ -516,8 +519,13 @@ else:
 # The probabilities come from incabin requirements. For day 
 # scenes the time of day and ground rotation will be randomly picked when setting illumination
 conditions = incabin_config["conditions"]
-
-day, cond = icu.selectConditions(conditions)
+if incabin_config['occupancy_distribution']['use_gemini_distribution']: 
+    if gemini_distribution['day']:   
+        day, cond = True, 'clear'
+    else:
+        day, cond = False, 'interior-lights'
+else:
+    day, cond = icu.selectConditions(conditions)
 print('Day scene: {}, Lighting conditions: {}'.format(day, cond))
 
 # pick and set a background depending if its day/night
@@ -586,7 +594,7 @@ else:
 
 #__________________________________________________________
 # Pick an occupant distribution based on probabilities and
-# call the approriate fuction to place them                          
+# call the appropriate function to place them                          
 occupant_confs_probabilities = incabin_config["occupant_confs_probabilities"]
 
 # Production occupancy settings
