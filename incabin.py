@@ -3656,6 +3656,8 @@ class InCabinUtils:
             gender = 'Male'
         elif occupant_type == 'woman':
             gender = 'Female'
+        elif occupant_type == 'person':
+            kind = 'Adult'
         elif occupant_type == 'child':
             kind = 'Child'
 
