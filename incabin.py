@@ -3651,13 +3651,19 @@ class InCabinUtils:
     def getOccupantByType(self, occupant_type):
         occupant = (-1, None)
         gender = None
+        kind = None
         if occupant_type == 'man':
             gender = 'Male'
         elif occupant_type == 'woman':
             gender = 'Female'
+        elif occupant_type == 'child':
+            kind = 'Child'
 
         if gender:
             occupant = self.selectCharacter('gender', gender)
+
+        if kind:
+            occupant = self.selectCharacter('kind', kind)
 
         if occupant[1]:
             occupant[1]['entity_id'] = occupant[0]
@@ -3672,7 +3678,7 @@ class InCabinUtils:
                 return seat_occupancy
     
     #_______________________________________________________________
-    def applyOccupantDistributionFromGemini(self, the_car, occupancy_distribution, occupant_dist_json):
+    def applyOccupantDistributionFromGemini(self, the_car, occupancy_distribution, occupant_dist_json, random_object_on_empty_prob = 0):
         if occupancy_distribution['from_file']:
             occupant_dist = occupant_dist_json
         else:
@@ -3692,7 +3698,7 @@ class InCabinUtils:
             'belt_on_without_character_probability': 0.0, # Probability for seatbelt on when the seat is empty
         }
         animal_types = ['cat', 'Dog']
-        object_types = ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'Coffee', 'Consumer_electronics', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'], # All possible object types
+        object_types = ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'Coffee', 'Consumer_electronics', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'] # All possible object types
 
         ret = []
         for seat_locator in seat_locators:
@@ -3725,6 +3731,9 @@ class InCabinUtils:
                         seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = animal_types)
                     else:
                         seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = object_types)
+                elif random_object_on_empty_prob:
+                    random_object_types = ['Backpack', 'Box', 'Handbag', 'cloth']
+                    seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = random_object_types) if random.uniform(0,1) < random_object_on_empty_prob else None
 
             # Build a return list with a dict with the occupancy of every seat
             if seat_occupant == None:
