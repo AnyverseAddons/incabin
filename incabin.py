@@ -3722,13 +3722,16 @@ class InCabinUtils:
                     else:
                         child = self.placeChildInChildseat(childseat, seat_locator,  seatbelts_distribution=seatbelts_distribution)
                     seat_occupant = [childseat, child]
-                elif (occupant_type == 'man' or occupant_type == 'woman') and occupied:
+                elif (occupant_type == 'man' or occupant_type == 'woman' or occupant_type == 'person') and occupied:
                     seat_occupant = self.placePassenger(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
                 elif occupied:
                     if occupant_type == 'animal':
                         seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = animal_types)
                     else:
                         seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = object_types)
+                elif seat_occupancy['child_seat']:
+                    chilldseat_config = occupancy_distribution['childseat_config']
+                    childseat = self.placeChildseat(seat_locator, chilldseat_config, only_baby_in_copilot = False)
                 elif random_object_on_empty_prob:
                     random_object_types = ['Backpack', 'Box', 'Handbag', 'cloth']
                     seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = random_object_types) if random.uniform(0,1) < random_object_on_empty_prob else None
