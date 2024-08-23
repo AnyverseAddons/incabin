@@ -222,19 +222,15 @@ incabin_config = {
 #            ON BEGIN ITERATION
 #__________________________________________
 import random
-import sys
 import json
 import os
-import incabin
-import importlib
-del sys.modules['incabin.incabin']
-importlib.reload(incabin)
+from incabin import incabin
 
 # This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
 gemini_distribution = '{ "day": true, "occupancy": [ { "seat": "seat01", "child_seat": false, "occupant": "woman", "seat_belt_on": true }, { "seat": "seat02", "child_seat": false, "occupant": "man", "seat_belt_on": true }, { "seat": "seat03", "child_seat": false, "occupant": "child", "seat_belt_on": true }, { "seat": "seat04", "child_seat": false, "occupant": "animal", "seat_belt_on": false }, { "seat": "seat05", "child_seat": true, "occupant": "empty", "seat_belt_on": false } ] }'
 
 if incabin_config['occupancy_distribution']['from_file']:
-    gemini_out_file_dir = incabin.__path__[0]
+    gemini_out_file_dir = os.path.abspath(os.path.dirname(incabin.__file__))
     gemini_out_file_name = 'gemini_output.json'
     gemini_out_file_path = os.path.join(gemini_out_file_dir, gemini_out_file_name)
 
