@@ -231,7 +231,7 @@ del sys.modules['incabin.incabin']
 importlib.reload(incabin)
 
 # This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
-gemini_distribution = '{ "day": true, "occupancy": [ { "seat": "seat01", "child_seat": false, "occupied": true, "occupant": "woman", "seat_belt_on": true }, { "seat": "seat02", "child_seat": false, "occupied": true, "occupant": "man", "seat_belt_on": true }, { "seat": "seat03", "child_seat": false, "occupied": true, "occupant": "child", "seat_belt_on": true }, { "seat": "seat04", "child_seat": false, "occupied": true, "occupant": "animal", "seat_belt_on": false }, { "seat": "seat05", "child_seat": false, "occupied": false, "occupant": "empty", "seat_belt_on": false } ] }'
+gemini_distribution = '{ "day": true, "occupancy": [ { "seat": "seat01", "child_seat": false, "occupant": "woman", "seat_belt_on": true }, { "seat": "seat02", "child_seat": false, "occupant": "man", "seat_belt_on": true }, { "seat": "seat03", "child_seat": false, "occupant": "child", "seat_belt_on": true }, { "seat": "seat04", "child_seat": false, "occupant": "animal", "seat_belt_on": false }, { "seat": "seat05", "child_seat": true, "occupant": "empty", "seat_belt_on": false } ] }'
 
 if incabin_config['occupancy_distribution']['from_file']:
     gemini_out_file_dir = incabin.__path__[0]
