@@ -2815,8 +2815,9 @@ class InCabinUtils:
         color_scheme = self._car_color_schemes[random.randrange(len(self._car_color_schemes))]
         print('[INFO] Color scheme: {}'.format(color_scheme))
         
-        print('[INFO] Changing materials for {}_{}'.format(picked_car['brand'], picked_car['model']))
-        self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
+        if dynamic_materials:
+            print('[INFO] Changing materials for {}_{}'.format(picked_car['brand'], picked_car['model']))
+            self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
 
         print('[INFO] Change belt material: {}'.format(change_belt_material))
         self.setCarSeatbeltsOff(picked_car, change_belt_material)
@@ -2891,7 +2892,7 @@ class InCabinUtils:
             seven_seater = True
 
         # Get seats from DDBB and get only the conventional ones for a seven seater
-        seats = self.queryCarSeats(picked_car, dynamic_materials)
+        seats = self.queryCarSeats(picked_car, dynamic_material = True)
         if seven_seater:
             seat_locators = [ sl for sl in seat_locators if 'conventional' in self._workspace.get_entity_name(sl) ]
             seats  = [ s for s in seats if 'conventional' in s['resource_name'] ]
@@ -2906,7 +2907,8 @@ class InCabinUtils:
             seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat06"))
             seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat07"))
         
-        self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
+        if dynamic_materials:
+            self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         
     #_______________________________________________________________
     def setCarSeatbeltsOff(self, picked_car, change_belt_material = False):
