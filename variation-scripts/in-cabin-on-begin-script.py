@@ -224,7 +224,9 @@ incabin_config = {
 import random
 import json
 import os
+import importlib
 from incabin import incabin
+importlib.reload(incabin)
 
 # This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
 gemini_distribution = '{ "day": true, "occupancy": [ { "seat": "seat01", "child_seat": false, "occupant": "woman", "seat_belt_on": true }, { "seat": "seat02", "child_seat": false, "occupant": "man", "seat_belt_on": true }, { "seat": "seat03", "child_seat": false, "occupant": "child", "seat_belt_on": true }, { "seat": "seat04", "child_seat": false, "occupant": "animal", "seat_belt_on": false }, { "seat": "seat05", "child_seat": true, "occupant": "empty", "seat_belt_on": false } ] }'
