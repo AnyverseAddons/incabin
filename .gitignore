@@ -1,6 +1,5 @@
 **/*.log
-cronai/cronai.zip
-anyverse-studio-scripts.code-workspace
+batches_occupancy/*
 .vscode
 __pycache__
 

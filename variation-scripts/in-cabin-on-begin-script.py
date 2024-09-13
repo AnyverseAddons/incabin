@@ -11,6 +11,8 @@ workspace.reduce_resolution = False
 workspace.testing = False
 # Flag to use fixed random seed or not
 workspace.fixed_seed = False
+# Flag to generate a json file with the occupancy generated for a batch
+workspace.generate_occupancy_file = False
 #__________________________________________
 # Check if running from script console and pass it to the incabin utils constructor
 script_console = False
@@ -241,7 +243,6 @@ if incabin_config['occupancy_distribution']['from_file']:
 else:
     gemini_distribution = json.loads(gemini_distribution)
 
-print(gemini_distribution)
 
 #__________________________________________
 def getCameraProbabilityList(incabin_config):
@@ -587,16 +588,19 @@ occupant_confs_probabilities = incabin_config["occupant_confs_probabilities"]
 occupancy_distribution = incabin_config["occupancy_distribution"]
 
 if occupancy_distribution['use_gemini_distribution']:
+    print('Applying a fixed distribution...')
+    print(gemini_distribution)
     icu.applyOccupantDistributionFromGemini(the_car, occupancy_distribution, gemini_distribution)
 else:
     conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
     if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
-        icu.EmptyDistribution(the_car, occupancy_distribution)
+        occupant_dist = icu.EmptyDistribution(the_car, occupancy_distribution, day)
     elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
         # occupant_dist = icu.AllAdultsDistribution(the_car)
-        occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
+        occupant_dist, _ = icu.NormalOccupantDistribution(the_car, occupancy_distribution, day)
         # occupant_dist = icu.ChildseatDistribution(the_car)
-        print('Occupant_dist: {}'.format(occupant_dist))
+    print('Occupant_dist: {}'.format(occupant_dist))
+
 
 
 # Set entities visualization mode to Mesh if testing
@@ -608,5 +612,23 @@ if workspace.testing or script_console:
             print(workspace.get_entity_name(entity_id))
             workspace.set_entity_property_value(entity_id, "Viewport3DEntityConfigurationComponent", "visualization_mode", "Mesh")
    
+# Save every iteration occupancy in a global anyverse_platform property
+if iteration_index == 0:
+    anyverse_platform.batch_occupancy_list = []
+if workspace.generate_occupancy_file:
+    anyverse_platform.batch_occupancy_list.append(occupant_dist)
+    if iteration_index == total_iteration_count - 1:
+        batch_out_file_dir = os.path.join(os.path.abspath(os.path.dirname(incabin.__file__)), 'batches_occupancy')
+        if not os.path.exists(batch_out_file_dir):
+            os.makedirs(batch_out_file_dir)
+        try:
+            batch_out_file_name = workspace.dataset.get_batch_name() + '_occupancy_output.json'
+        except RuntimeError as rt:
+            batch_out_file_name = 'dryrun_occupancy_output.json'
+        batch_out_file_path = os.path.join(batch_out_file_dir, batch_out_file_name)
+
+        print('Writing occupancy distribution to {}...'.format(batch_out_file_path))
+        with open(batch_out_file_path, 'w') as file:
+            batch_distribution = json.dump(anyverse_platform.batch_occupancy_list, file, indent = 4)
 print('___________________________________________________')
 
