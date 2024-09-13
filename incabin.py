@@ -237,8 +237,11 @@ class InCabinUtils:
 
         anim_name_lower = anim_name.lower()
         for anim in anims:
-            if self._workspace.get_entity_name(anim) == anim_name_lower or anim_name_lower in self._workspace.get_entity_name(anim):
+            candidate_anim_name_lower = self._workspace.get_entity_name(anim).lower()
+            if candidate_anim_name_lower == anim_name_lower or anim_name_lower in candidate_anim_name_lower:
                 return anim
+
+        print('[WARN]: Could not find animation "{}"'.format(anim_name))
         return -1
 
     #_______________________________________________________________
@@ -435,8 +438,11 @@ class InCabinUtils:
         elif anim_type == 'head':
             anim_config = 'head_anim_config'
 
-        self._workspace.set_entity_property_value(character_id, 'CharacterAnimationConfigurationComponent', anim_config + '.animation_entity_id',animation)
-        self._workspace.set_entity_property_value(character_id, 'CharacterAnimationConfigurationComponent', anim_config + '.weight',weight)
+        if animation == -1:
+            raise Exception( "Trying to set an animation not found" )
+
+        self._workspace.set_entity_property_value(character_id, 'CharacterAnimationConfigurationComponent', anim_config + '.animation_entity_id', animation)
+        self._workspace.set_entity_property_value(character_id, 'CharacterAnimationConfigurationComponent', anim_config + '.weight', weight)
 
     #_______________________________________________________________
     def selectAdultAnimation(self, anim_type, min_weight, max_weight, user, name = None):
