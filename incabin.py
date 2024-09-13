@@ -4146,7 +4146,13 @@ class InCabinUtils:
             print('[ERROR] locator {} does not exist.'.format(locator_name))
         if type == 'Locator':
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','apply_ik', True)
-            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', 3)
+
+            iklength = 3
+
+            if self.isGen9character(looker):
+                iklength = 4
+
+            self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','ik_chain_length', iklength)
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','type_gaze_control', 'Entity')
 
             self._workspace.set_entity_property_value(looker, 'CharacterGazeControlComponent','target_entity', locator)
