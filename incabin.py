@@ -3297,11 +3297,13 @@ class InCabinUtils:
         return ret
 
     #_______________________________________________________________
-    def EmptyDistribution(self, the_car, occupancy_distribution):
+    def EmptyDistribution(self, the_car, occupancy_distribution, day):
         print('[INFO] Empty distribution, leaving the car empty')
         seat_locators = self.getSeatLocators(the_car)
         occupied_seats = 0
-        ret = []
+        ret = {}
+        ret['day'] = day
+        ret['occupancy'] = []
         for seat_locator in seat_locators:
             seat_locator_name = self._workspace.get_entity_name(seat_locator).split('_')[0]
             occupancy = 0 # Empty
@@ -3311,7 +3313,7 @@ class InCabinUtils:
                                         seatbelts_distribution = occupancy_distribution['seatbelts_distribution'],
                                         accessories_probabilities = occupancy_distribution['accessories_probabilities']
                                         )
-            ret.append({'seat': seat_locator_name, 'childseat': False, 'occupant': 'empty', 'seat_belt_on': seat_occupant['Seatbelt_on']})
+            ret['occupancy'].append({'seat': seat_locator_name, 'childseat': False, 'occupant': 'empty', 'seat_belt_on': seat_occupant['Seatbelt_on']})
         return ret
 
     #_______________________________________________________________
