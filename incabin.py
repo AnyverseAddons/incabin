@@ -3,6 +3,7 @@ import city_builder
 import json
 import csv
 import random
+import math
 import re
 import sys
 import anyverseaux as aux
@@ -608,8 +609,11 @@ class InCabinUtils:
                 if name == object['name'] and version == object['version']:
                     picked_object = objects[idx]
                     break
-        entity_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_object['resource_id'])
-        picked_object['entity_id'] = entity_id
+
+        if picked_object:
+            entity_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, picked_object['resource_id'])
+            picked_object['entity_id'] = entity_id
+
         return picked_object
 
     #_______________________________________________________________
@@ -990,7 +994,7 @@ class InCabinUtils:
                 print('[INFO] Rescaling object to {}'.format(round(scale_factor, 2)))
                 self.scaleEntity(object_entity_id,round(scale_factor, 2))
             object['fixed_entity_id'] = object_entity_id
-            is_animal = True if object['class'].lower() == 'dog' else False
+            is_animal = True if object['class'].lower() == 'dog' or object['class'].lower() == 'cat' else False
 
             # Delete existing region if it exists
             existing_landing_region = self._workspace.get_entities_by_name('landing_region')
@@ -1057,7 +1061,7 @@ class InCabinUtils:
         return object
 
     #_______________________________________________________________
-    def placeDriver(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, age_group_probabilities = None, allow_child_driver = False):
+    def placeDriver(self, seat_locator, occupant = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, age_group_probabilities = None, allow_child_driver = False):
         print('[INFO] Placing Driver in {}'.format(self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
         # Select a random character based on age-group probabilities if not None
@@ -1072,11 +1076,13 @@ class InCabinUtils:
                 age_group_idx = self.choiceUsingProbabilities([ float(o['probability']) for o in age_group_probabilities ])
             age_group = age_group_probabilities[age_group_idx]['age_group']
             print('[INFO] driver age group: {}'.format(age_group))
-            driver_asset_id, driver = self.selectCharacter('agegroup', age_group, name)
+            driver_asset_id, driver = self.selectCharacter('agegroup', age_group)
             # kind = age_group_probabilities['age_group_idx']['kind']
             # driver_asset_id, driver = self.selectCharacter('kind', kind, name)
+        elif occupant:
+            driver_asset_id, driver = occupant['entity_id'], occupant
         else:
-            driver_asset_id, driver = self.selectCharacter('kind', 'Adult', name)
+            driver_asset_id, driver = self.selectCharacter('kind', 'Adult')
 
         if driver_asset_id != -1:
             driver_id = self._workspace.create_fixed_entity(driver['name'], seat_locator, driver_asset_id)
@@ -1513,14 +1519,20 @@ class InCabinUtils:
         return child
 
     #_______________________________________________________________
-    def placePassenger(self, seat_locator, name = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap = False):
+    def placePassenger(self, seat_locator, occupant = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap = False):
         print('[INFO] Placing Passenger in {} ({})'.format(self._workspace.get_entity_name(seat_locator).split('_')[0], seat_locator))
         # select a random adult character
         # select a random childseat of the given type
-        passenger_found = False
+        
+        if occupant:
+            passenger = occupant
+            passenger_id = self._workspace.create_fixed_entity(occupant['resource_name'], seat_locator, occupant['entity_id'])
+            passenger_found = True
+        else:
+            passenger_found = False
         stop_searching = False
         while not passenger_found and not stop_searching:
-            passenger_asset_id, passenger = self.selectCharacter('kind','Adult', name)
+            passenger_asset_id, passenger = self.selectCharacter('kind','Adult', occupant)
             if passenger_asset_id != -1:
                 passenger_id = self._workspace.create_fixed_entity(passenger['resource_name'], seat_locator, passenger_asset_id)
                 passenger_found = True
@@ -2311,7 +2323,8 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryBackgrounds(self):
         query = aux.ResourceQueryManager(self._workspace)
-        query.add_exists_attribute_filter('Scattering')
+        query.add_exists_attribute_filter('IBL_intensity')
+        query.add_attribute_filter("environment", 'Exterior')
 
         return self.queryResultToDic(query.execute_query_on_backgrounds(), anyverse_platform.WorkspaceEntityType.Background)
 
@@ -2598,17 +2611,7 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','misc.analogGain', analog_gain)
 
     #_______________________________________________________________
-    def setIllumination(self, day, conditions, background, simulation_id, multiple_cameras = False, active_light = False):
-        if conditions == 'scattered' or conditions == 'overcast':
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', conditions.title())
-        else:
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', 'Clear')
-
-        scattering = 600
-        if background != None:
-            scattering = background['scattering']
-
-        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', scattering)
+    def setIllumination(self, day, background, simulation_id, multiple_cameras = False, active_light = False):
 
         incabin_light = None
         incabin_lights = self._workspace.get_entities_by_type('Light')
@@ -2634,32 +2637,32 @@ class InCabinUtils:
         elif active_light:
             print('[WARN] Active light set to True, but no active light defined in the workspace')
 
+        self.setCustomMetadata(simulation_id, 'day', day)
+        self.setCustomMetadata(simulation_id, 'interior_lights', active_light)
+
         if day:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'PhysicalSky')
-            if conditions == 'overcast':
-                sky_light_intensity = 0.8
-                sun_light_intensity = 0.5
-            elif conditions == 'scattered':
-                sky_light_intensity = 0.8
-                sun_light_intensity = 0.8
-            else:
-                sky_light_intensity = 1
-                sun_light_intensity = 1
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','surrounding_type', 'Background')
+            sky_light_intensity = 1
+            sun_light_intensity = 1
 
+            # set default values
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sky_light_intensity', sky_light_intensity)
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sun_light_intensity', sun_light_intensity)
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', 600)
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 300)
-            return sky_light_intensity, sun_light_intensity
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', 300)
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 0)
+
+            return sun_light_intensity
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
-            ibl_light_intensity = random.uniform(1, 1)
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','surrounding_type', 'Background')
+            ibl_light_intensity = background['ibl_intensity']
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
 
             background_weight = 1
             if background != None:
                 self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
-            return background_weight, ibl_light_intensity
+            return ibl_light_intensity
 
     #_______________________________________________________________
     def setSensor(self, cam_id, sensor_name):
@@ -2707,30 +2710,58 @@ class InCabinUtils:
         return time_of_day
 
     #_______________________________________________________________
-    def setGroundRotationTimeOfDay(self, day, simulation_id, dawn = False, ground_rotation = None, time_of_day = None):
-        if time_of_day is None:
-            time_of_day = self.genTimeOfday(day, dawn)
+    def genSunDirection(self, day, dawn):
+        elevation = 0
+        azimuth = 0
+        sun_direction = anyverse_platform.Vector3D(0,0,0)
+        if day and dawn:
+            azimuth = random.uniform(0, 360)
+            elevation = random.uniform(1, 10)
+        elif day and not dawn:
+            azimuth = random.uniform(0, 360)
+            elevation = random.uniform(1, 90)
+        elif not day:
+            azimuth = random.uniform(0, 360)
+            elevation = -1
+
+        sun_direction.x = math.sin(math.radians(azimuth))
+        sun_direction.y = math.cos(math.radians(azimuth))
+        sun_direction.z = math.sin(math.radians(elevation))
+
+        return sun_direction, elevation, azimuth
+
+    #_______________________________________________________________
+    def setGroundRotationSunDirection(self, day, simulation_id, dawn = False, ground_rotation = None, sun_direction = None):
+        if sun_direction is None:
+            sun_direction, elevation, azimuth = self.genSunDirection(day, dawn)
         if ground_rotation is None:
             ground_rotation = random.uniform(0,360)
 
-        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','time_of_day', time_of_day)
-        self.setGroundRotation(ground_rotation, simulation_id)
+        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sky.sunDirection', sun_direction)
+        # self.setGroundRotation(ground_rotation, simulation_id)
+        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','background_offset', ground_rotation)
 
         self.setCustomMetadata(simulation_id, 'ground-rotation', ground_rotation)
+        self.setCustomMetadata(simulation_id, 'sun-elevation', elevation)
+        self.setCustomMetadata(simulation_id, 'sun-azimuth', azimuth)
 
-        return time_of_day, ground_rotation
+        return elevation, azimuth, ground_rotation
 
     #_______________________________________________________________
     def setBackground(self, background, simulation_id, dawn = False):
         if not dawn:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',background['entity_id'])
-            self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background['background_intensity'])
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', background['ibl_intensity'])
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','fixed_background',self._no_entry)
 
         # Dump the background info in the simulation custom metadata
         bkg_info = {}
         bkg_info['background'] = background['name']
+        bkg_info['day'] = background['day']
+        bkg_info['IBL_intensity'] = background['ibl_intensity']
+        bkg_info['environment'] = background['environment']
+        bkg_info['sky_type'] = background['sky_type']
         bkg_info['env-weight'] = self._workspace.get_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight')
 
         self.setCustomMetadata(simulation_id, "backgroundInfo", bkg_info)
@@ -2745,18 +2776,18 @@ class InCabinUtils:
         else:
             backgrounds = bg_list
 
-        selected_background_idx = random.randrange(0,len(backgrounds))
         if bg_name:
             for idx, background in enumerate(backgrounds):
                 if bg_name == background['name']:
-                    selected_background_idx = idx
+                    selected_background = backgrounds[idx]
                     break
-        selected_background = backgrounds[selected_background_idx]
+        else:
+            selected_background_idx = random.randrange(0,len(backgrounds))
+            selected_background = backgrounds[selected_background_idx]
+
 
         selected_background['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Background, selected_background['resource_id'])
         ws_bckgnd_id = selected_background['entity_id']
-        # ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
-        # selected_background['fixed_entity_id'] = ws_bckgnd_id
 
         return selected_background, ws_bckgnd_id
 
@@ -2789,8 +2820,9 @@ class InCabinUtils:
         color_scheme = self._car_color_schemes[random.randrange(len(self._car_color_schemes))]
         print('[INFO] Color scheme: {}'.format(color_scheme))
         
-        print('[INFO] Changing materials for {}_{}'.format(picked_car['brand'], picked_car['model']))
-        self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
+        if dynamic_materials:
+            print('[INFO] Changing materials for {}_{}'.format(picked_car['brand'], picked_car['model']))
+            self.changeExposedMaterials(the_car, picked_car, color_scheme = color_scheme)
 
         print('[INFO] Change belt material: {}'.format(change_belt_material))
         self.setCarSeatbeltsOff(picked_car, change_belt_material)
@@ -2865,7 +2897,7 @@ class InCabinUtils:
             seven_seater = True
 
         # Get seats from DDBB and get only the conventional ones for a seven seater
-        seats = self.queryCarSeats(picked_car, dynamic_materials)
+        seats = self.queryCarSeats(picked_car, dynamic_material = True)
         if seven_seater:
             seat_locators = [ sl for sl in seat_locators if 'conventional' in self._workspace.get_entity_name(sl) ]
             seats  = [ s for s in seats if 'conventional' in s['resource_name'] ]
@@ -2880,7 +2912,8 @@ class InCabinUtils:
             seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat06"))
             seat_ids_list.append(self.setSeat(the_car, seats, seat_locators, "seat07"))
         
-        self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
+        if dynamic_materials:
+            self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         
     #_______________________________________________________________
     def setCarSeatbeltsOff(self, picked_car, change_belt_material = False):
@@ -3174,7 +3207,7 @@ class InCabinUtils:
         probabilities = [ float(c['probability']) for c in conditions ]
         cond = conditions[self.choiceUsingProbabilities(probabilities)]
 
-        return cond['Day'], cond['Cond']
+        return cond['Day'], cond['interior-lights']
 
     #_______________________________________________________________
     def seatLocator2ChildseatLocator(self, seat_locator, the_car):
@@ -3193,7 +3226,7 @@ class InCabinUtils:
 
 
     #_______________________________________________________________
-    def fillSeat(self, occupancy, seat_locator, childseat_config, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None, object_types = None, allow_child_driver = False):
+    def fillSeat(self, occupancy, seat_locator, childseat_config, asset = None, seatbelts_distribution = None, accessories_probabilities = None, expression_probabilities = None, baby_on_lap_probability = 0, age_group_probabilities = None, object_types = None, allow_child_driver = False):
         the_car = self.getCars()[0]
         car_name = self._workspace.get_entity_name(self._workspace.get_entity_property_value(the_car, 'AssetEntityReferenceComponent','asset_entity_id'))
         if occupancy == 0:
@@ -3594,6 +3627,123 @@ class InCabinUtils:
                     seat_occupant = self.placePassenger(seat_locator, name=occupant['Occupant']+'_OP', seatbelts_distribution=seatbelts_distribution)
 
             # Build a return list with adict with the occupancy of every seat
+            if seat_occupant == None:
+                ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': False})
+            else:
+                if type(seat_occupant) != list:
+                    ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': seat_occupant['name'], 'Seatbelt_on': seat_occupant['Seatbelt_on'], 'Seatbelt_mode': seat_occupant['Seatbelt_placement'], 'Accessory': seat_occupant['Accessory']})
+                else:
+                    if seat_occupant[1] != None:
+                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': seat_occupant[1]['name'], 'Seatbelt_on': seat_occupant[1]['Seatbelt_on']})
+                    else:
+                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': 'None', 'Seatbelt_on': False})
+
+        if 'gaze_probabilities' in occupancy_distribution:
+            gaze_distribution = occupancy_distribution['gaze_probabilities']
+        else:
+            gaze_distribution = None
+            print('[WARN] No gaze probabilities')
+
+        # After occupancy is complete we adjust the driver's and copilot's gaze
+        # according to configuration 
+        if gaze_distribution:
+            driver_gaze = gaze_distribution['driver_gaze_probabilities']
+            self.setDriverGaze(driver_gaze) 
+            copilot_gaze = gaze_distribution['copilot_gaze_probabilities']
+            self.setPassengerGaze(copilot_gaze)
+
+        return ret
+
+    #_______________________________________________________________
+    def getOccupantByType(self, occupant_type):
+        occupant = (-1, None)
+        gender = None
+        kind = None
+        if occupant_type == 'man':
+            gender = 'Male'
+        elif occupant_type == 'woman':
+            gender = 'Female'
+        elif occupant_type == 'person':
+            kind = 'Adult'
+        elif occupant_type == 'child':
+            kind = 'Child'
+
+        if gender:
+            occupant = self.selectCharacter('gender', gender)
+
+        if kind:
+            occupant = self.selectCharacter('kind', kind)
+
+        if occupant[1]:
+            occupant[1]['entity_id'] = occupant[0]
+
+        return occupant[1]
+    
+    #_______________________________________________________________
+    def getSeatOccupancyFromGemini(self, seat_locator, occupancy):
+        seat_name = self._workspace.get_entity_name(seat_locator).split("_")[0]
+        for seat_occupancy in occupancy:
+            if seat_occupancy['seat'] == seat_name:
+                return seat_occupancy
+    
+    #_______________________________________________________________
+    def applyOccupantDistributionFromGemini(self, the_car, occupancy_distribution, occupant_dist, random_object_on_empty_prob = 0):
+        seat_locators = self.getSeatLocators(the_car)
+        seatbelts_distribution = {
+            'random_belt_material': True,
+            'differentiate_segments': False,
+            'belt_on_probability': 0.0, # Probability for seatbelt on when there is a character seated on
+            'seatbelt_placement_probabilities': {
+                'Normal': 1.0,
+                'BehindTheBack': 0.0,
+                'UnderShoulder': 0.0,
+                'WrongSideOfHead': 0.0,
+                'CharacterOverSeatbelt': 0.0
+            },   
+            'belt_on_without_character_probability': 0.0, # Probability for seatbelt on when the seat is empty
+        }
+        animal_types = ['cat', 'Dog']
+        object_types = ['Backpack', 'Baseball_cap', 'Bottle', 'Box', 'Can', 'Coffee', 'Consumer_electronics', 'Glasses', 'Handbag', 'Hat', 'Milkshake', 'Mobile Phone', 'Paper_Bag', 'Snack', 'Sunglasses', 'Toy', 'ammunition', 'cloth', 'garbage bag', 'handgun', 'knife', 'paper_bag', 'plastic bag', 'sheath', 'snack', 'wallet'] # All possible object types
+
+        ret = []
+        for seat_locator in seat_locators:
+            seat_locator_name = self._workspace.get_entity_name(seat_locator).split('_')[0]
+            seat_occupancy = self.getSeatOccupancyFromGemini(seat_locator, occupant_dist['occupancy'])
+            occupied = seat_occupancy['occupant'] != 'empty'
+            if seat_occupancy['seat_belt_on']:
+                seatbelts_distribution['belt_on_probability'] = 1.0
+                
+            seat_occupant = None
+            occupant_type = seat_occupancy['occupant']
+            occupant = self.getOccupantByType(occupant_type)
+            print(occupant_type)
+            print(occupant)
+            if self.isDriverSeat(seat_locator) and occupied:
+                seat_occupant = self.placeDriver(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
+            else:
+                if occupant_type == 'child':
+                    chilldseat_config = occupancy_distribution['childseat_config']
+                    childseat = self.placeChildseat(seat_locator, chilldseat_config, only_baby_in_copilot = False)
+                    if childseat['kind'] == 'BabyChild' and occupied:
+                        child = self.placeBabyInChildseat(childseat, seat_locator, seatbelts_distribution=seatbelts_distribution)
+                    else:
+                        child = self.placeChildInChildseat(childseat, seat_locator,  seatbelts_distribution=seatbelts_distribution)
+                    seat_occupant = [childseat, child]
+                elif (occupant_type == 'man' or occupant_type == 'woman' or occupant_type == 'person') and occupied:
+                    seat_occupant = self.placePassenger(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
+                elif occupied:
+                    if occupant_type == 'animal':
+                        seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = animal_types)
+                    else:
+                        seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = object_types)
+                elif seat_occupancy['child_seat']:
+                    chilldseat_config = occupancy_distribution['childseat_config']
+                    childseat = self.placeChildseat(seat_locator, chilldseat_config, only_baby_in_copilot = False)
+                elif random_object_on_empty_prob:
+                    random_object_types = ['Backpack', 'Box', 'Handbag', 'cloth']
+                    seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = random_object_types) if random.uniform(0,1) < random_object_on_empty_prob else None
+
+            # Build a return list with a dict with the occupancy of every seat
             if seat_occupant == None:
                 ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': False})
             else:

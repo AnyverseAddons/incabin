@@ -99,16 +99,18 @@ incabin_config = {
         }
     },
     "conditions": [ 
-        {'Day': True,  'Cond':'sunny',          'probability': 0.17},
-        {'Day': True,  'Cond':'scattered',      'probability': 0.17},
-        {'Day': True,  'Cond':'overcast',       'probability': 0.16},
-        {'Day': False, 'Cond':'interior-lights','probability': 0.50}
+        {'Day': True,  'interior-lights':True,  'probability': 0.0},
+        {'Day': True,  'interior-lights':False, 'probability': 0.25},
+        {'Day': False, 'interior-lights':True,  'probability': 0.25},
+        {'Day': False, 'interior-lights':False, 'probability': 0.0}
     ],
     "occupant_confs_probabilities": [ 
         {'Conf': 'Empty', 'probability': 0.1},
         {'Conf': 'Normal', 'probability': 0.9}
     ],
     "occupancy_distribution": {
+        "use_gemini_distribution": False,
+        "from_file": False, 
         'driver_occupancy_probabilities': [
             {'name': 'Empty',  'occupancy': 0, 'probability': 0.1},
             {'name': 'Driver', 'occupancy': 1, 'probability': 0.9} 
@@ -220,12 +222,26 @@ incabin_config = {
 #            ON BEGIN ITERATION
 #__________________________________________
 import random
-import sys
-import incabin
+import json
+import os
 import importlib
-del sys.modules['incabin.incabin']
+from incabin import incabin
 importlib.reload(incabin)
 
+# This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
+gemini_distribution = '{ "day": true, "occupancy": [ { "seat": "seat01", "child_seat": false, "occupant": "woman", "seat_belt_on": true }, { "seat": "seat02", "child_seat": false, "occupant": "man", "seat_belt_on": true }, { "seat": "seat03", "child_seat": false, "occupant": "child", "seat_belt_on": true }, { "seat": "seat04", "child_seat": false, "occupant": "animal", "seat_belt_on": false }, { "seat": "seat05", "child_seat": true, "occupant": "empty", "seat_belt_on": false } ] }'
+
+if incabin_config['occupancy_distribution']['from_file']:
+    gemini_out_file_dir = os.path.abspath(os.path.dirname(incabin.__file__))
+    gemini_out_file_name = 'gemini_output.json'
+    gemini_out_file_path = os.path.join(gemini_out_file_dir, gemini_out_file_name)
+
+    with open(gemini_out_file_path, 'r') as file:
+        gemini_distribution = json.load(file)
+else:
+    gemini_distribution = json.loads(gemini_distribution)
+
+print(gemini_distribution)
 
 #__________________________________________
 def getCameraProbabilityList(incabin_config):
@@ -501,9 +517,14 @@ else:
 # The probabilities come from incabin requirements. For day 
 # scenes the time of day and ground rotation will be randomly picked when setting illumination
 conditions = incabin_config["conditions"]
-
-day, cond = icu.selectConditions(conditions)
-print('Day scene: {}, Lighting conditions: {}'.format(day, cond))
+if incabin_config['occupancy_distribution']['use_gemini_distribution']: 
+    if gemini_distribution['day']:   
+        day, interior_lights = True, False
+    else:
+        day, interior_lights = False, True
+else:
+    day, interior_lights = icu.selectConditions(conditions)
+print('Day scene: {}, Interior Lighting : {}'.format(day, interior_lights))
 
 # pick and set a background depending if its day/night
 background, bckgnd_id = icu.selectBackground(day)
@@ -512,8 +533,8 @@ icu.setBackground(background, simulation_id)
 
 # set a time of day and a ground rotation randomly so the light will come in from variable angles
 # and the background seen through the windows changes
-time_of_day, ground_rotation = icu.setGroundRotationTimeOfDay(day, simulation_id)
-print('Time: {}, Ground rotation: {}'.format(time_of_day, ground_rotation))
+sun_elevation, sun_azimuth, ground_rotation = icu.setGroundRotationSunDirection(day, simulation_id)
+print('Sun position: elevation {}, azimuth {}; Ground rotation: {}'.format(sun_elevation, sun_azimuth, ground_rotation))
 rvm_left_locator = icu.createRVMLocator(the_car, 'left')
 rvm_right_locator = icu.createRVMLocator(the_car, 'right')
 rvm_inside_locator = icu.createRVMLocator(the_car, 'inside')
@@ -533,37 +554,25 @@ if multiple_cameras:
         if nir_simulation:
             icu.setSensor(camera_id, 'NIR-Sensor')
             icu.setIsp(camera_id, 'NIR-ISP')
-            active_light = True # if not day else False
             analog_gain = 15 if day else 7.5
             icu.setAnalogGain(camera_id, analog_gain)
         else:
             icu.setSensor(camera_id, 'RGB-Sensor')
             icu.setIsp(camera_id, 'RGB-ISP')
-            active_light = False
-        if day and rgb_at_day:
-            icu.setSensor(camera_id, 'RGB-Sensor')
-            icu.setIsp(camera_id, 'RGB-ISP')
-            active_light = False
 
 else:
     if nir_simulation:
         icu.setSensor(camera_id, 'NIR-Sensor')
         icu.setIsp(camera_id, 'NIR-ISP')
-        active_light = True if not day else False
         analog_gain = 15 if day else 7.5
         icu.setAnalogGain(camera_id, analog_gain)
     else:
         icu.setSensor(camera_id, 'RGB-Sensor')
         icu.setIsp(camera_id, 'RGB-ISP')
-        active_light = False
-    if day and rgb_at_day:
-        icu.setSensor(camera_id, 'RGB-Sensor')
-        icu.setIsp(camera_id, 'RGB-ISP')
-        active_light = False
 
-print('Sensor enabled? {}. Setting active lights to {}'.format(True, active_light))
+print('Setting active lights to {}'.format(interior_lights))
 # set the illumination depending on day/night and conditions
-intensity = icu.setIllumination(day, cond, background, simulation_id, multiple_cameras, active_light = active_light)
+intensity = icu.setIllumination(day, background, simulation_id, multiple_cameras, active_light = interior_lights)
 if day:
     print('Sun intensity: {}'.format(intensity))
 else:
@@ -571,20 +580,24 @@ else:
 
 #__________________________________________________________
 # Pick an occupant distribution based on probabilities and
-# call the approriate fuction to place them                          
+# call the appropriate function to place them                          
 occupant_confs_probabilities = incabin_config["occupant_confs_probabilities"]
 
 # Production occupancy settings
 occupancy_distribution = incabin_config["occupancy_distribution"]
 
-conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
-if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
-    icu.EmptyDistribution(the_car, occupancy_distribution)
-elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
-    # occupant_dist = icu.AllAdultsDistribution(the_car)
-    occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
-    # occupant_dist = icu.ChildseatDistribution(the_car)
-    print('Occupant_dist: {}'.format(occupant_dist))
+if occupancy_distribution['use_gemini_distribution']:
+    icu.applyOccupantDistributionFromGemini(the_car, occupancy_distribution, gemini_distribution)
+else:
+    conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
+    if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
+        icu.EmptyDistribution(the_car, occupancy_distribution)
+    elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
+        # occupant_dist = icu.AllAdultsDistribution(the_car)
+        occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
+        # occupant_dist = icu.ChildseatDistribution(the_car)
+        print('Occupant_dist: {}'.format(occupant_dist))
+
 
 # Set entities visualization mode to Mesh if testing
 if workspace.testing or script_console:

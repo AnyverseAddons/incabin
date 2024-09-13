@@ -1,0 +1,35 @@
+{
+  "day": false,
+  "occupancy": [
+    {
+      "seat": "seat01",
+      "child_seat": false,
+      "occupant": "woman",
+      "seat_belt_on": true
+    },
+    {
+      "seat": "seat02",
+      "child_seat": false,
+      "occupant": "man",
+      "seat_belt_on": true
+    },
+    {
+      "seat": "seat03",
+      "child_seat": false,
+      "occupant": "empty",
+      "seat_belt_on": false
+    },
+    {
+      "seat": "seat04",
+      "child_seat": false,
+      "occupant": "man",
+      "seat_belt_on": true
+    },
+    {
+      "seat": "seat05",
+      "child_seat": true,
+      "occupant": "empty",
+      "seat_belt_on": false
+    }
+  ]
+}
