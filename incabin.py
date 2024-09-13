@@ -199,10 +199,6 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def setAvoidArmsAutoCollision(self, entity_id, avoid):
-        if self.isGen9character(entity_id):
-            print( "[WARN] Auto collision is not available for Gen9 characters yet" )
-            avoid = False # TODO: Gen9 - Enable again when auto collision is working again for Gen9 characters
-
         self._workspace.set_entity_property_value(entity_id, 'CharacterBodyRestrictionsComponent','avoid_arms_auto_collision', avoid)
 
     #_______________________________________________________________
