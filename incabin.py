@@ -3,6 +3,7 @@ import city_builder
 import json
 import csv
 import random
+import math
 import re
 import sys
 import anyverseaux as aux
@@ -2323,6 +2324,7 @@ class InCabinUtils:
     def queryBackgrounds(self):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_exists_attribute_filter('IBL_intensity')
+        query.add_attribute_filter("environment", 'Exterior')
 
         return self.queryResultToDic(query.execute_query_on_backgrounds(), anyverse_platform.WorkspaceEntityType.Background)
 
@@ -2609,17 +2611,7 @@ class InCabinUtils:
         self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','misc.analogGain', analog_gain)
 
     #_______________________________________________________________
-    def setIllumination(self, day, conditions, background, simulation_id, multiple_cameras = False, active_light = False):
-        if day:
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', conditions.title())
-        else:
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','cloud_cover', 'Clear')
-
-        scattering = 600
-        if background != None and 'scattering' in background.keys():
-            scattering = background['scattering']
-
-        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', scattering)
+    def setIllumination(self, day, background, simulation_id, multiple_cameras = False, active_light = False):
 
         incabin_light = None
         incabin_lights = self._workspace.get_entities_by_type('Light')
@@ -2645,33 +2637,32 @@ class InCabinUtils:
         elif active_light:
             print('[WARN] Active light set to True, but no active light defined in the workspace')
 
+        self.setCustomMetadata(simulation_id, 'day', day)
+        self.setCustomMetadata(simulation_id, 'interior_lights', active_light)
+
         if day:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'PhysicalSky')
-            if conditions == 'overcast':
-                sky_light_intensity = 0.8
-                sun_light_intensity = 0.5
-            elif conditions == 'scattered':
-                sky_light_intensity = 0.8
-                sun_light_intensity = 0.8
-            else:
-                sky_light_intensity = 1
-                sun_light_intensity = 1
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','surrounding_type', 'Background')
+            sky_light_intensity = 1
+            sun_light_intensity = 1
 
+            # set default values
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sky_light_intensity', sky_light_intensity)
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sun_light_intensity', sun_light_intensity)
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', 600)
-            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 300)
-            return sky_light_intensity, sun_light_intensity
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', 300)
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 0)
+
+            return sun_light_intensity
         else:
             self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','surrounding_type', 'Background')
             ibl_light_intensity = background['ibl_intensity']
-            # ibl_light_intensity = random.uniform(1, 1)
-            # self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
 
             background_weight = 1
             if background != None:
                 self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
-            return background_weight, ibl_light_intensity
+            return ibl_light_intensity
 
     #_______________________________________________________________
     def setSensor(self, cam_id, sensor_name):
@@ -2719,18 +2710,42 @@ class InCabinUtils:
         return time_of_day
 
     #_______________________________________________________________
-    def setGroundRotationTimeOfDay(self, day, simulation_id, dawn = False, ground_rotation = None, time_of_day = None):
-        if time_of_day is None:
-            time_of_day = self.genTimeOfday(day, dawn)
+    def genSunDirection(self, day, dawn):
+        elevation = 0
+        azimuth = 0
+        sun_direction = anyverse_platform.Vector3D(0,0,0)
+        if day and dawn:
+            azimuth = random.uniform(0, 360)
+            elevation = random.uniform(1, 10)
+        elif day and not dawn:
+            azimuth = random.uniform(0, 360)
+            elevation = random.uniform(1, 90)
+        elif not day:
+            azimuth = random.uniform(0, 360)
+            elevation = -1
+
+        sun_direction.x = math.sin(math.radians(azimuth))
+        sun_direction.y = math.cos(math.radians(azimuth))
+        sun_direction.z = math.sin(math.radians(elevation))
+
+        return sun_direction, elevation, azimuth
+
+    #_______________________________________________________________
+    def setGroundRotationSunDirection(self, day, simulation_id, dawn = False, ground_rotation = None, sun_direction = None):
+        if sun_direction is None:
+            sun_direction, elevation, azimuth = self.genSunDirection(day, dawn)
         if ground_rotation is None:
             ground_rotation = random.uniform(0,360)
 
-        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','time_of_day', time_of_day)
-        self.setGroundRotation(ground_rotation, simulation_id)
+        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sky.sunDirection', sun_direction)
+        # self.setGroundRotation(ground_rotation, simulation_id)
+        self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','background_offset', ground_rotation)
 
         self.setCustomMetadata(simulation_id, 'ground-rotation', ground_rotation)
+        self.setCustomMetadata(simulation_id, 'sun-elevation', elevation)
+        self.setCustomMetadata(simulation_id, 'sun-azimuth', azimuth)
 
-        return time_of_day, ground_rotation
+        return elevation, azimuth, ground_rotation
 
     #_______________________________________________________________
     def setBackground(self, background, simulation_id, dawn = False):
@@ -2752,7 +2767,7 @@ class InCabinUtils:
         self.setCustomMetadata(simulation_id, "backgroundInfo", bkg_info)
 
     #_______________________________________________________________
-    def selectBackground(self, day, conditions, bg_list = None, bg_name = None):
+    def selectBackground(self, day, bg_list = None, bg_name = None):
         if bg_list == None:
             if day :
                 backgrounds = [ b for b in self._workspace.backgrounds if b['day'] ]
@@ -2768,21 +2783,11 @@ class InCabinUtils:
                     break
         else:
             selected_background_idx = random.randrange(0,len(backgrounds))
-            found = False
-            while not found:
-                selected_background = backgrounds[selected_background_idx]
-                if 'weather' in selected_background.keys() and selected_background['weather'] != 'undefined' and selected_background['weather'] == conditions:
-                    found = True
-                elif not day:
-                    found = True
-                else:
-                    selected_background_idx = random.randrange(0,len(backgrounds))
+            selected_background = backgrounds[selected_background_idx]
 
 
         selected_background['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Background, selected_background['resource_id'])
         ws_bckgnd_id = selected_background['entity_id']
-        # ws_bckgnd_id = self._workspace.create_entity_from_resource(anyverse_platform.WorkspaceEntityType.Background, selected_background["resource_name"], selected_background["resource_id"], anyverse_platform.invalid_entity_id)
-        # selected_background['fixed_entity_id'] = ws_bckgnd_id
 
         return selected_background, ws_bckgnd_id
 
@@ -3202,7 +3207,7 @@ class InCabinUtils:
         probabilities = [ float(c['probability']) for c in conditions ]
         cond = conditions[self.choiceUsingProbabilities(probabilities)]
 
-        return cond['Day'], cond['Cond']
+        return cond['Day'], cond['interior-lights']
 
     #_______________________________________________________________
     def seatLocator2ChildseatLocator(self, seat_locator, the_car):
