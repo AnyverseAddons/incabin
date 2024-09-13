@@ -173,14 +173,14 @@ This is the default configuration for 2 cameras RVM for a rear view mirror posit
         }
     },
 ```
-The `conditions`property has to do with the illumination. You can set the probabilities for 4 different  conditions. the last one `interior-lights` sets a night time[^times] and enables in-cabin active illumination and NIR simulation. The default configuration is:
+The `conditions`property has to do with the illumination. You can set the probabilities for 4 different  conditions. Basically you control 2 properties, one to decide day or night and another to turn on or off the interior NIR active lights. For day illumination, the sun is positioned randomly setting an elevation between [0º, 90º] and azimuth between [0º, 360º]. These values are annotated as custom metadata in the annotations file. The default configuration is:
 
 ```
     "conditions": [ 
-        {'Day': True,  'Cond':'sunny',          'Probability': 0.25},
-        {'Day': True,  'Cond':'scattered',      'Probability': 0.25},
-        {'Day': True,  'Cond':'overcast',       'Probability': 0.25},
-        {'Day': False, 'Cond':'interior-lights','Probability': 0.25}
+        {'Day': True,  'interior-lights':True,  'probability': 0.0},
+        {'Day': True,  'interior-lights':False, 'probability': 0.25},
+        {'Day': False, 'interior-lights':True,  'probability': 0.25},
+        {'Day': False, 'interior-lights':False, 'probability': 0.0}
     ],
 ```
 
@@ -197,6 +197,8 @@ The `occupancy_distribution` property is the most complex and allows you to cont
 
 ```
     "occupancy_distribution": {
+        "use_gemini_distribution": False,
+        "from_file": False, 
         'driver_occupancy_probabilities': [ ...
         'copilot_occupancy_probabilities': [ ...
         'backseat_occupancy_probabilities': [ ...
@@ -210,7 +212,17 @@ The `occupancy_distribution` property is the most complex and allows you to cont
         'gaze_probabilities': { ...
         'expression_probabilities': [ ...
     }
+    
 ```
+The first two properties allows to apply a fixed occupant distribution that comes from a guess by Google Gemini VQA of the occupants spotted in a provided image. You can use this capability from [Anyverse Customer Portal](https://customers.anyverse.ai/). Bear in mind that it is only available for selected user, check with Anyverse support if you are eligible to have permissions to use this capability.
+
+However, you can apply a fixed distribution provided by you locally. You have to provide a static json string like the one you can find in `in-cabin-on-begin-script.py`  or a json file with a list of distributions to apply in different iterations, where `iteration_index` is the index for the distribution to apply. The `use_gemini_distribution` when set to True will use the static json string  in the code, but if `from_file` is set to True as well, it will use a fille named `gemini_distribution.json` in the incabin add-on directory.
+
+```
+        "use_gemini_distribution": False,
+        "from_file": False, 
+```
+
 For the driver seat, `driver_occupancy_probabilities`, you can set the probabilities to be empty or occupied. For all other seats, `copilot_occupancy_probabilities`, `backseat_occupancy_probabilities` and `middleseat_occupancy_probabilities` you can set probabilities to be empty, have a child seat, a passenger or an object. 
 
 ```
