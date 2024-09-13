@@ -106,6 +106,8 @@ incabin_config = {
         {'Day': False, 'interior-lights':True,  'probability': 0.25},
         {'Day': False, 'interior-lights':False, 'probability': 0.0}
     ],
+    "use_gen9_characters": True,
+    "use_legacy_characters": False,
     "occupant_confs_probabilities": [ 
         {'Conf': 'Empty', 'probability': 0.1},
         {'Conf': 'Normal', 'probability': 0.9}
@@ -259,15 +261,13 @@ if iteration_index == 0:
         #print(anyverse_platform.cars)
         print('Car list loaded!')
     
-    if not hasattr(anyverse_platform, 'characters'):
+    if not hasattr(anyverse_platform, 'characters_gen9') or not hasattr(anyverse_platform, 'characters_legacy') :
         print('Loading characters...')
         # NOTE: anyverse_platform.characters contains all characters.
         #       anyverse_platform.characters_gen9 contains gen9 characters only
-        anyverse_platform.characters = icu.queryCharacters()
+        anyverse_platform.characters_legacy = icu.queryCharacters()
         anyverse_platform.characters_gen9 = icu.queryCharactersGen9()
         
-        anyverse_platform.characters += anyverse_platform.characters_gen9
-
         #print(anyverse_platform.characters)
         print('Characters list loaded!')
 
@@ -313,8 +313,16 @@ if iteration_index == 0:
         #print(anyverse_platform.materials)
         print('Materials list loaded!')
 
+
+anyverse_platform.characters = []
+if incabin_config["use_gen9_characters"]:
+    anyverse_platform.characters += anyverse_platform.characters_gen9
+if incabin_config["use_legacy_characters"]:
+    anyverse_platform.characters += anyverse_platform.characters_legacy
+
 workspace.cars = anyverse_platform.cars
 workspace.characters = anyverse_platform.characters
+workspace.characters_legacy = anyverse_platform.characters_legacy
 workspace.characters_gen9 = anyverse_platform.characters_gen9
 workspace.babies = anyverse_platform.babies
 workspace.childseats = anyverse_platform.childseats
