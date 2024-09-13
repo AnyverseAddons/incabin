@@ -3311,17 +3311,19 @@ class InCabinUtils:
                                         seatbelts_distribution = occupancy_distribution['seatbelts_distribution'],
                                         accessories_probabilities = occupancy_distribution['accessories_probabilities']
                                         )
-            ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': seat_occupant['Seatbelt_on']})
+            ret.append({'seat': seat_locator_name, 'childseat': False, 'occupant': 'empty', 'seat_belt_on': seat_occupant['Seatbelt_on']})
         return ret
 
     #_______________________________________________________________
-    def NormalOccupantDistribution(self, the_car, occupancy_distribution):
+    def NormalOccupantDistribution(self, the_car, occupancy_distribution, day):
         seat_locators = self.getSeatLocators(the_car)
         seven_seater = False
         if len(seat_locators) == 7:
             seven_seater = True
         occupied_seats = 0
-        ret = []
+        ret = {}
+        ret['day'] = day
+        ret['occupancy'] = []
         for seat_locator in seat_locators:
             seat_locator_name = self._workspace.get_entity_name(seat_locator).split('_')[0]
             if seven_seater and 'seat05' in seat_locator_name:
@@ -3370,17 +3372,26 @@ class InCabinUtils:
 
             # Build a return list with a dict with the occupancy of every seat
             if not seat_occupant:
-                ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': False})
+                ret['occupancy'].append({'seat': seat_locator_name, 'childseat': False, 'occupant': 'empty', 'seat_belt_on': False})
             elif 'isEmpty' in seat_occupant:
-                ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': seat_occupant['Seatbelt_on']})
+                ret['occupancy'].append({'seat': seat_locator_name, 'childseat': False, 'occupant': 'empty', 'seat_belt_on': seat_occupant['Seatbelt_on']})
             else:
                 if type(seat_occupant) != list:
-                    ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': seat_occupant['name'], 'Seatbelt_on': seat_occupant['Seatbelt_on'], 'Seatbelt_mode': seat_occupant['Seatbelt_placement'], 'Accessory': seat_occupant['Accessory']})
+                    if 'gender' in seat_occupant.keys():
+                        occupant_type = 'person'
+                        if seat_occupant['gender'] == 'Male':
+                            occupant_type = 'man'
+                        elif seat_occupant['gender'] == 'Female':
+                            occupant_type = 'woman'
+                    else:
+                        occupant_type = 'animal' if seat_occupant['class'].lower() == ['dog', 'cat'] else 'object'
+                    ret['occupancy'].append({'seat': seat_locator_name, 'childseat': False, 'occupant': occupant_type, 'seat_belt_on': seat_occupant['Seatbelt_on']})
                 else:
                     if seat_occupant[1] != None:
-                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': seat_occupant[1]['name'], 'Seatbelt_on': seat_occupant[1]['Seatbelt_on']})
+                        
+                        ret['occupancy'].append({'seat': seat_locator_name, 'childseat': True, 'occupant': 'child', 'seat_belt_on': seat_occupant[1]['Seatbelt_on']})
                     else:
-                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': 'None', 'Seatbelt_on': False})
+                        ret['occupancy'].append({'seat': seat_locator_name, 'childseat': True, 'occupant': 'empty', 'seat_belt_on': False})
 
         if 'gaze_probabilities' in occupancy_distribution:
             gaze_distribution = occupancy_distribution['gaze_probabilities']
@@ -3587,72 +3598,6 @@ class InCabinUtils:
         for occupant in occupant_dist:
             if occupant['Seat'] == seat_name:
                 return occupant
-
-    #_______________________________________________________________
-    def applyOccupantDistribution(self, the_car, occupancy_distribution, occupant_dist):
-        seat_locators = self.getSeatLocators(the_car)
-        seatbelts_distribution = {
-            'belt_on_probability': 0.0, # Probability for seatbelt on when there is a character seated on
-            'seatbelt_placement_probabilities': {
-                'Normal': 1.0,
-                'BehindTheBack': 0.0,
-                'UnderShoulder': 0.0,
-                'WrongSideOfHead': 0.0,
-                'CharacterOverSeatbelt': 0.0
-            },   
-            'belt_on_without_character_probability': 0.0, # Probability for seatbelt on when the seat is empty
-        }
-
-        ret = []
-        for seat_locator in seat_locators:
-            seat_locator_name = self._workspace.get_entity_name(seat_locator).split('_')[0]
-            occupant = self.getOccupant(seat_locator, occupant_dist)
-            childseat_name = occupant['Childseat'] if occupant['Childseat'] != 'None' else None
-            occupied = occupant['Occupant'] != 'None'
-            if occupant['Seatbelt_on']:
-                seatbelts_distribution['belt_on_probability'] = 1.0
-            seat_occupant = None
-            if self.isDriverSeat(seat_locator) and occupied:
-                seat_occupant = self.placeDriver(seat_locator, name=occupant['Occupant']+'_OP', seatbelts_distribution=seatbelts_distribution)
-            else:
-                if childseat_name != None:
-                    chilldseat_config = occupancy_distribution['childseat_config']
-                    childseat = self.placeChildseat(seat_locator, chilldseat_config, name = childseat_name, only_baby_in_copilot = False)
-                    if childseat['kind'] == 'BabyChild' and occupied:
-                        child = self.placeBabyInChildseat(childseat, seat_locator, occupant['Occupant'])
-                    else:
-                        child = self.placeChildInChildseat(childseat, seat_locator, name=occupant['Occupant']+'_OP', seatbelts_distribution=seatbelts_distribution)
-                    seat_occupant = [childseat, child]
-                elif occupied:
-                    seat_occupant = self.placePassenger(seat_locator, name=occupant['Occupant']+'_OP', seatbelts_distribution=seatbelts_distribution)
-
-            # Build a return list with adict with the occupancy of every seat
-            if seat_occupant == None:
-                ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': 'None', 'Seatbelt_on': False})
-            else:
-                if type(seat_occupant) != list:
-                    ret.append({'Seat': seat_locator_name, 'Childseat': 'None', 'Occupant': seat_occupant['name'], 'Seatbelt_on': seat_occupant['Seatbelt_on'], 'Seatbelt_mode': seat_occupant['Seatbelt_placement'], 'Accessory': seat_occupant['Accessory']})
-                else:
-                    if seat_occupant[1] != None:
-                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': seat_occupant[1]['name'], 'Seatbelt_on': seat_occupant[1]['Seatbelt_on']})
-                    else:
-                        ret.append({'Seat': seat_locator_name, 'Childseat': seat_occupant[0]['name'], 'Occupant': 'None', 'Seatbelt_on': False})
-
-        if 'gaze_probabilities' in occupancy_distribution:
-            gaze_distribution = occupancy_distribution['gaze_probabilities']
-        else:
-            gaze_distribution = None
-            print('[WARN] No gaze probabilities')
-
-        # After occupancy is complete we adjust the driver's and copilot's gaze
-        # according to configuration 
-        if gaze_distribution:
-            driver_gaze = gaze_distribution['driver_gaze_probabilities']
-            self.setDriverGaze(driver_gaze) 
-            copilot_gaze = gaze_distribution['copilot_gaze_probabilities']
-            self.setPassengerGaze(copilot_gaze)
-
-        return ret
 
     #_______________________________________________________________
     def getOccupantByType(self, occupant_type):

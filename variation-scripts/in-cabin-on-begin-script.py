@@ -591,12 +591,12 @@ if occupancy_distribution['use_gemini_distribution']:
 else:
     conf_idx = icu.choiceUsingProbabilities([ float(c['probability']) for c in occupant_confs_probabilities])
     if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
-        icu.EmptyDistribution(the_car, occupancy_distribution)
+        occupant_dist = icu.EmptyDistribution(the_car, occupancy_distribution)
     elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
         # occupant_dist = icu.AllAdultsDistribution(the_car)
-        occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution)
+        occupant_dist = icu.NormalOccupantDistribution(the_car, occupancy_distribution, day)
         # occupant_dist = icu.ChildseatDistribution(the_car)
-        print('Occupant_dist: {}'.format(occupant_dist))
+    print('Occupant_dist: {}'.format(occupant_dist))
 
 
 # Set entities visualization mode to Mesh if testing
