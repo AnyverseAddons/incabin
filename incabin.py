@@ -1233,19 +1233,27 @@ class InCabinUtils:
         return childseat_asset_id, childseat
 
     #_______________________________________________________________
+    def applyPositionOffset(self, entity_id, offset):
+        print('[INFO] Applying position offset to child seat in front passenger seat')
+        pos = self._workspace.get_entity_property_value(entity_id, 'RelativeTransformToComponent','position')
+        pos += offset
+        self._workspace.set_entity_property_value(entity_id, 'RelativeTransformToComponent','position', pos)
+        
+    #_______________________________________________________________
     def placeChildseat(self, seat_locator, childseat_config, name = None, only_baby_in_copilot = True):
         childseat_type_probabilities = childseat_config['childseat_type_probabilities']
         childseat_orientation_probabilities = childseat_config['childseat_orientation_probabilities']
         childseat_probabilities = [ float(t['probability']) for t in childseat_type_probabilities ]
         orientation_probabilities = [ float(t['probability']) for t in childseat_orientation_probabilities ]
         max_rotation = childseat_config['childseat_rotation_max']
+        pos_offset = anyverse_platform.Vector3D(-0.15, 0, 0)
 
         # Only baby child seat in copilot front seat
         if self.isCopilotSeat(seat_locator) and only_baby_in_copilot:
             childseat_type_idx = 0
         # Only booster seat in middle back seat
-        elif self.isMiddleBackSeat(seat_locator):
-            childseat_type_idx = 2
+        # elif self.isMiddleBackSeat(seat_locator):
+        #     childseat_type_idx = 2
         else:
             childseat_type_idx = self.choiceUsingProbabilities(childseat_probabilities)
 
@@ -1256,12 +1264,16 @@ class InCabinUtils:
             orientation_idx = self.choiceUsingProbabilities(orientation_probabilities)
             orientation = childseat_orientation_probabilities[orientation_idx]['Orientation']
             childseat_asset_id, childseat = self.selectChildseat('kind', childseat_type, orientation, name)
+            if self.isCopilotSeat(seat_locator):
+                pos_offset = anyverse_platform.Vector3D(-0.15, 0, 0)
         else:
             orientation = 'Forward'
             childseat_asset_id, childseat = self.selectChildseat('kind',childseat_type, orientation, name)
 
         if childseat_asset_id != -1:
             childseat_id = self._workspace.create_fixed_entity(childseat['resource_name'], seat_locator, childseat_asset_id)
+            if pos_offset:
+                self.applyPositionOffset(childseat_id, pos_offset)
             childseat['fixed_entity_id'] = childseat_id
             print('[INFO] Placing Childseat {} in {}'.format(childseat['name'], self._workspace.get_entity_name(seat_locator).split('_')[0]))
 
@@ -1497,7 +1509,7 @@ class InCabinUtils:
             self.setExportAlwaysExcludeOcclusion(child_id)
             self.setAvoidArmsAutoCollision(child_id, True)
             if self._seat_collision:
-                self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
+                self.setSeatCollision(child_id, 'SeatEntity', collision_entity_id=childseat['fixed_entity_id'])
             self.removeMotionBlur(child_id)
             self.setCharacterInfo(child)
             self.setSeatInfo(child)
@@ -2721,8 +2733,8 @@ class InCabinUtils:
             azimuth = random.uniform(0, 360)
             elevation = random.uniform(1, 90)
         elif not day:
-            azimuth = random.uniform(0, 360)
-            elevation = -1
+            azimuth = 0
+            elevation = -10
 
         sun_direction.x = math.sin(math.radians(azimuth))
         sun_direction.y = math.cos(math.radians(azimuth))
@@ -3616,7 +3628,10 @@ class InCabinUtils:
             kind = 'Child'
 
         if gender:
-            occupant = self.selectCharacter('gender', gender)
+            found = False
+            while not found:
+                occupant = self.selectCharacter('gender', gender)
+                found = True if occupant[1]['kind'] == 'Adult' else False
 
         if kind:
             occupant = self.selectCharacter('kind', kind)
@@ -3669,12 +3684,14 @@ class InCabinUtils:
                 seat_occupant = self.placeDriver(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
             else:
                 if occupant_type == 'child':
-                    chilldseat_config = occupancy_distribution['childseat_config']
-                    childseat = self.placeChildseat(seat_locator, chilldseat_config, only_baby_in_copilot = False)
+                    childseat_config = occupancy_distribution['childseat_config']
+                    childseat = self.placeChildseat(seat_locator, childseat_config, only_baby_in_copilot = False)
                     if childseat['kind'] == 'BabyChild' and occupied:
                         child = self.placeBabyInChildseat(childseat, seat_locator, seatbelts_distribution=seatbelts_distribution)
+                        self._workspace.set_entity_property_value(childseat['fixed_entity_id'], 'RelativeTransformToComponent','scale', anyverse_platform.Vector3D(0.9,0.9,0.9))
                     else:
                         child = self.placeChildInChildseat(childseat, seat_locator,  seatbelts_distribution=seatbelts_distribution)
+                        self._workspace.set_entity_property_value(childseat['fixed_entity_id'], 'RelativeTransformToComponent','scale', anyverse_platform.Vector3D(0.8,0.8,0.8))
                     seat_occupant = [childseat, child]
                 elif (occupant_type == 'man' or occupant_type == 'woman' or occupant_type == 'person') and occupied:
                     seat_occupant = self.placePassenger(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
