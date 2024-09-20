@@ -2424,7 +2424,8 @@ class InCabinUtils:
     #_______________________________________________________________
     def changeMaterial(self, fixed_id, material_name_pattern, new_material):
         ok = False
-        matched_materials = [ m for m in self.getAssetExposedMaterials(fixed_id) if re.search(material_name_pattern, self._workspace.get_entity_name(m)) ]
+        # Make sure we change the material that belongs to the fixed_id in case there are more exposed materials in the hierarchy matching the pattern or name
+        matched_materials = [ m for m in self.getAssetExposedMaterials(fixed_id) if re.search(material_name_pattern, self._workspace.get_entity_name(m)) and self.getParent(self.getParent(m)) == fixed_id ]
         if len(matched_materials) > 0:
             material = matched_materials[0]
             self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', new_material)
