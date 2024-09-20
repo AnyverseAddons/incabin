@@ -3931,7 +3931,7 @@ class InCabinUtils:
         return cc_locator
 
     #_______________________________________________________________
-    def reachLocator(self, character_id, hand, locator, offset = None):
+    def reachLocator(self, character_id, hand, locator, offset=None, ignoreLocatorRotation=True):
         type = None
         try:
             type = self._workspace.get_entity_type(locator)
@@ -3939,12 +3939,13 @@ class InCabinUtils:
             print('[ERROR] locator {} does not exist.'.format(locator))
             locator_name = None
         if type == 'Locator':
-            hand_config = 'left_hand_config.locator_entity_id'
-            if hand == 'right':
-                hand_config = 'right_hand_config.locator_entity_id'
-            self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent',hand_config, locator)
+            hand_config = '{}_hand_config'.format( hand )
+
+            self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent', hand_config + '.locator_entity_id', locator)
+            self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent', hand_config + '.ignoreLocatorRotation', ignoreLocatorRotation)
+
             if offset is not None:
-                self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent',hand_config+'.offset', offset)
+                self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent', hand_config + '.offset', offset)
             locator_name = self._workspace.get_entity_name(locator)
         elif type is not None:
             print('[WARN] {}({}) not a locator.'.format(self._workspace.get_entity_name(locator), locator))
