@@ -1448,7 +1448,7 @@ class InCabinUtils:
             # set child pose if not a big baby
             if 'Baby' not in child['name']:
                 if fasten_seatbelt:
-                    animation, weight = self.getChildSittingStraightAnimation(seat_locator)
+                    animation, weight = self.getChildSittingStraightAnimation(seat_locator, child_id)
                 else:
                     animation, weight = self.selectChildAnimation(seat_locator, 'base', 0, 0.6, user=child_id)
                 self.setAnimation('base', animation, weight, child_id)
@@ -2302,17 +2302,31 @@ class InCabinUtils:
         # TODO: Gen9 - This hack adds missing metadata to currently uploaded characters.
         # Remove it when gen9 characters metadata is available
         for entry in resourcesDict:
-            entry['kind'] = 'Adult'
-            entry['agegroup'] = '31-50'
-            entry['gender'] = 'Male'
-            entry['ethnicity'] = 'White'
-            entry['height'] = 175.0
-            entry['model'] = entry['name']
-            entry['glasses'] = False
-            entry['cap'] = False
-            entry['hat'] = False
-            entry['facemask'] = False
-            entry['root_offset'] = "0.0"
+            if 'kind' not in entry.keys():
+                entry['kind'] = 'Child' if 'e3d_aaron' in entry['name'] or 'child' in entry['name'] else 'Adult'
+            if 'agegroup' not in entry.keys():
+                entry['agegroup'] = '31-50'
+            if 'gender' not in entry.keys():
+                entry['gender'] = 'Male'
+            if 'ethnicity' not in entry.keys():
+                entry['ethnicity'] = 'White'
+            if 'height' not in entry.keys():
+                entry['height'] = 175.0
+            if 'model' not in entry.keys():
+                entry['model'] = entry['name']
+            if 'glasses' not in entry.keys():
+                entry['glasses'] = False
+            if 'cap' not in entry.keys():
+                entry['cap'] = False
+            if 'hat' not in entry.keys():
+                entry['hat'] = False
+            if 'facemask' not in entry.keys():
+                entry['facemask'] = False
+            if 'root_offset' not in entry.keys():
+                entry['root_offset'] = "0.0"
+
+            if 'Child' == entry['kind']:
+                entry['suitableseat'] = 'Convertible' if 'e3d_aroon_01_local_no_brows' == entry['name'] else 'Booster'
 
         return resourcesDict
 
