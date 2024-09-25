@@ -1,34 +1,34 @@
 {
-  "day": false,
+  "day": true,
   "occupancy": [
     {
-      "seat": "seat01",
       "child_seat": false,
       "occupant": "woman",
+      "seat": "seat01",
       "seat_belt_on": true
     },
     {
+      "child_seat": true,
+      "occupant": "child",
       "seat": "seat02",
+      "seat_belt_on": true
+    },
+    {
       "child_seat": false,
       "occupant": "man",
+      "seat": "seat03",
       "seat_belt_on": true
     },
     {
-      "seat": "seat03",
       "child_seat": false,
-      "occupant": "empty",
+      "occupant": "animal",
+      "seat": "seat04",
       "seat_belt_on": false
     },
     {
-      "seat": "seat04",
       "child_seat": false,
-      "occupant": "man",
-      "seat_belt_on": true
-    },
-    {
+      "occupant": "child",
       "seat": "seat05",
-      "child_seat": true,
-      "occupant": "empty",
       "seat_belt_on": false
     }
   ]

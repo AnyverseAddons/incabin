@@ -240,6 +240,8 @@ if incabin_config['occupancy_distribution']['from_file']:
 
     with open(gemini_out_file_path, 'r') as file:
         gemini_distribution = json.load(file)
+        if isinstance(gemini_distribution, str):
+            gemini_distribution = json.loads(gemini_distribution)
 else:
     gemini_distribution = json.loads(gemini_distribution)
 
