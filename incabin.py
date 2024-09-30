@@ -1410,7 +1410,7 @@ class InCabinUtils:
             # For the other children in convertibles we always fasten the seatbelts to have a 50/50
             # considering the re are 4 big babies and 4 children characters suitable for convertibles.
             # Fastening seat belts affect what base animation we set: only sitting straight when seat belts fastened
-            if 'Baby' in child['name'] or childseat['Orientation'] == 'Backward':
+            if 'Baby' in child['name'] or childseat['Orientation'] == 'Backward' or childseat['kind'] == 'Booster':
                 fasten_seatbelt = False
             else:
                 fasten_seatbelt = self.decideFastenSeatbelt(child, seatbelts_distribution['belt_on_probability'])
@@ -3674,7 +3674,7 @@ class InCabinUtils:
             seat_occupancy = self.getSeatOccupancyFromGemini(seat_locator, occupant_dist['occupancy'])
             occupied = seat_occupancy['occupant'] != 'empty'
             if seat_occupancy['seat_belt_on']:
-                seatbelts_distribution['belt_on_probability'] = 1.0
+                seatbelts_distribution['belt_on_probability'] = 0.5
                 
             seat_occupant = None
             occupant_type = seat_occupancy['occupant']
