@@ -970,6 +970,7 @@ class InCabinUtils:
         print('[INFO] Placing object on {}'.format(self._workspace.get_entity_name(seat_id)))
 
         big_object = True if random.uniform(0,1) >= 0.75 and not self.isMiddleBackSeat(seat_locator) else False
+        big_object = False # HACK for Continental
         print('[INFO] Big object: {}'.format(big_object))
 
         # select an object from resources, of specified name and version,
@@ -2723,7 +2724,7 @@ class InCabinUtils:
         return time_of_day
 
     #_______________________________________________________________
-    def genSunDirection(self, day, dawn):
+    def genSunDirection(self, day, dawn, min_elevation = 7): # min is 7 for Continental
         elevation = 0
         azimuth = 0
         sun_direction = anyverse_platform.Vector3D(0,0,0)
@@ -2732,7 +2733,7 @@ class InCabinUtils:
             elevation = random.uniform(1, 10)
         elif day and not dawn:
             azimuth = random.uniform(0, 360)
-            elevation = random.uniform(1, 90)
+            elevation = random.uniform(min_elevation, 90)
         elif not day:
             azimuth = 0
             elevation = -10
@@ -3679,8 +3680,8 @@ class InCabinUtils:
             seat_occupant = None
             occupant_type = seat_occupancy['occupant']
             occupant = self.getOccupantByType(occupant_type)
-            print(occupant_type)
-            print(occupant)
+            # print(occupant_type)
+            # print(occupant)
             if self.isDriverSeat(seat_locator) and occupied:
                 seat_occupant = self.placeDriver(seat_locator, occupant=occupant, seatbelts_distribution=seatbelts_distribution)
             else:
@@ -3705,7 +3706,7 @@ class InCabinUtils:
                     chilldseat_config = occupancy_distribution['childseat_config']
                     childseat = self.placeChildseat(seat_locator, chilldseat_config, only_baby_in_copilot = False)
                 elif random_object_on_empty_prob:
-                    random_object_types = ['Backpack', 'Box', 'Handbag', 'cloth']
+                    random_object_types = ['Backpack', 'briefcase', 'Mobile Phone', 'laptop_case', 'Paper_Bag', 'Handbag', 'cloth']
                     seat_occupant = self.placeObjectOnSeat(seat_locator, self.getParent(seat_locator), object_types = random_object_types) if random.uniform(0,1) < random_object_on_empty_prob else None
 
             # Build a return list with a dict with the occupancy of every seat
