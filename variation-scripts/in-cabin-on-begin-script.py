@@ -367,9 +367,12 @@ icu.setGroundRotation(0, simulation_id)
 # work with more but we have to make sure only one is visible (and
 # all its descendents) at rendering time
 the_car = icu.getCars()[0]
-print('Deleting current occupants...')
-icu.clearDescendantFixedEntities(the_car)
-icu.deleteAllOnBelts()
+# Remove The_Car completelly until the change of the referenced asset with locators is fixed
+print('Deleting current car cabin...')
+workspace.delete_entity(the_car)
+# print('Deleting current occupants...')
+# icu.clearDescendantFixedEntities(the_car)
+# icu.deleteAllOnBelts()
 
 #__________________________________________________________
 # Pick a random car with probabilities from list of cars, 
@@ -399,14 +402,21 @@ if selected_car['entity_id'] != -1:
                        'max_depth': max_depth,
                        'max_tilt': max_tilt }
     change_belt_material = incabin_config['occupancy_distribution']['seatbelts_distribution']['random_belt_material']
-    icu.buildCar(selected_car, the_car, dynamic_materials = True, move_seats_conf = move_seats_conf, change_belt_material = change_belt_material)
+    the_car = workspace.create_fixed_entity('The_Car', simulation_id, selected_car['entity_id'])
+    print(car_name)
+    print(selected_car['name'])
+    if 'TEST' in selected_car['name']:
+        with_parts = True
+    else:
+        with_parts = False
+    icu.buildCar(selected_car, the_car, with_parts, dynamic_materials = True, move_seats_conf = move_seats_conf, change_belt_material = change_belt_material)
 
     # Set car info from car metadata and put it as custom metadata for annotations
     car_info = icu.setCarInfo(selected_car,the_car)
     car_name = '{}_{}'.format(selected_car['brand'].replace(" ",""), selected_car['model'])
 else:
     print('[ERROR] Could not find {} in resources'.format(selected_car))
-# Set Eport Always and exclude from occlusion test properties to the car
+# Set Export Always and exclude from occlusion test properties to the car
 icu.setExportAlwaysExcludeOcclusion(the_car)
 # Set split action to Split to get the seats segmented for non v0 cabins
 # If the assets have the compound tag this would not be necessary 
