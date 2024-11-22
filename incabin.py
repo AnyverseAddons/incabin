@@ -1989,7 +1989,7 @@ class InCabinUtils:
         light_position.y = 0
         light_position.z = 0
         # light_rotation.x = 0
-        # light_rotation.y = 90
+        # light_rotation.y = 0
         # light_rotation.z = 0
 
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_position)
@@ -1999,12 +1999,41 @@ class InCabinUtils:
         return light_position, light_rotation
     
     #_______________________________________________________________
+    def resetEntityPosRot(self, entity_id):
+        entity_position = self._workspace.get_entity_property_value(entity_id, 'RelativeTransformToComponent','position')
+        entity_rotation = self._workspace.get_entity_property_value(entity_id, 'RelativeTransformToComponent','rotation')
+
+        entity_position.x = 0
+        entity_position.y = 0
+        entity_position.z = 0
+        entity_rotation.x = 0
+        entity_rotation.y = 0
+        entity_rotation.z = 0
+
+        self._workspace.set_entity_property_value(entity_id, 'RelativeTransformToComponent','position', entity_position)
+        self._workspace.set_entity_property_value(entity_id, 'RelativeTransformToComponent','rotation', entity_rotation)
+        self._workspace.set_entity_property_value(entity_id, 'VisibleComponent','visible', False)
+
+        return entity_position, entity_rotation
+    
+    #_______________________________________________________________
     def resetLights(self):
         light_ids = self._workspace.get_entities_by_type('Light')
         for light_id in light_ids:
             self.resetLight(light_id)
 
-     #_______________________________________________________________
+    #_______________________________________________________________
+    def resetEgoLightLocators(self, key):
+        light_locator_ids = self.getEgoLightLocators(key)
+        for loc in light_locator_ids:
+            self.resetEntityPosRot(loc)
+
+    #_______________________________________________________________
+    def getEgoLightLocators(self, key):
+        ego_light_loc_ids = [ l for l in self._workspace.get_hierarchy(self._ego_id) if 'Locator' == self._workspace.get_entity_type(l) and key in self._workspace.get_entity_name(l) ]
+        return ego_light_loc_ids
+    
+    #_______________________________________________________________
     def resetCamera(self, cam_id):
         cam_position = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','position')
         cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
@@ -2012,9 +2041,11 @@ class InCabinUtils:
         cam_position.x = 0
         cam_position.y = 0
         cam_position.z = 0
-        cam_rotation.x = -90
+        # cam_rotation.x = -90
+        cam_rotation.x = 0
         cam_rotation.y = 0
-        cam_rotation.z = 90
+        # cam_rotation.z = 90
+        cam_rotation.z = 0
 
         self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', cam_position)
         self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation', cam_rotation)
@@ -2068,9 +2099,11 @@ class InCabinUtils:
     def setCameraInPosition(self, cam_id, rotation, position):
         cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
 
-        cam_rotation.x += rotation.y
-        cam_rotation.y += rotation.x
-        cam_rotation.z += rotation.z
+        # cam_rotation.x += rotation.y
+        # cam_rotation.y += rotation.x
+        cam_rotation.x = rotation.x
+        cam_rotation.y = rotation.y
+        cam_rotation.z = rotation.z
     
         self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', position)
         self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation', cam_rotation)
@@ -2081,9 +2114,9 @@ class InCabinUtils:
     def setActiveLightInPosition(self, light_id, position, rotation):
         light_rotation = self._workspace.get_entity_property_value(light_id, 'RelativeTransformToComponent','rotation')
 
-        light_rotation.x += rotation.x
-        light_rotation.y += rotation.y
-        light_rotation.z += -rotation.z
+        light_rotation.x = rotation.x
+        light_rotation.y = rotation.y - 180
+        light_rotation.z = rotation.z - 180
     
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', position)
         self._workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','rotation', light_rotation)
@@ -2732,6 +2765,47 @@ class InCabinUtils:
     def setAnalogGain(self, camera_id, analog_gain):
         sensor_id = self._workspace.get_entity_property_value(camera_id, 'CameraReferencesComponent','sensor')
         self._workspace.set_entity_property_value(sensor_id, 'SensorContentComponent','misc.analogGain', analog_gain)
+
+    #_______________________________________________________________
+    def switchLightsOnOff(self, lights_loc, on):
+        print('[INFO] Active light {} turned on: {}'.format(self._workspace.get_entity_name(lights_loc), on))
+        self._workspace.set_entity_property_value(lights_loc, 'VisibleComponent','visible', on)
+        for light in self._workspace.get_hierarchy(lights_loc):
+            print('[INFO] Active light {} turned on: {}'.format(self._workspace.get_entity_name(light), on))
+            self._workspace.set_entity_property_value(light, 'VisibleComponent','visible', on)
+
+    #_______________________________________________________________
+    def setInteriorIllumination(self, simulation_id, active_light = False):
+        self.setCustomMetadata(simulation_id, 'interior_lights', active_light)
+
+    #_______________________________________________________________
+    def setExteriorIllumination(self, day, background, simulation_id):
+
+        self.setCustomMetadata(simulation_id, 'day', day)
+
+        if day:
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'PhysicalSky')
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','surrounding_type', 'Background')
+            sky_light_intensity = 1
+            sun_light_intensity = 1
+
+            # set default values
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sky_light_intensity', sky_light_intensity)
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sun_light_intensity', sun_light_intensity)
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','scatteringIntensity', 300)
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','diffractionIntensity', 0)
+
+            return sun_light_intensity
+        else:
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','ilumination_type', 'Background')
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','surrounding_type', 'Background')
+            ibl_light_intensity = background['ibl_intensity']
+            self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','iblLightIntensity', ibl_light_intensity)
+
+            background_weight = 1
+            if background != None:
+                self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
+            return ibl_light_intensity
 
     #_______________________________________________________________
     def setIllumination(self, day, background, simulation_id, multiple_cameras = False, active_light = False):
@@ -4479,7 +4553,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def getCharacterResourceEntityType(self, character):
         # This function expects a resource UUID
-        if character in self._workspace.characters_gen9:
+        if self._workspace.characters_gen9 and character in self._workspace.characters_gen9:
             return anyverse_platform.WorkspaceEntityType.CharacterAsset
         else:
             return anyverse_platform.WorkspaceEntityType.Asset
