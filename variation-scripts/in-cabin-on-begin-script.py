@@ -51,52 +51,104 @@ incabin_config = {
     "use_nir": True,
     "rgb_at_day": False, # Override the use of NIR sensor for day light
     "cameras":{
-        "RVM": {
-            "probability": 0.5,
-            "vibration_traslation": [0,0,0], # in meters
-            "vibration_rotation": [0,0,0], # in degrees
-            "cam_positions": {
-                'Audi_Q5': {'rotation': (0, -40, 0), 'position': (0.435, 0.0, 1.45) }, 
-                'Chevrolet_Menlo':  {'rotation': (0, -35, 0), 'position': (0.53, 0.0, 1.26) },
-                'Lexus_UX':         {'rotation': (0, -35, 0), 'position': (0.46, 0.005, 1.26) },
-                'Porsche_CayenneS': {'rotation': (0, -40, 0), 'position': (0.50, 0.0, 1.45) },
-                'Unbranded_GenericSUV':    {'rotation': (0, -40, 0), 'position': (0.485, -0.005, 1.43) },
-                'Volkswagen_Passat': {'rotation': (0, -35, 0), 'position': (0.575, -0.027, 1.287)},
-                'Hyundai_Ioniq': {'rotation': (0, -40, 0), 'position': (0.45, -0.02, 1.315)},
-                'LandRover_Autobiography': {'rotation': (0, -40, 0), 'position': (0.41, 0.0, 1.58)},
-                'Ford_Escape': {'rotation': (0, -35, 0), 'position': (0.42, 0.0, 1.37)},
-                'Honda_Jazz': {'rotation': (0, -40, 0), 'position': (0.35, 0.0, 1.3)},
-                'Kia_EV_GT': {'rotation': (0, -35, 0), 'position': (0.41, 0.0, 1.40)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -40, 0), 'position': (0.42, 0.0, 1.45)},
-                'Buick_LaCrosse': {'rotation': (0, -35, 0), 'position': (0.44, -0.03, 1.31)},
-                'Peugeot_3008': {'rotation': (0, -40, 0), 'position': (0.37, 0.0, 1.42)},
-                'Tesla_S': {'rotation': (0, -40, 0), 'position': (0.32, 0.0, 1.22)},
-                'Venucia_Star': {'rotation': (0, -35, 0), 'position': (0.50, 0.0, 1.46)},
-                'default':          {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
-            },
-        },
-        "CC": { 
+        "BPillar_R": {
+            "on_for_multicamera": True,
             "probability": 0.0,
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
-                'Audi_Q5': {'rotation': (0, -10, 0), 'position': (0.53, 0.0, 1.11)}, 
-                'Chevrolet_Menlo':   {'rotation': (0, -10, 0), 'position': (0.64, 0.0, 1.03)},
-                'Lexus_UX':          {'rotation': (0, -10, 0), 'position': (0.505, 0.02, 0.95)},
-                'Porsche_CayenneS':  {'rotation': (0, -10, 0), 'position': (0.60, 0.0, 1.165)},
-                'Unbranded_GenericSUV':     {'rotation': (0, -10, 0), 'position': (0.58, 0.005, 1.085)},
-                'Volkswagen_Passat': {'rotation': (0, -10, 0), 'position': (0.70, 0.027, 1.00)},
-                'Hyundai_Ioniq': {'rotation': (0, -10, 0), 'position': (0.58, -0.02, 1.09)},
-                'LandRover_Autobiography': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.22)},
-                'Ford_Escape': {'rotation': (0, -10, 0), 'position': (0.51, 0.0, 1.21)},
-                'Honda_Jazz': {'rotation': (0, -10, 0), 'position': (0.58, 0.0, 1.03)},
-                'Kia_EV_GT': {'rotation': (0, -10, 0), 'position': (0.65, 0.0, 1.175)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (0, -10, 0), 'position': (0.63, 0.0, 1.18)},
-                'Buick_LaCrosse': {'rotation': (0, -10, 0), 'position': (0.66, 0.0, 1.03)},
-                'Peugeot_3008': {'rotation': (0, -20, 0), 'position': (0.58, 0.0, 1.23)},
-                'Tesla_S': {'rotation': (0, -10, 0), 'position': (0.61, 0.0, 0.98)},
-                'Venucia_Star': {'rotation': (0, -15, 0), 'position': (0.66, 0.0, 1.19)},
-                'default':           {'rotation': (0, -25, 0), 'position': (0.60, 0.0, 1.75)}
+                'Audi_Q5': {'rotation': (45, 180, 180), 'position': (-0.38, -0.54, 1.51) }, 
+                'Chevrolet_Menlo':  {'rotation': (45, 180, 180), 'position': (-0.26, -0.49, 1.45) },
+                'Lexus_UX':         {'rotation': (50, 180, 180), 'position': (-0.40, -0.53, 1.35) },
+                'Porsche_CayenneS': {'rotation': (50, 180, 180), 'position': (-0.36, -0.55, 1.55) },
+                'Unbranded_GenericSUV':    {'rotation': (50, 180, 180), 'position': (-0.35, -0.56, 1.52) },
+                'Volkswagen_Passat': {'rotation': (45, 180, 180), 'position': (-0.23, -0.51, 1.37)},
+                'Hyundai_Ioniq': {'rotation': (45, 180, 180), 'position': (-0.40, -0.55, 1.39)},
+                'LandRover_Autobiography': {'rotation': (50, 180, 180), 'position': (-0.35, -0.58, 1.71)},
+                'Ford_Escape': {'rotation': (50, 180, 180), 'position': (-0.33, -0.53, 1.50)},
+                'Honda_Jazz': {'rotation': (44, 180, 180), 'position': (-0.38, -0.49, 1.35)},
+                'Kia_EV_GT': {'rotation': (45, 180, 180), 'position': (-0.36, -0.51, 1.43)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (50, 180, 180), 'position': (-0.45, -0.61, 1.56)},
+                'Buick_LaCrosse': {'rotation': (45, 180, 180), 'position': (-0.45, -0.55, 1.43)},
+                'Peugeot_3008': {'rotation': (47, 180, 180), 'position': (-0.42, -0.53, 1.52)},
+                'Tesla_S': {'rotation': (47, 180, 180), 'position': (-0.40, -0.56, 1.30)},
+                'Venucia_Star': {'rotation': (45, 180, 180), 'position': (-0.26, -0.51, 1.59)},
+                'default':          {'rotation': (65, 180, 180), 'position': (-0.40, -0.53, 1.35)}
+            },
+        },
+        "BPillar_L": {
+            "on_for_multicamera": True,
+            "probability": 1.0,
+            "vibration_traslation": [0,0,0], # in meters
+            "vibration_rotation": [0,0,0], # in degrees
+            "cam_positions": {
+                'Audi_Q5': {'rotation': (45, 180, 0), 'position': (-0.38, 0.54, 1.51) }, 
+                'Chevrolet_Menlo':  {'rotation': (45, 180, 0), 'position': (-0.26, 0.49, 1.45) },
+                'Lexus_UX':         {'rotation': (50, 180, 0), 'position': (-0.40, 0.53, 1.35) },
+                'Porsche_CayenneS': {'rotation': (50, 180, 0), 'position': (-0.36, 0.55, 1.55) },
+                'Unbranded_GenericSUV':    {'rotation': (50, 180, 0), 'position': (-0.35, 0.56, 1.52) },
+                'Volkswagen_Passat': {'rotation': (45, 180, 0), 'position': (-0.23, 0.51, 1.37)},
+                'Hyundai_Ioniq': {'rotation': (45, 180, 0), 'position': (-0.40, 0.55, 1.39)},
+                'LandRover_Autobiography': {'rotation': (50, 180, 0), 'position': (-0.35, 0.58, 1.71)},
+                'Ford_Escape': {'rotation': (50, 180, 0), 'position': (-0.33, 0.53, 1.50)},
+                'Honda_Jazz': {'rotation': (44, 180, 0), 'position': (-0.38, 0.49, 1.35)},
+                'Kia_EV_GT': {'rotation': (45, 180, 0), 'position': (-0.36, 0.51, 1.43)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (50, 180, 0), 'position': (-0.45, 0.61, 1.56)},
+                'Buick_LaCrosse': {'rotation': (45, 180, 0), 'position': (-0.45, 0.55, 1.43)},
+                'Peugeot_3008': {'rotation': (47, 180, 0), 'position': (-0.42, 0.53, 1.52)},
+                'Tesla_S': {'rotation': (47, 180, 0), 'position': (-0.40, 0.56, 1.30)},
+                'Venucia_Star': {'rotation': (45, 180, 0), 'position': (-0.26, 0.51, 1.59)},
+                'default':          {'rotation': (65, 180, 0), 'position': (-0.40, 0.53, 1.35)}
+            },
+        },
+        "RVM": {
+            "on_for_multicamera": True,
+            "probability": 0.0,
+            "vibration_traslation": [0,0,0], # in meters
+            "vibration_rotation": [0,0,0], # in degrees
+            "cam_positions": {
+                'Audi_Q5': {'rotation': (55, 180, -90), 'position': (0.3, 0.05, 1.41) }, 
+                'Chevrolet_Menlo':  {'rotation': (55, 180, -90), 'position': (0.53, 0.0, 1.26) },
+                'Lexus_UX':         {'rotation': (55, 180, -90), 'position': (0.46, 0.005, 1.26) },
+                'Porsche_CayenneS': {'rotation': (50, 180, -90), 'position': (0.50, 0.0, 1.45) },
+                'Unbranded_GenericSUV':    {'rotation': (50, 180, -90), 'position': (0.485, -0.005, 1.43) },
+                'Volkswagen_Passat': {'rotation': (50, 180, -90), 'position': (0.42, 0.1, 1.28)},
+                'Hyundai_Ioniq': {'rotation': (50, 180, -90), 'position': (0.45, -0.02, 1.315)},
+                'LandRover_Autobiography': {'rotation': (50, 180, -90), 'position': (0.41, 0.0, 1.58)},
+                'Ford_Escape': {'rotation': (55, 180, -90), 'position': (0.42, 0.0, 1.37)},
+                'Honda_Jazz': {'rotation': (50, 180, -90), 'position': (0.35, 0.0, 1.3)},
+                'Kia_EV_GT': {'rotation': (55, 180, -90), 'position': (0.41, 0.0, 1.40)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (50, 180, -90), 'position': (0.42, 0.0, 1.45)},
+                'Buick_LaCrosse': {'rotation': (55, 180, -90), 'position': (0.44, -0.03, 1.31)},
+                'Peugeot_3008': {'rotation': (50, 180, -90), 'position': (0.37, 0.0, 1.42)},
+                'Tesla_S': {'rotation': (50, 180, -90), 'position': (0.32, 0.0, 1.22)},
+                'Venucia_Star': {'rotation': (55, 180, -90), 'position': (0.50, 0.0, 1.46)},
+                'default':          {'rotation': (65, 180, -90), 'position': (0.60, 0.0, 1.75)}
+            },
+        },
+        "CC": { 
+            "on_for_multicamera": True,
+            "probability": 0.0,
+            "vibration_traslation": [0,0,0], # in meters
+            "vibration_rotation": [0,0,0], # in degrees
+            "cam_positions": {
+                'Audi_Q5': {'rotation': (80, 180, -90), 'position': (0.53, 0.0, 1.11)}, 
+                'Chevrolet_Menlo':   {'rotation': (80, 180, -90), 'position': (0.64, 0.0, 1.03)},
+                'Lexus_UX':          {'rotation': (80, 180, -90), 'position': (0.505, 0.02, 0.95)},
+                'Porsche_CayenneS':  {'rotation': (80, 180, -90), 'position': (0.60, 0.0, 1.165)},
+                'Unbranded_GenericSUV':     {'rotation': (80, 180, -90), 'position': (0.58, 0.005, 1.085)},
+                'Volkswagen_Passat': {'rotation': (80, 180, -90), 'position': (0.70, 0.027, 1.00)},
+                'Hyundai_Ioniq': {'rotation': (80, 180, -90), 'position': (0.58, -0.02, 1.09)},
+                'LandRover_Autobiography': {'rotation': (0, 180, -90), 'position': (0.63, 0.0, 1.22)},
+                'Ford_Escape': {'rotation': (80, 180, -90), 'position': (0.51, 0.0, 1.21)},
+                'Honda_Jazz': {'rotation': (80, 180, -90), 'position': (0.58, 0.0, 1.03)},
+                'Kia_EV_GT': {'rotation': (80, 180, -90), 'position': (0.65, 0.0, 1.175)},
+                'Mercedes_Benz_EQE_SUV': {'rotation': (80, 180, -90), 'position': (0.63, 0.0, 1.18)},
+                'Buick_LaCrosse': {'rotation': (80, 180, -90), 'position': (0.66, 0.0, 1.03)},
+                'Peugeot_3008': {'rotation': (70, 180, -90), 'position': (0.58, 0.0, 1.23)},
+                'Tesla_S': {'rotation': (80, 180, -90), 'position': (0.61, 0.0, 0.98)},
+                'Venucia_Star': {'rotation': (75, 180, -90), 'position': (0.66, 0.0, 1.19)},
+                'default':           {'rotation': (65, -180, -90), 'position': (0.60, 0.0, 1.75)}
             },
         }
     },
@@ -232,6 +284,54 @@ import importlib
 from incabin import incabin
 importlib.reload(incabin)
 
+# Function to place a camera in a car, specified by car_name in the 
+# position specified by camera, which is the camera id in the cameras
+# dictionary that comes from the incabin_config dictionary.
+# The function places the associated active lights in the same position
+# and orientation.
+# We assume that there is a locator with the key 'LED' and the camera id
+# in the name.
+#_________________________________________________________________________
+def placeCamera(car_name, camera, cameras):
+    cam_positions = cameras[camera]["cam_positions"]
+    if car_name in cam_positions:
+        cam_pos = cam_positions[car_name]['position']
+        cam_rot = cam_positions[car_name]['rotation']
+    else:
+        cam_pos = cam_positions["default"]['position']
+        cam_rot = cam_positions["default"]['rotation']
+    cam_position = anyverse_platform.Vector3D( cam_pos[0], cam_pos[1], cam_pos[2] )
+    cam_rotation = anyverse_platform.Vector3D( cam_rot[0], cam_rot[1], cam_rot[2] )
+
+    cam_ids = [ ci for ci in workspace.get_camera_entities() if camera in workspace.get_entity_name(ci) ]
+    cam_id = cam_ids[0] if len(cam_ids) == 1 else 0
+    if cam_id != 0:
+        cam_pos, cam_rot = icu.setCameraInPosition(cam_id, cam_rotation, cam_position)
+        print('{} initial position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
+        print('{} initial rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
+        pos_intervals = cameras[camera]["vibration_traslation"]
+        rot_intervals = cameras[camera]["vibration_rotation"]
+        cam_pos, cam_rot, _, _ = icu.setCameraVibration(cam_id, pos_intervals, rot_intervals)
+        print('{} final position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
+        print('{} final rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
+        workspace.set_entity_property_value(cam_id, 'VisibleComponent','visible', True)
+    else:
+        print('[ERROR] Missing {} camera in workspace'.format(camera))
+    # place active lights in the cam position.
+    # There should be a locator under the Ego with the key 'LED' and the camera prefix in the name 
+    # with active lights for that camera
+    light_loc_ids = [ li for li in icu.getEgoLightLocators('LED') if camera in workspace.get_entity_name(li) ]
+    light_loc_id = light_loc_ids[0] if len(light_loc_ids) >= 1 else 0
+    if light_loc_id != 0:
+        light_pos, _ = icu.setActiveLightInPosition(light_loc_id, cam_position, cam_rotation)
+    else:
+        print('[WARN] Missing light for {} camera in workspace'.format(camera))
+
+#__________________________________________
+def getCameraProbabilityList(incabin_config):
+    return [ x for x in incabin_config["cameras"] ], [ incabin_config["cameras"][x]['probability'] for x in incabin_config["cameras"] ]
+
+
 # This is a JSON string that comes directly from the Gemini VQA output after feeding an image to be described
 gemini_distribution = '{ "day": true, "occupancy": [ { "seat": "seat01", "child_seat": false, "occupant": "woman", "seat_belt_on": true }, { "seat": "seat02", "child_seat": false, "occupant": "man", "seat_belt_on": true }, { "seat": "seat03", "child_seat": false, "occupant": "child", "seat_belt_on": true }, { "seat": "seat04", "child_seat": false, "occupant": "animal", "seat_belt_on": false }, { "seat": "seat05", "child_seat": true, "occupant": "empty", "seat_belt_on": false } ] }'
 
@@ -245,10 +345,6 @@ if incabin_config['occupancy_distribution']['from_file']:
 else:
     gemini_distribution = json.loads(gemini_distribution)
 
-
-#__________________________________________
-def getCameraProbabilityList(incabin_config):
-    return [ x for x in incabin_config["cameras"] ], [ incabin_config["cameras"][x]['probability'] for x in incabin_config["cameras"] ]
 
 # Create the InCabinUtils object and asign it to the workspace
 icu = incabin.InCabinUtils(workspace, resources, script_console)
@@ -332,8 +428,6 @@ workspace.accessories = anyverse_platform.accessories
 workspace.backgrounds = anyverse_platform.backgrounds
 workspace.materials = anyverse_platform.materials
     
-    
-
 
 #__________________________________________________________
 # Get the workspace simulation id
@@ -370,9 +464,9 @@ the_car = icu.getCars()[0]
 # Remove The_Car completelly until the change of the referenced asset with locators is fixed
 print('Deleting current car cabin...')
 workspace.delete_entity(the_car)
+icu.deleteAllOnBelts()
 # print('Deleting current occupants...')
 # icu.clearDescendantFixedEntities(the_car)
-# icu.deleteAllOnBelts()
 
 #__________________________________________________________
 # Pick a random car with probabilities from list of cars, 
@@ -403,7 +497,6 @@ if selected_car['entity_id'] != -1:
                        'max_tilt': max_tilt }
     change_belt_material = incabin_config['occupancy_distribution']['seatbelts_distribution']['random_belt_material']
     the_car = workspace.create_fixed_entity('The_Car', simulation_id, selected_car['entity_id'])
-    print(car_name)
     print(selected_car['name'])
     if 'TEST' in selected_car['name']:
         with_parts = True
@@ -448,83 +541,27 @@ rgb_at_day = incabin_config["rgb_at_day"]
 if multiple_cameras:
     # place each cameras in its position
     for camera in cameras:
-        cam_positions = cameras[camera]["cam_positions"]
-        if car_name in cam_positions:
-            cam_pos = cam_positions[car_name]['position']
-            cam_rot = cam_positions[car_name]['rotation']
-        else:
-            cam_pos = cam_positions["default"]['position']
-            cam_rot = cam_positions["default"]['rotation']
-        cam_position = anyverse_platform.Vector3D( cam_pos[0], cam_pos[1], cam_pos[2] )
-        cam_rotation = anyverse_platform.Vector3D( cam_rot[0], cam_rot[1], cam_rot[2] )
-
-        cam_ids = [ ci for ci in workspace.get_camera_entities() if camera in workspace.get_entity_name(ci) ]
-        cam_id = cam_ids[0] if len(cam_ids) == 1 else 0
-        if cam_id != 0:
-            cam_pos, cam_rot = icu.setCameraInPosition(cam_id, cam_rotation, cam_position)
-            print('{} initial position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
-            print('{} initial rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
-            pos_intervals = cameras[camera]["vibration_traslation"]
-            rot_intervals = cameras[camera]["vibration_rotation"]
-            cam_pos, cam_rot, _, _ = icu.setCameraVibration(cam_id, pos_intervals, rot_intervals)
-            print('{} final position: x {}, y {}, z {}'.format(camera, cam_pos.x, cam_pos.y, cam_pos.z))
-            print('{} final rotation: x {}, y {}, z {}'.format(camera, cam_rot.x, cam_rot.y, cam_rot.z))
-            workspace.set_entity_property_value(cam_id, 'VisibleComponent','visible', True)
-        else:
-            print('[ERROR] Missing {} camera in workspace'.format(camera))
-        # place active light in the cam position
-        # light_ids = [ li for li in workspace.get_entities_by_type('Light') if camera in workspace.get_entity_name(li) ]
-        # light_id = light_ids[0] if len(light_ids) >= 1 else 0
-        # if light_id != 0:
-        #     light_pos, _ = icu.setActiveLightInPosition(light_id, cam_position, cam_rotation)
-        #     if camera == 'RVM':
-        #         # Advance the light 10 cm to avoid rvm casted shadows
-        #         light_pos.x += 0.1
-        #         workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
-        # else:
-        #     print('[WARN] Missing light for {} camera in workspace'.format(camera))
+        placeCamera(car_name, camera, cameras)
+    # No particular camera selected, relevant when setting the illumination
+    camera_selected = None
 # If not multiple cameras,  
-# Randomly select the camera to use and place the ego in the camera position,
-# apply vibration as configured and set the visibility to a single camera
+# Randomly select the camera to use and place it in the camera position along with
+# the associated active lights if the correspondent locator exists, apply vibration 
+# as configured (done with the new function placeCamera), an then set the visibility 
+# to a single camera
 else:
     names, probabilities = getCameraProbabilityList(incabin_config)
     cam_ids_idx = icu.choiceUsingProbabilities(probabilities)
     camera_selected = names[cam_ids_idx]
 
-    cam_positions = cameras[camera_selected]["cam_positions"]
+    placeCamera(car_name, camera_selected, cameras)
 
-    if car_name in cam_positions:
-        cam_pos = cam_positions[car_name]['position']
-        cam_rot = cam_positions[car_name]['rotation']
-    else:
-        cam_pos = cam_positions["default"]['position']
-        cam_rot = cam_positions["default"]['rotation']
-
-    cam_position = anyverse_platform.Vector3D( cam_pos[0], cam_pos[1], cam_pos[2] )
-    cam_rotation = anyverse_platform.Vector3D( cam_rot[0], cam_rot[1], cam_rot[2] )
-    ego_pos, ego_rot = icu.setEgoInPosition(cam_rotation, cam_position)
-    print('Ego initial position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
-    print('Ego initial rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
-
-    # Advance the first light light 10 cm to avoid rvm casted shadows
-    # light_ids = [ li for li in workspace.get_entities_by_type('Light') ]
-    # light_id = light_ids[0] if len(light_ids) > 0 else 0
-    # if light_id != 0:
-    #     light_pos = anyverse_platform.Vector3D(-0.1, 0, 0) if camera_selected =='RVM' else anyverse_platform.Vector3D(0, 0, 0)
-    #     workspace.set_entity_property_value(light_id, 'RelativeTransformToComponent','position', light_pos)
-    # else:
-    #     print('[WARN] Missing lights in workspace')
-
-    # Apply camera vibration simulation with normal distribution
-    pos_intervals = incabin_config["cameras"][camera_selected]["vibration_traslation"]
-    rot_intervals = incabin_config["cameras"][camera_selected]["vibration_rotation"]
-
-    ego_pos, ego_rot, _, _ = icu.setEgoVibration(pos_intervals, rot_intervals)
-    print('Ego final position: x {}, y {}, z {}'.format(ego_pos.x, ego_pos.y, ego_pos.z))
-    print('Ego final rotation: x {}, y {}, z {}'.format(ego_rot.x, ego_rot.y, ego_rot.z))
     #__________________________________________________________
     # Set cameras visibility, accordingly with the selected camera
     camera_id, camera_name = icu.setCameraVisibility(camera_selected)
+    if not camera_id:
+        print('[ERROR] No camera {} in Workspace'.format(camera_selected))
+        assert False
     print('Using camera: {}'.format(camera_name))
 
 # Reduce camera resolution while testing
@@ -599,7 +636,7 @@ else:
 
 print('Setting active lights to {}'.format(interior_lights))
 # set the illumination depending on day/night and conditions
-intensity = icu.setIllumination(day, background, simulation_id, multiple_cameras, active_light = interior_lights)
+intensity = icu.setIllumination(day, background, simulation_id, camera_selected, active_light = interior_lights)
 if day:
     print('Sun intensity: {}'.format(intensity))
 else:
@@ -622,9 +659,7 @@ else:
     if occupant_confs_probabilities[conf_idx]['Conf'] == 'Empty':
         occupant_dist = icu.EmptyDistribution(the_car, occupancy_distribution, day)
     elif occupant_confs_probabilities[conf_idx]['Conf'] == 'Normal':
-        # occupant_dist = icu.AllAdultsDistribution(the_car)
         occupant_dist, _ = icu.NormalOccupantDistribution(the_car, occupancy_distribution, day)
-        # occupant_dist = icu.ChildseatDistribution(the_car)
     print('Occupant_dist: {}'.format(occupant_dist))
 
 
