@@ -21,7 +21,7 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
-        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle', '0076_20220809_v0' ]
+        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle', '0076_20220809_v0', 'Audi_Q5_v0_dynamic_TEST', 'xola9_03_local2' ]
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -299,16 +299,10 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def applyCharacterOffset(self, character):
-        position = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'RelativeTransformToComponent','position')
-        position.z += float(character['root_offset'].replace(',','.'))/100
-        self._workspace.set_entity_property_value(character['fixed_entity_id'], 'RelativeTransformToComponent','position', position)
-    #_______________________________________________________________
-    # def applyCharacterOffset(self, character):
-    #     # Apply the  offset to the locator instead of the character
-    #     parent_id = self.getParent(character['fixed_entity_id'])
-    #     position = self._workspace.get_entity_property_value(parent_id, 'RelativeTransformToComponent','position')
-    #     position.z += float(character['root_offset'].replace(',','.'))/100
-    #     self._workspace.set_entity_property_value(parent_id, 'RelativeTransformToComponent','position', position)
+        if self.isGen9character(character['entity_id']):
+            position = self._workspace.get_entity_property_value(character['fixed_entity_id'], 'RelativeTransformToComponent','position')
+            position.z += float(character['root_offset'].replace(',','.'))/100
+            self._workspace.set_entity_property_value(character['fixed_entity_id'], 'RelativeTransformToComponent','position', position)
 
     #_______________________________________________________________
     def getSeatPos(self, seat_locator):
@@ -553,35 +547,6 @@ class InCabinUtils:
         return animation, weight
 
     #_______________________________________________________________
-    def selectBaby(self, key, value, for_backseat, name = None):
-        # list of babies dictionaries
-        babies = self._workspace.babies
-        if name == None:
-            baby_characters = self.filterCharacters(babies, key, value, check_twins=False)
-        else:
-            baby_characters = self.filterCharacters(babies, 'name', name, check_twins=False)
-        
-        # pick one randomly taking into account the type of baby that goes in each place
-        baby_idx = random.randrange(len(baby_characters))
-        baby = baby_characters[baby_idx]
-        if for_backseat:
-            baby_name = 'Baby02'
-        else:
-            baby_name = 'Baby01'
-
-        tries = 0
-        while baby_name not in baby['resource_name'] and tries <= 50:
-            baby_idx = random.randrange(len(baby_characters))
-            baby = baby_characters[baby_idx]
-            tries += 1
-
-        baby_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, baby['resource_id'])
-
-        baby['Face'] = 'neutral'
-
-        return baby_asset_id, baby
-
-    #_______________________________________________________________
     def getBigBabyAssets(self):
         person_assets = self.getAssetsByTag('person', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset))
 
@@ -605,6 +570,7 @@ class InCabinUtils:
             character = filtered_characters[character_idx]
             entity_type = self.getCharacterResourceEntityType(character)
             character_asset_id = self._workspace.add_resource_to_workspace(entity_type, character['resource_id'])
+            character['entity_id'] = character_asset_id
             # print('[INFO] Selected character: {}'.format(character['resource_name']))
         else:
             character_asset_id = -1
@@ -843,8 +809,8 @@ class InCabinUtils:
     def placeBabyOnCharacter(self, seat_locator, character_id, name = None, version = None):
         print('[INFO] Placing baby on {}'.format(self._workspace.get_entity_name(character_id)))
 
-        # select a named baby from resoures
-        baby_id, baby = self.selectBaby('', '', True, name='Baby02') if random.uniform(0,1) < 0.5 else self.selectBaby('', '', False, name='Baby01')
+        # select a baby from characters, there are no baby specific assets anymore
+        baby_id, baby = self.selectCharacter('agegroup', '0-3')
         print('[INFO] Baby on character {}'.format(baby['resource_name']))
         
         if baby_id != -1:
@@ -1136,6 +1102,8 @@ class InCabinUtils:
 
             driver['fixed_entity_id'] = driver_id
 
+            print('[INFO] Driver: {}'.format(driver['name']))
+
             bright_pupil = False
             if self.setBrightPupil():
                 bright_pupil_material = self.getBrightPupilMaterial()
@@ -1344,7 +1312,8 @@ class InCabinUtils:
         if self.isLeftBackSeat(seat_locator) or self.isRightBackSeat(seat_locator):
             for_backseat = True
 
-        baby_asset_id, baby = self.selectBaby('suitableseat','BabyChild', for_backseat, name)
+        # Support for Gen9 babies only
+        baby_asset_id, baby = self.selectCharacter('agegroup','0-3', name)
         print('[INFO] Placing baby {} in childseat {}'.format(baby['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
@@ -1356,9 +1325,16 @@ class InCabinUtils:
             assert False
 
         if baby_asset_id != -1 and childseat_locator != -1:
-            baby_id = self._workspace.create_fixed_entity(baby['name'], childseat_locator, baby_asset_id)
+            baby_entity_type = self.getCharacterEntityType(baby_asset_id)
+            baby_id = self._workspace.create_entity(baby_entity_type, baby['name'], childseat_locator, baby_asset_id)
+
+            # Set a default pose to the baby lying on the childseat
+            animation = self.getAnimIdByName('gen9_pose_baby_lying_babyseat', baby_id)
+            self.setAnimation('base', animation, 1.0, baby_id)
             baby['fixed_entity_id'] = baby_id
+
             # Babies now can have seatblets on the new child seat assets
+            # TODO: for the moment only static seatbelts and only for the lying pose
             fasten_seatbelt = self.decideFastenSeatbelt(baby, seatbelts_distribution['belt_on_probability'])
             if fasten_seatbelt:
                 self.createBabyBelt(childseat)
@@ -1375,7 +1351,6 @@ class InCabinUtils:
             if self.isRightBackSeat(seat_locator):
                 self.wiggleBabyRandom(baby_id, updown, random.uniform(-5, 0), random.uniform(-15, 0))
 
-            self.setInstanceIfPossible(baby_id, False)
             self.setExportAlwaysExcludeOcclusion(baby_id)
             self.setCharacterInfo(baby)
             self.setSeatInfo(baby)
@@ -2277,7 +2252,7 @@ class InCabinUtils:
     def queryResultToDic(self, queryResult, workspaceEntityType = anyverse_platform.WorkspaceEntityType.Asset):
         result = []
         total = len(queryResult)
-        print('[INFO] from {} {} assets'.format(inspect.currentframe().f_back.f_code.co_name, total))
+        print('[INFO] from {} {} assets in DB'.format(inspect.currentframe().f_back.f_code.co_name, total))
         processed = 0
         for elem in queryResult:
             attributes_string = self._resources.get_resource_attributes(workspaceEntityType, elem)
@@ -2294,6 +2269,7 @@ class InCabinUtils:
             processed += 1
             # self.update_progress(processed/total)
 
+        print('[INFO] from {} {} assets filtered'.format(inspect.currentframe().f_back.f_code.co_name, len(result)))
         return result
 
     #_______________________________________________________________
@@ -2331,64 +2307,30 @@ class InCabinUtils:
     def queryCharactersGen9(self):
         query = aux.ResourceQueryManager(self._workspace)
 
-        # TODO: Gen9 - Restore query attributes when available in uploaded characters
-
-        # query.add_attribute_filter('texture', '8k')
-        # query.add_exists_attribute_filter('root_offset')
-        # query.add_exists_attribute_filter('kind')
-        # query.add_exists_attribute_filter('agegroup')
-        # query.add_exists_attribute_filter('ethnicity')
-        # query.add_exists_attribute_filter('gender')
-        # query.add_exists_attribute_filter('height')
-
+        # Query all character assets no need for filters here
         resourcesDict = self.queryResultToDic(query.execute_query_on_characters(), anyverse_platform.WorkspaceEntityType.CharacterAsset)
 
-        # TODO: Gen9 - This hack adds missing metadata to currently uploaded characters.
+        # TODO: Gen9 Characters don't have th 'kind' attribute that is used throughout the library it is easier to add it for the time being
         # Remove it when gen9 characters metadata is available
         for entry in resourcesDict:
             if 'kind' not in entry.keys():
-                entry['kind'] = 'Child' if 'e3d_aaron' in entry['name'] or 'child' in entry['name'] else 'Adult'
-            if 'agegroup' not in entry.keys():
-                entry['agegroup'] = '31-50'
-            if 'gender' not in entry.keys():
-                entry['gender'] = 'Male'
-            if 'ethnicity' not in entry.keys():
-                entry['ethnicity'] = 'White'
-            if 'height' not in entry.keys():
-                entry['height'] = 175.0
-            if 'model' not in entry.keys():
-                entry['model'] = entry['name']
-            if 'glasses' not in entry.keys():
-                entry['glasses'] = False
-            if 'cap' not in entry.keys():
-                entry['cap'] = False
-            if 'hat' not in entry.keys():
-                entry['hat'] = False
-            if 'facemask' not in entry.keys():
-                entry['facemask'] = False
-            if 'root_offset' not in entry.keys():
-                entry['root_offset'] = "0.0"
-
-            if 'Child' == entry['kind']:
-                entry['suitableseat'] = 'Convertible' if 'e3d_aroon_01_local_no_brows' == entry['name'] else 'Booster'
+                if self.isBaby(entry):
+                    entry['kind'] = 'Baby' 
+                elif self.isChild(entry):
+                    entry['kind'] = 'Child'
+                elif self.isAdult(entry):
+                    entry['kind'] = 'Adult'
+                else:
+                    entry['kind'] = None   
 
         return resourcesDict
 
-
-    #_______________________________________________________________
-    def queryBabies(self):
-        query = aux.ResourceQueryManager(self._workspace)
-        query.add_tag_filter("person")
-        query.add_attribute_filter("kind", "Baby")
-
-        return self.queryResultToDic(query.execute_query_on_assets())
-        
-
+      
     #_______________________________________________________________
     def queryChildSeats(self):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_exists_attribute_filter('kind')
-        query.add_attribute_filter("class", "ChildSeat")
+        query.add_attribute_filter_from_list("class", ["ChildSeat", "childseat"])
         query.add_attribute_filter("dynamic_material", True)
 
         return self.queryResultToDic(query.execute_query_on_assets())
@@ -2453,14 +2395,17 @@ class InCabinUtils:
         return self.queryResultToDic(query.execute_query_on_assets())
 
     #_______________________________________________________________
-    def queryMovableCarParts(self, picked_car, dynamic_material = False):
+    def queryMovableCarParts(self, picked_car, dynamic_material = None):
+        # parts_list = ["Steering wheel", "rear view mirror"]
         parts_list = ["steering_wheel", "mirror"]
         query = aux.ResourceQueryManager(self._workspace)
         query.add_attribute_filter("brand", picked_car['brand'])
         query.add_attribute_filter("model", picked_car['model'])
+        # query.add_attribute_filter_from_list("class", parts_list)
         query.add_attribute_filter_from_list("type", parts_list)
 
-        query.add_attribute_filter('dynamic_material', dynamic_material)
+        if dynamic_material is not None:
+            query.add_attribute_filter('dynamic_material', dynamic_material)
 
         return self.queryResultToDic(query.execute_query_on_assets())
 
@@ -2570,8 +2515,8 @@ class InCabinUtils:
         ok = False
         matched_materials = [ m for m in self.getAssetExposedMaterials(fixed_id) if re.search(material_name_pattern, self._workspace.get_entity_name(m)) ]
         if len(matched_materials) > 0:
-            material = matched_materials[0]
-            self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', new_material)
+            for material in matched_materials:
+                self._workspace.set_entity_property_value(material, 'MaterialOverrideInfoComponent','material_entity_id', new_material)
             ok = True
         else:
             print('[WARN] Could NOT find material matching {} in fixed entity {}'.format(material_name_pattern, self._workspace.get_entity_name(fixed_id)))
@@ -2720,6 +2665,16 @@ class InCabinUtils:
                 return True
 
         return False
+    
+    #_______________________________________________________________
+    def isAdult(self, character):
+        return 'agegroup' in character.keys() and (character['agegroup'] == '17-30' or character['agegroup'] == '31-50' or character['agegroup'] == '50+')
+    #_______________________________________________________________
+    def isChild(self, character):
+        return 'agegroup' in character.keys() and (character['agegroup'] == '4-8' or character['agegroup'] == '9-16')
+    #_______________________________________________________________
+    def isBaby(self, character):
+        return 'agegroup' in character.keys() and character['agegroup'] == '0-3'
 
     #_______________________________________________________________
     def getConvertibleClipAsset(self, name, assetList):
@@ -3182,30 +3137,37 @@ class InCabinUtils:
             self.changeExposedMaterialsList(seat_ids_list, seats, color_scheme)
         
     #_______________________________________________________________
-    def setMovableCarParts(self, picked_car, the_car, dynamic_materials = False):
+    def setMovableCarParts(self, picked_car, the_car, dynamic_materials = None):
         movable_parts = self.queryMovableCarParts(picked_car, dynamic_materials)
 
-        try:
-            steering_wheel = [ p for p in movable_parts if 'steering_wheel' == p['type'] ][0]
-            rvm = [ p for p in movable_parts if 'mirror' == p['type'] ][0]
-        except IndexError:
-            print('[ERROR] Missing movable parts for {} {}'.format(picked_car['brand'], picked_car['model']))
-            assert False
+        # steering_wheels = [ p for p in movable_parts if 'Steering' in p['class'] ]
+        # mirrors = [ p for p in movable_parts if 'mirror' in p['class'] ]
+        steering_wheels = [ p for p in movable_parts if 'steering_wheel' == p['type'] ]
+        mirrors = [ p for p in movable_parts if 'mirror' == p['type'] ]
 
+        steering_wheel = steering_wheels[0] if len(steering_wheels) == 1 else None
         try:
             steering_wheel_locator = [ l for l in self._workspace.get_hierarchy(the_car) if 'Locator' == self._workspace.get_entity_type(l) and 'steering' in self._workspace.get_entity_name(l) ][0]
-            # rvm_locator = [ l for l in self._workspace.get_hierarchy(the_car) if 'Locator' == self._workspace.get_entity_type(l) and 'rvm' in self._workspace.get_entity_name(l) ][0]
-            # El asset del RVM ya está desplazado y no tiene locator específico, va directamente debajo del coche
-            rvm_locator = the_car
         except IndexError:
-            print('[ERROR] Missing movable parts locators for {} {}'.format(picked_car['brand'], picked_car['model']))
-            assert False
+            print('[ERROR] Missing steering wheel locator for {} {}'.format(picked_car['brand'], picked_car['model']))
+            steering_wheel_locator = anyverse_platform.invalid_entity_id
+            # assert False
+        if steering_wheel:
+            steering_wheel['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, steering_wheel['resource_id'])
+            steering_wheel_id = self._workspace.create_fixed_entity(steering_wheel["resource_name"], steering_wheel_locator, steering_wheel['entity_id']) if steering_wheel_locator != anyverse_platform.invalid_entity_id else anyverse_platform.invalid_entity_id
+        else:
+            print('[ERROR] Missing steering wheel for {} {}'.format(picked_car['brand'], picked_car['model']))
+            steering_wheel_id = anyverse_platform.invalid_entity_id
 
-        steering_wheel['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, steering_wheel['resource_id'])
-        steering_wheel_id = self._workspace.create_fixed_entity(steering_wheel["resource_name"], steering_wheel_locator, steering_wheel['entity_id'])
-
-        rvm['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, rvm['resource_id'])
-        rvm_id = self._workspace.create_fixed_entity(rvm["resource_name"], rvm_locator, rvm['entity_id'])
+        rvm = mirrors[0] if len(mirrors) > 0 else None
+        rvm_locator = the_car
+        if rvm:
+            rvm['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, rvm['resource_id'])
+            rvm_id = self._workspace.create_fixed_entity(rvm["resource_name"], rvm_locator, rvm['entity_id'])
+            self._workspace.set_entity_property_value(rvm_id, 'VisibleComponent','visible', False)
+        else:
+            print('[ERROR] Missing internal rear view mirror for {} {}'.format(picked_car['brand'], picked_car['model']))
+            rvm_id = anyverse_platform.invalid_entity_id
 
         return steering_wheel_id, rvm_id
 
