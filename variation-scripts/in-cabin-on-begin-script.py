@@ -367,12 +367,6 @@ if iteration_index == 0:
         #print(anyverse_platform.characters)
         print('Characters list loaded!')
 
-    if not hasattr(anyverse_platform, 'babies'):
-        print('Loading babies...')
-        anyverse_platform.babies = icu.queryBabies()
-        #print(anyverse_platform.babies)
-        print('Babies list loaded!')
-    
     if not hasattr(anyverse_platform, 'childseats'):
         print('Loading childseats...')
         anyverse_platform.childseats = icu.queryChildSeats()
@@ -420,7 +414,6 @@ workspace.cars = anyverse_platform.cars
 workspace.characters = anyverse_platform.characters
 workspace.characters_legacy = anyverse_platform.characters_legacy
 workspace.characters_gen9 = anyverse_platform.characters_gen9
-workspace.babies = anyverse_platform.babies
 workspace.childseats = anyverse_platform.childseats
 workspace.childseatbelts = anyverse_platform.childseatbelts
 workspace.objects = anyverse_platform.objects
