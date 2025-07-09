@@ -21,7 +21,7 @@ class InCabinUtils:
         self._car_model = ""
         self._clip_asset_name = "ConvertibleChildSeat_ClipOn"
         self._car_color_schemes = ['black', 'brown', 'darkgrey', 'lightgrey']
-        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle', '0076_20220809_v0', 'Audi_Q5_v0_dynamic_TEST', 'xola9_03_local2' ]
+        self._excluded_objects = [ 'duffle_bag_01_handle', 'duffle_bag_02_handle', 'duffle_bag_03_handle', 'Beagle', '0076_20220809_v0', 'xola9_03_local2' ]
         if not self.isAssetAlreadyCreated(self._clip_asset_name):
             clip_asset = self.getConvertibleClipAsset(self._clip_asset_name, self.getAssetsByTag('belts', self._workspace.get_cache_of_entity_resource_list(anyverse_platform.WorkspaceEntityType.Asset)))
             self._clip_asset = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, clip_asset.id)
@@ -416,6 +416,7 @@ class InCabinUtils:
         the_car = self.getCars()[0]
         wheel_locators = self.getWheelLocators(the_car)
 
+
         self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent','left_hand_config.locator_entity_id', wheel_locators['left'])
         self._workspace.set_entity_property_value(character_id, 'CharacterHandAttachmentComponent','right_hand_config.locator_entity_id', wheel_locators['right'])
 
@@ -472,7 +473,7 @@ class InCabinUtils:
         if not filtered_animations:
             # TODO: Gen9 - Remove this when all Gen9 animations are available
             if is_gen9:
-                print( "[WARN] Some Gen9 animations are still missing! Using sitting straight instead" )
+                print( "[WARN] Some Gen9 {} animations are still missing! Using sitting straight instead".format(anim_type) )
                 filtered_animations = [ ba for ba in animations if any(animkey in self._workspace.get_entity_name(ba).lower() for animkey in ['sitting_straight', 'arms_on_the_body'])]
 
             else:
@@ -503,7 +504,7 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def getChildSittingStraightAnimation(self, seat_locator, user):
-        animation = 'sitting_straight_child_extended' if self.isMiddleBackSeat(seat_locator) else 'sitting_straight_child'
+        animation = 'sitting_straight_child_extended' if self.isMiddleBackSeat(seat_locator) else 'sitting_straight_child_ultraextended_legs'
         is_gen9 = self.isGen9character(user)
         animations = [ a for a in self.getWorkspaceAnimations(is_gen9) if animation in self._workspace.get_entity_name(a).lower() ]
         return animations[0], 1
@@ -520,16 +521,18 @@ class InCabinUtils:
             arm_l_pattern = "arms_.*_L_child$"
             arm_r_pattern = "arms_.*_R_child$"
             head_pattern = "pose_sitting_.*child$"
+            base_anims = ['gen9_pose_sitting_straight_child', 'gen9_pose_arms_on_the_body']
         else:
             arm_l_pattern = "^Arms_.*_L_Child$"
             arm_r_pattern = "^Arms_.*_R_Child$"
             head_pattern = "^Pose_Face_.*_50|45|90degrees$"
+            base_anims = ['sitting_straight_child', 'arms_on_the_body']
 
         if anim_type == 'base':
             if self.isMiddleBackSeat(seat_locator):
                 filtered_animations = [ ba for ba in animations if 'extended' in self._workspace.get_entity_name(ba).lower()  ]
             else:
-                filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in ['sitting_straight_child', 'arms_on_the_body'] ]
+                filtered_animations = [ ba for ba in animations if self._workspace.get_entity_name(ba).lower() in base_anims ]
         elif anim_type == 'spine':
             filtered_animations = [ ba for ba in animations if 'leaning' in self._workspace.get_entity_name(ba).lower() ]
         elif anim_type == 'left_arm':
@@ -541,6 +544,7 @@ class InCabinUtils:
 
         weight= random.uniform(min_weight, max_weight)
 
+        print('Animation type: {}'.format(anim_type))
         animation_idx = random.randrange(len(filtered_animations))
         animation = filtered_animations[animation_idx]
 
@@ -555,12 +559,12 @@ class InCabinUtils:
         return big_baby_assets
 
     #_______________________________________________________________
-    def selectCharacter(self, key, value, name = None):
+    def selectCharacter(self, key, value, name = None, check_twins = True):
         # list of characters dictionaries from CSV file
         characters = self._workspace.characters
         # filter characters from CSV by characteristic and discard if already been used
         if name == None:
-            filtered_characters = self.filterCharacters(characters, key, value)
+            filtered_characters = self.filterCharacters(characters, key, value, check_twins)
         else:
             filtered_characters = self.filterCharacters(characters, 'resource_name', name)
 
@@ -571,8 +575,9 @@ class InCabinUtils:
             entity_type = self.getCharacterResourceEntityType(character)
             character_asset_id = self._workspace.add_resource_to_workspace(entity_type, character['resource_id'])
             character['entity_id'] = character_asset_id
-            # print('[INFO] Selected character: {}'.format(character['resource_name']))
+            print('[INFO] Selected character: {}'.format(character['resource_name']))
         else:
+            print('[ERROR] Did not find any available babies')
             character_asset_id = -1
             character = None
 
@@ -606,7 +611,7 @@ class InCabinUtils:
 
         if name == None:
             if object_types:
-                filtered_objects = [ o for o in objects if o['class'] in object_types ]
+                filtered_objects = [ o for o in objects if o['class'].lower() in object_types ]
             else:
                 filtered_objects = objects
 
@@ -775,7 +780,7 @@ class InCabinUtils:
 
             # Get the car id and insert it in the set of port entities
             # The car is goign to be the only one for the time being
-            the_car = self._workspace.get_entities_by_name('The_Car')[0]
+            the_car = self.getCars()[0]
             port_entities = city_builder.core.EntitySet()
             # port_entities.insert(the_car)
             port_entities.insert(character_id)
@@ -847,7 +852,7 @@ class InCabinUtils:
 
             # Get the car id and insert it in the set of port entities
             # The car is goign to be the only one for the time being
-            the_car = self._workspace.get_entities_by_name('The_Car')[0]
+            the_car = self.getCars()[0]
             port_entities = city_builder.core.EntitySet()
             # port_entities.insert(the_car)
             port_entities.insert(character_id)
@@ -1020,17 +1025,17 @@ class InCabinUtils:
             width = 0.5
             depth = 0.4
             height = 1
-            if big_object:
-                width = 0.70
-                depth = 0.70
+            # if big_object: HACK
+            #     width = 0.70
+            #     depth = 0.70
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','width', width)
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','height', height)
             self._workspace.set_entity_property_value(landing_region_id, 'RegionComponent','depth', depth)
 
             # Apply position offset to separate from the back of the seat to avoid "flying" objects
-            if big_object:
+            if True: #big_object:
                 pos_offset_y = 0
-                pos_offset_x = 0.15
+                pos_offset_x = 0.08
                 landing_region_pos = self._workspace.get_entity_property_value(landing_region_id, 'RelativeTransformToComponent','position')
                 landing_region_pos.x += pos_offset_x
                 landing_region_pos.y += pos_offset_y
@@ -1040,6 +1045,10 @@ class InCabinUtils:
             # The car is goign to be the only one for the time being
             port_entities = city_builder.core.EntitySet()
             port_entities.insert(seat_id)
+            seat_back = [ e for e in self._workspace.get_hierarchy(seat_id) if 'FixedEntity' == self._workspace.get_entity_type(e) and 'seatback' in self._workspace.get_entity_name(e) ]
+            seat_back = seat_back[0] if len(seat_back) > 0 else None
+            if seat_back:
+                port_entities.insert(seat_back)
 
             # place the object in the in the region and land it in the car seat
             # For next version to control lander orientation and position
@@ -1232,14 +1241,14 @@ class InCabinUtils:
 
         # Filter by orientation if convertible
         if key == 'kind' and (value == 'Convertible' or value == 'BabyChild') and orientation is not None:
-            filtered_childseats = [ cs for cs in filtered_childseats if cs['aim looking'].lower() == orientation.lower() ]
+            filtered_childseats = [ cs for cs in filtered_childseats if cs['aim_looking'].lower() == orientation.lower() ]
 
         # pick one randomly
         if len(filtered_childseats) > 0:
             childseat_idx = random.randrange(len(filtered_childseats))
             childseat = filtered_childseats[childseat_idx]
             # Pick the only possible asset and set the orientation from the childseat dictionary
-            childseat['Orientation'] = childseat['aim looking']
+            childseat['Orientation'] = childseat['aim_looking']
             childseat_asset_id = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, childseat['resource_id'])
         else:
             childseat_asset_id = -1
@@ -1313,7 +1322,7 @@ class InCabinUtils:
             for_backseat = True
 
         # Support for Gen9 babies only
-        baby_asset_id, baby = self.selectCharacter('agegroup','0-3', name)
+        baby_asset_id, baby = self.selectCharacter('agegroup','0-3', name, check_twins = False)
         print('[INFO] Placing baby {} in childseat {}'.format(baby['name'], self._workspace.get_entity_name(childseat['fixed_entity_id'])))
 
         # get the childseat locator
@@ -1373,13 +1382,20 @@ class InCabinUtils:
         return baby
 
     #_______________________________________________________________
-    def placeChildInChildseat(self, childseat, seat_locator, name  = None, seatbelts_distribution = None, expression_probabilities = None):
+    def placeChildInChildseat(self, childseat, seat_locator, occupant = None, name  = None, seatbelts_distribution = None, expression_probabilities = None):
         # select a random child character sutable for a childseat
-        suitable_child = False
+        if occupant:
+            child = occupant
+            child_entity_type = self.getCharacterEntityType(child['entity_id'])
+            child_asset_id = child['entity_id']
+            suitable_child = True
+        else:
+            suitable_child = False
         tries = 0
         while not suitable_child and tries <= 10:
-            child_asset_id, child = self.selectCharacter('kind','Child', name)
-            if child and child['suitableseat'] != 'None' and child['suitableseat'] == childseat['kind']:
+            # child_asset_id, child = self.selectCharacter('kind','Child', name)
+            child_asset_id, child = self.selectCharacter('agegroup','4-8', name)
+            if child and child['suitableseat'].lower() != 'none' and child['suitableseat'] == childseat['kind']:
                 suitable_child = True
             else:
                 # print('[WARN] Child {} not suitable for chilsseat {}. Trying a different one...'.format(child['name'], childseat['name']))
@@ -1423,7 +1439,7 @@ class InCabinUtils:
             # For the other children in convertibles we always fasten the seatbelts to have a 50/50
             # considering the re are 4 big babies and 4 children characters suitable for convertibles.
             # Fastening seat belts affect what base animation we set: only sitting straight when seat belts fastened
-            if 'Baby' in child['name'] or childseat['Orientation'] == 'Backward':
+            if childseat['kind'] == 'BabyChild' or childseat['Orientation'] == 'Backward':
                 fasten_seatbelt = False
             else:
                 fasten_seatbelt = self.decideFastenSeatbelt(child, seatbelts_distribution['belt_on_probability'])
@@ -1514,7 +1530,7 @@ class InCabinUtils:
                     child['Seatbelt_on'] = False
 
             if childseat['kind'] == 'Convertible':
-                if fasten_seatbelt and not self._script_console:
+                if fasten_seatbelt and not self._script_console and self._workspace.get_entity_type(child_id) == 'FixedEntity':
                     print('[INFO] Setting child seat belt for child {}'.format(child['name']))
                     self.createChildBelt( child_id, childseat['fixed_entity_id'], self._clip_asset, self.getSeatPos(seat_locator), None )
                     child['Seatbelt_placement'] = 'Normal'
@@ -1522,7 +1538,11 @@ class InCabinUtils:
             self.setExportAlwaysExcludeOcclusion(child_id)
             self.setAvoidArmsAutoCollision(child_id, True)
             if self._seat_collision:
-                self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
+                if childseat['kind'] == 'Booster':
+                    seat_entity_id = self._workspace.get_entity_parent(seat_locator)
+                    self.setSeatCollision(child_id, collision_entity_id=seat_entity_id)
+                else:
+                    self.setSeatCollision(child_id, 'SeatSearchedInAncestors')
             self.removeMotionBlur(child_id)
             self.setCharacterInfo(child)
             self.setSeatInfo(child)
@@ -1551,7 +1571,8 @@ class InCabinUtils:
         
         if occupant:
             passenger = occupant
-            passenger_id = self._workspace.create_fixed_entity(occupant['resource_name'], seat_locator, occupant['entity_id'])
+            passenger_entity_type = self.getCharacterEntityType(passenger['entity_id'])
+            passenger_id = self._workspace.create_entity(passenger_entity_type, passenger['resource_name'], seat_locator, passenger['entity_id'])
             passenger_found = True
         else:
             passenger_found = False
@@ -1608,7 +1629,7 @@ class InCabinUtils:
             base_animation_name = self._workspace.get_entity_name(animation)
 
             # setting spine animation 30% of the times
-            set_spine_anim = True if random.uniform(0,1) <= 0.3 and not baby_on_lap else False
+            set_spine_anim = False #True if random.uniform(0,1) <= 0.3 and not baby_on_lap else False HACK: setting control variabl to false to not animate spine
             if set_spine_anim:
                 if self.isCopilotSeat(seat_locator):
                     max_weight = 1 if self._seat_collision else 0.3 # Avoid extreme weights for leaning if no seat_collision
@@ -1623,10 +1644,10 @@ class InCabinUtils:
 
                 self.setAnimation('spine', animation, weight, passenger_id)
 
-            # Set arms animation if not baby on lap
+            # Set arms animation if not baby on lap HACK: don't animate arms setting control variable to False
             if not baby_on_lap:
-                animate_left_arm = False if random.uniform(0,1) <= 0.05 else True
-                animate_right_arm = False if random.uniform(0,1) <= 0.05 else True
+                animate_left_arm = False #if random.uniform(0,1) <= 0.05 else True
+                animate_right_arm = False #if random.uniform(0,1) <= 0.05 else True
             else:
                 animate_left_arm = False
                 animate_right_arm = False
@@ -2009,6 +2030,22 @@ class InCabinUtils:
         return ego_light_loc_ids
     
     #_______________________________________________________________
+    def resetCabinLightLocators(self, the_cabin, key):
+        light_locator_ids = self.getCabinLightLocators(the_cabin, key)
+        for loc in light_locator_ids:
+            self.resetEntityPosRot(loc)
+
+    #_______________________________________________________________
+    def getCabinLightLocators(self, the_cabin,  key):
+        cabin_light_loc_ids = [ l for l in self._workspace.get_hierarchy(the_cabin) if 'Locator' == self._workspace.get_entity_type(l) and key in self._workspace.get_entity_name(l) ]
+        return cabin_light_loc_ids
+    
+    #_______________________________________________________________
+    def getCabinCameraLocators(self, the_cabin,  key):
+        cabin_light_loc_ids = [ l for l in self._workspace.get_hierarchy(the_cabin) if 'Locator' == self._workspace.get_entity_type(l) and key in self._workspace.get_entity_name(l) ]
+        return cabin_light_loc_ids
+    
+    #_______________________________________________________________
     def resetCamera(self, cam_id):
         cam_position = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','position')
         cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
@@ -2016,10 +2053,8 @@ class InCabinUtils:
         cam_position.x = 0
         cam_position.y = 0
         cam_position.z = 0
-        # cam_rotation.x = -90
         cam_rotation.x = 0
         cam_rotation.y = 0
-        # cam_rotation.z = 90
         cam_rotation.z = 0
 
         self._workspace.set_entity_property_value(cam_id, 'RelativeTransformToComponent','position', cam_position)
@@ -2071,7 +2106,22 @@ class InCabinUtils:
         return position, ego_rotation
 
     #_______________________________________________________________
-    def setCameraInPosition(self, cam_id, rotation, position):
+    def setSensorInPosition(self, sensor_id, rotation, position):
+        sensor_rotation = self._workspace.get_entity_property_value(sensor_id, 'RelativeTransformToComponent','rotation')
+
+        # sensor_rotation.x += rotation.y
+        # sensor_rotation.y += rotation.x
+        sensor_rotation.x = rotation.x
+        sensor_rotation.y = rotation.y
+        sensor_rotation.z = rotation.z
+    
+        self._workspace.set_entity_property_value(sensor_id, 'RelativeTransformToComponent','position', position)
+        self._workspace.set_entity_property_value(sensor_id, 'RelativeTransformToComponent','rotation', sensor_rotation)
+
+        return position, sensor_rotation
+
+    #_______________________________________________________________
+    def setCameraLocatorInPosition(self, cam_id, position, rotation):
         cam_rotation = self._workspace.get_entity_property_value(cam_id, 'RelativeTransformToComponent','rotation')
 
         # cam_rotation.x += rotation.y
@@ -2175,6 +2225,22 @@ class InCabinUtils:
                 self._workspace.set_entity_property_value(cam_id, 'VisibleComponent','visible', False)
 
         return visible_cam_id, visible_cam_name
+
+    #_______________________________________________________________
+    def setRadarVisibility(self, radar_name):
+        radar_ids = [ ri for ri in self._workspace.get_entities_by_name_including('_Radar') ]
+
+        visible_radar_id = None
+        visible_radar_name = None
+        for  radar_id in radar_ids:
+            if radar_name in self._workspace.get_entity_name(radar_id):
+                self._workspace.set_entity_property_value(radar_id, 'VisibleComponent','visible', True)
+                visible_radar_id = radar_id
+                visible_radar_name = self._workspace.get_entity_name(visible_radar_id)
+            else:
+                self._workspace.set_entity_property_value(radar_id, 'VisibleComponent','visible', False)
+
+        return visible_radar_id, visible_radar_name
 
     #_______________________________________________________________
     def getVisibleCameras(self):
@@ -2330,6 +2396,7 @@ class InCabinUtils:
     def queryChildSeats(self):
         query = aux.ResourceQueryManager(self._workspace)
         query.add_exists_attribute_filter('kind')
+        query.add_exists_attribute_filter('aim_looking')
         query.add_attribute_filter_from_list("class", ["ChildSeat", "childseat"])
         query.add_attribute_filter("dynamic_material", True)
 
@@ -2397,7 +2464,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def queryMovableCarParts(self, picked_car, dynamic_material = None):
         # parts_list = ["Steering wheel", "rear view mirror"]
-        parts_list = ["steering_wheel", "mirror"]
+        parts_list = ["steering_wheel", "mirror", "window"]
         query = aux.ResourceQueryManager(self._workspace)
         query.add_attribute_filter("brand", picked_car['brand'])
         query.add_attribute_filter("model", picked_car['model'])
@@ -2613,7 +2680,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def filterCharacters(self, characters, key, value, check_twins = True):
         filtered_characters = [c for c in characters if key.lower() in c and c[key.lower()] == value]
-
+ 
         elegible_chars = filtered_characters.copy()
         # Discard the characters already used
         for character in filtered_characters:
@@ -2723,7 +2790,7 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def switchLightsOnOff(self, lights_loc, on):
-        print('[INFO] Active light {} turned on: {}'.format(self._workspace.get_entity_name(lights_loc), on))
+        # print('[INFO] Active light {} turned on: {}'.format(self._workspace.get_entity_name(lights_loc), on))
         self._workspace.set_entity_property_value(lights_loc, 'VisibleComponent','visible', on)
         for light in self._workspace.get_hierarchy(lights_loc):
             print('[INFO] Active light {} turned on: {}'.format(self._workspace.get_entity_name(light), on))
@@ -2765,30 +2832,6 @@ class InCabinUtils:
     #_______________________________________________________________
     def setIllumination(self, day, background, simulation_id, multiple_cameras = False, active_light = False):
 
-        incabin_light = None
-        incabin_lights = self._workspace.get_entities_by_type('Light')
-        if multiple_cameras:
-            for incabin_light in incabin_lights:
-                if active_light and incabin_light != None:
-                    print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-                elif incabin_light == None:
-                    print('[WARN] Active light set to True, but no active light defined in the workspace')
-                else:
-                    print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
-        elif len(incabin_lights) > 0: # No multiple cameras, turn on all the lights we find
-            # incabin_light = incabin_lights[0]
-            for incabin_light in incabin_lights:
-                if active_light:
-                    print('[INFO] Active light {} ({}) turned on'.format(self._workspace.get_entity_name(incabin_light), incabin_light))
-                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', True)
-                else:
-                    print('[INFO] Active light {} turned off'.format(self._workspace.get_entity_name(incabin_light)))
-                    self._workspace.set_entity_property_value(incabin_light, 'VisibleComponent','visible', False)
-        elif active_light:
-            print('[WARN] Active light set to True, but no active light defined in the workspace')
-
         self.setCustomMetadata(simulation_id, 'day', day)
         self.setCustomMetadata(simulation_id, 'interior_lights', active_light)
 
@@ -2815,6 +2858,20 @@ class InCabinUtils:
             if background != None:
                 self._workspace.set_entity_property_value(background['entity_id'], 'BackgroundContentComponent','environment_weight', background_weight)
             return ibl_light_intensity
+
+    #_______________________________________________________________
+    def setLens(self, cam_id, lens_name):
+        if lens_name is None:
+            lens = anyverse_platform.invalid_entity_id
+        else:
+            lenses = [ s for s in self._workspace.get_entities_by_type(anyverse_platform.WorkspaceEntityType.CameraLens) if lens_name == self._workspace.get_entity_name(s) ]
+            if len(lenses) > 0:
+                lens = lenses[0]
+            else:
+                lens = anyverse_platform.invalid_entity_id
+                print('[WARN] Cannot find lens {}, setting the camera to No lens'.format(lens_name))
+
+        self._workspace.set_entity_property_value(cam_id, 'CameraReferencesComponent','camera_lens', lens)
 
     #_______________________________________________________________
     def setSensor(self, cam_id, sensor_name):
@@ -2867,30 +2924,32 @@ class InCabinUtils:
         azimuth = 0
         sun_direction = anyverse_platform.Vector3D(0,0,0)
         if day and dawn:
-            azimuth = random.uniform(0, 360)
-            elevation = random.uniform(1, 10)
+            azimuth = math.radians(random.uniform(0, 360))
+            elevation = math.radians(random.uniform(1, 10))
         elif day and not dawn:
-            azimuth = random.uniform(0, 360)
-            elevation = random.uniform(1, 90)
+            azimuth = math.radians(random.uniform(0, 360))
+            elevation = math.radians(random.uniform(10, 90))
         elif not day:
-            azimuth = random.uniform(0, 360)
-            elevation = -1
+            azimuth = math.radians(random.uniform(0, 360))
+            elevation = math.radians(-1)
 
-        sun_direction.x = math.sin(math.radians(azimuth))
-        sun_direction.y = math.cos(math.radians(azimuth))
-        sun_direction.z = math.sin(math.radians(elevation))
+        sun_direction.x = math.cos(elevation) * math.sin(azimuth)
+        sun_direction.y = math.cos(elevation) * math.cos(azimuth)
+        sun_direction.z = math.sin(elevation)
 
         return sun_direction, elevation, azimuth
 
     #_______________________________________________________________
-    def setGroundRotationSunDirection(self, day, simulation_id, dawn = False, ground_rotation = None, sun_direction = None):
+    def setGroundRotationSunDirection(self, day, simulation_id, dawn = False, apply_ground_rotation = False, sun_direction = None):
         if sun_direction is None:
             sun_direction, elevation, azimuth = self.genSunDirection(day, dawn)
-        if ground_rotation is None:
+        if apply_ground_rotation:
             ground_rotation = random.uniform(0,360)
+            self.setGroundRotation(ground_rotation, simulation_id)
+        else:
+            ground_rotation = 0
 
         self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','sky.sunDirection', sun_direction)
-        # self.setGroundRotation(ground_rotation, simulation_id)
         self._workspace.set_entity_property_value(simulation_id, 'SimulationEnvironmentComponent','background_offset', ground_rotation)
 
         self.setCustomMetadata(simulation_id, 'ground-rotation', ground_rotation)
@@ -2984,13 +3043,19 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def buildAdjustableSeat(self, locator, seat_parts):
+        intergated_headrests = False
         try:
             seat_base = [ p for p in seat_parts if p['class'].lower() == 'seatbase'][0]
             seat_back = [ p for p in seat_parts if p['class'].lower() == 'seatback'][0]
-            seat_headrest = [ p for p in seat_parts if p['class'].lower() == 'headrest'][0]
         except IndexError:
             print('[ERROR] Missing seat parts')
             assert False
+        try:
+            seat_headrest = [ p for p in seat_parts if p['class'].lower() == 'headrest'][0]
+        except IndexError:
+            print('[WARN]: no headrest. Assumining integrated in the seat back...')
+            intergated_headrests = True
+
         
         # Place the seat_base
         seat_base['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat_base['resource_id'])
@@ -3005,14 +3070,17 @@ class InCabinUtils:
         seat_back['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat_back['resource_id'])
         seat_back_id = self._workspace.create_fixed_entity(seat_back["resource_name"], seat_back_loc, seat_back['entity_id'])
         # Try to get the seat headrest locator from the seat back
-        try:
-            seat_headrest_loc = [ l for l in self._workspace.get_hierarchy(seat_back_id) if 'Locator' == self._workspace.get_entity_type(l) and 'headrest' in self._workspace.get_entity_name(l)][0]
-        except IndexError:
-            print('[ERROR] Missing seat headrest locator in seat back')
-            assert False
-        # Place the seat headrest in the seat back
-        seat_headrest['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat_headrest['resource_id'])
-        seat_headrest_id = self._workspace.create_fixed_entity(seat_headrest["resource_name"], seat_headrest_loc, seat_headrest['entity_id'])
+        if not intergated_headrests:
+            try:
+                seat_headrest_loc = [ l for l in self._workspace.get_hierarchy(seat_back_id) if 'Locator' == self._workspace.get_entity_type(l) and 'headrest' in self._workspace.get_entity_name(l)][0]
+            except IndexError:
+                print('[ERROR] Missing seat headrest locator in seat back')
+                assert False
+            # Place the seat headrest in the seat back
+            seat_headrest['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, seat_headrest['resource_id'])
+            seat_headrest_id = self._workspace.create_fixed_entity(seat_headrest["resource_name"], seat_headrest_loc, seat_headrest['entity_id'])
+        else:
+            seat_headrest_id = anyverse_platform.invalid_entity_id
             
         return {'seat_base': seat_base_id, 'seat_back': seat_back_id, 'seat_headrest': seat_headrest_id}
     
@@ -3071,10 +3139,11 @@ class InCabinUtils:
                 seat_info = {}
                 seat_info['number'] = seat_num
                 for part in seat_id.keys():
-                    self.setAdjustableSeatInfo(seat_id[part], depth, tilt)
-                    self.setCustomMetadata(seat_id[part], "Seat", seat_info)
+                    if seat_id[part] != anyverse_platform.invalid_entity_id:
+                        seat_info['displacement'] = self.setAdjustableSeatInfo(seat_id[part], depth, tilt)
+                        self.setCustomMetadata(seat_id[part], "Seat", seat_info)
 
-                    self.setExportAlwaysExcludeOcclusion(seat_id[part])
+                        self.setExportAlwaysExcludeOcclusion(seat_id[part])
             else:
                 seat_pos = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','position')
                 seat_rot = self._workspace.get_entity_property_value(seat_id,'RelativeTransformToComponent','rotation')
@@ -3083,10 +3152,27 @@ class InCabinUtils:
                 seat_pos = self._workspace.set_entity_property_value(seat_id,'RelativeTransformToComponent','position', seat_pos)
                 seat_rot = self._workspace.set_entity_property_value(seat_id,'RelativeTransformToComponent','rotation', seat_rot)
 
-                self.setAdjustableSeatInfo(seat_id, depth, tilt)
-
                 seat_info = {}
                 seat_info['number'] = seat_num
+                seat_info['displacement'] = self.setAdjustableSeatInfo(seat_id, depth, tilt)
+                self.setCustomMetadata(seat_id, "Seat", seat_info)
+
+                self.setExportAlwaysExcludeOcclusion(seat_id)
+        else:
+            if isinstance(seat_id, dict):
+                # Annotate all seat parts with the appropriate info
+                seat_info = {}
+                seat_info['number'] = seat_num
+                for part in seat_id.keys():
+                    if seat_id[part] != anyverse_platform.invalid_entity_id:
+                        seat_info['displacement'] = self.setAdjustableSeatInfo(seat_id[part], depth, tilt)
+                        self.setCustomMetadata(seat_id[part], "Seat", seat_info)
+
+                        self.setExportAlwaysExcludeOcclusion(seat_id[part])
+            else:
+                seat_info = {}
+                seat_info['number'] = seat_num
+                seat_info['displacement'] = self.setAdjustableSeatInfo(seat_id, depth, tilt)
                 self.setCustomMetadata(seat_id, "Seat", seat_info)
 
                 self.setExportAlwaysExcludeOcclusion(seat_id)
@@ -3112,12 +3198,12 @@ class InCabinUtils:
 
         seat_ids_list = []
         if with_parts:
-            seat01_part_assets = self.queryCarSeatParts(picked_car, "seat01", dynamic_materials)
+            seat01_part_assets = self.queryCarSeatParts(picked_car, "seat01", dynamic_material = True)
             seats.extend(seat01_part_assets)
             seat_part_ids = self.setSeat(the_car, seats, seat_locators, "seat01", seat01_part_assets, move_seats_conf)
             for part_id in seat_part_ids.keys():
                 seat_ids_list.append(seat_part_ids[part_id])
-            seat02_part_assets = self.queryCarSeatParts(picked_car, "seat02", dynamic_materials)
+            seat02_part_assets = self.queryCarSeatParts(picked_car, "seat02", dynamic_material = True)
             seats.extend(seat02_part_assets)
             seat_part_ids = self.setSeat(the_car, seats, seat_locators, "seat02", seat02_part_assets, move_seats_conf)
             for part_id in seat_part_ids.keys():
@@ -3138,12 +3224,13 @@ class InCabinUtils:
         
     #_______________________________________________________________
     def setMovableCarParts(self, picked_car, the_car, dynamic_materials = None):
-        movable_parts = self.queryMovableCarParts(picked_car, dynamic_materials)
+        movable_parts = self.queryMovableCarParts(picked_car)
 
         # steering_wheels = [ p for p in movable_parts if 'Steering' in p['class'] ]
         # mirrors = [ p for p in movable_parts if 'mirror' in p['class'] ]
         steering_wheels = [ p for p in movable_parts if 'steering_wheel' == p['type'] ]
         mirrors = [ p for p in movable_parts if 'mirror' == p['type'] ]
+        windows = [ p for p in movable_parts if 'window' == p['type'] ]
 
         steering_wheel = steering_wheels[0] if len(steering_wheels) == 1 else None
         try:
@@ -3155,6 +3242,7 @@ class InCabinUtils:
         if steering_wheel:
             steering_wheel['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, steering_wheel['resource_id'])
             steering_wheel_id = self._workspace.create_fixed_entity(steering_wheel["resource_name"], steering_wheel_locator, steering_wheel['entity_id']) if steering_wheel_locator != anyverse_platform.invalid_entity_id else anyverse_platform.invalid_entity_id
+            self.setExportAlwaysExcludeOcclusion(steering_wheel_id)
         else:
             print('[ERROR] Missing steering wheel for {} {}'.format(picked_car['brand'], picked_car['model']))
             steering_wheel_id = anyverse_platform.invalid_entity_id
@@ -3164,12 +3252,22 @@ class InCabinUtils:
         if rvm:
             rvm['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, rvm['resource_id'])
             rvm_id = self._workspace.create_fixed_entity(rvm["resource_name"], rvm_locator, rvm['entity_id'])
-            self._workspace.set_entity_property_value(rvm_id, 'VisibleComponent','visible', False)
+            self._workspace.set_entity_property_value(rvm_id, 'VisibleComponent','visible', False) # HACK Sony
         else:
             print('[ERROR] Missing internal rear view mirror for {} {}'.format(picked_car['brand'], picked_car['model']))
             rvm_id = anyverse_platform.invalid_entity_id
 
-        return steering_wheel_id, rvm_id
+        windshield = windows[0] if len(windows) > 0 else None
+        windshield_locator = the_car
+        if windshield:
+            windshield['entity_id'] = self._workspace.add_resource_to_workspace(anyverse_platform.WorkspaceEntityType.Asset, windshield['resource_id'])
+            windshield_id = self._workspace.create_fixed_entity(windshield["resource_name"], windshield_locator, windshield['entity_id'])
+            self._workspace.set_entity_property_value(windshield_id, 'VisibleComponent','visible', False)
+        else:
+            print('[ERROR] Missing windshield for {} {}'.format(picked_car['brand'], picked_car['model']))
+            windshield_id = anyverse_platform.invalid_entity_id
+
+        return steering_wheel_id, rvm_id, windshield_id
 
     #_______________________________________________________________
     def setCarSeatbeltsOff(self, picked_car, change_belt_material = False):
@@ -3196,7 +3294,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def setChildSeatSeatbeltOff(self, childseat):
         # Get the belt off asset for the specific child seat
-        belts_off = [ b for b in anyverse_platform.childseatbelts if 'off' in b['version'].lower() and b['brand'].lower() == childseat['brand'].lower() and b['model'].lower() == childseat['model'].lower() and b['aim looking'].lower() == childseat['aim looking'].lower() ]
+        belts_off = [ b for b in anyverse_platform.childseatbelts if 'off' in b['version'].lower() and b['brand'].lower() == childseat['brand'].lower() and b['model'].lower() == childseat['model'].lower() and b['aim_looking'].lower() == childseat['aim_looking'].lower() ]
 
         if len(belts_off) == 1:
             belt_off = belts_off[0]
@@ -3443,7 +3541,7 @@ class InCabinUtils:
     #_______________________________________________________________
     def createBabyBelt( self, childseat ):
         # Get the belt on asset for the specific child seat
-        belts_on = [ b for b in anyverse_platform.childseatbelts if 'on' in b['version'].lower() and b['brand'].lower() == childseat['brand'].lower() and b['model'].lower() == childseat['model'].lower() and b['aim looking'].lower() == childseat['aim looking'].lower() ]
+        belts_on = [ b for b in anyverse_platform.childseatbelts if 'on' in b['version'].lower() and b['brand'].lower() == childseat['brand'].lower() and b['model'].lower() == childseat['model'].lower() and b['aim_looking'].lower() == childseat['aim_looking'].lower() ]
 
         if len(belts_on) == 1:
             belt_on = belts_on[0]
@@ -4279,11 +4377,22 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def getSeatbeltLocator(self, the_car, side):
-        return self.getLocator(the_car, 'seatbelt_'+side)
+        loc_name = 'seatbelt_'
+        if side == 'left':
+            loc_name = 'seat01_beltA_step01'
+        elif side == 'right':
+            loc_name = 'seat02_beltA_step01'
+        return self.getLocator(the_car, loc_name)
 
     #_______________________________________________________________
     def getFloorLocator(self, the_car, side):
-        return self.getLocator(the_car, 'floor_'+side)
+        if side == 'left':
+            pattern = 'floor_front_L'
+        elif side == 'right':
+            pattern = 'floor_front_B'
+        else:
+            pattern = 'floor_front_L'
+        return self.getLocator(the_car, pattern)
 
     #_______________________________________________________________
     def getHeadrestLocator(self, the_car, side):
@@ -4291,15 +4400,21 @@ class InCabinUtils:
 
     #_______________________________________________________________
     def getRVMLocator(self, the_car, side):
-        return self.getLocator(the_car, 'rvm_'+side)
+        if side == 'left':
+            pattern = 'extRVM_L'
+        elif side == 'right':
+            pattern = 'extRVM_R'
+        else:
+            pattern = 'RVM_M'
+        return self.getLocator(the_car, pattern)
 
     #_______________________________________________________________
     def getGloveCompLocator(self, the_car):
-        return self.getLocator(the_car, 'glove_')
+        return self.getLocator(the_car, 'globe_compartment')
 
     #_______________________________________________________________
     def getCCLocator(self, the_car):
-        return self.getLocator(the_car, 'cc_info')
+        return self.getLocator(the_car, 'touchscreen_top_R')
 
     #_______________________________________________________________
     def getLocator(self, the_car, prefix):
@@ -4515,7 +4630,8 @@ class InCabinUtils:
     #_______________________________________________________________
     def getCharacterResourceEntityType(self, character):
         # This function expects a resource UUID
-        if self._workspace.characters_gen9 and character in self._workspace.characters_gen9:
+        chars_dict = self._workspace.characters_gen9 if hasattr(self._workspace, 'characters_gen9') else self._workspace.characters
+        if chars_dict and character in chars_dict:
             return anyverse_platform.WorkspaceEntityType.CharacterAsset
         else:
             return anyverse_platform.WorkspaceEntityType.Asset
