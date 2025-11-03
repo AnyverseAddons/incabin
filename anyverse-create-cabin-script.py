@@ -40,15 +40,22 @@ incabin_config = {
         {'car_name': 'LandRover_Autobiography', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Ford_Escape', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Honda_Jazz', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
-        {'car_name': 'Kia_EV_GT', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
-        {'car_name': 'Mercedes_Benz_EQE_SUV', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Kia_EV6_GT', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'MercedesBenz_EQE', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Buick_Lacrosse', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Peugeot_3008', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Tesla_S', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Venucia_Star', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'Nio_ES6', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
         {'car_name': 'BMW_X5', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
-        {'car_name': 'Cadillac_XT5', 'probability': 1.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
+        {'car_name': 'Cadillac_XT5', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Honda_CRV', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Volkswagen_ID3', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'BYD_Atto_3', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Geely_Geometry_E', 'probability': 1.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Jaguar_I_Pace', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Reanult_Austral', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False },
+        {'car_name': 'Volvo_EM90', 'probability': 0.0, 'front_seat_max_depth': 0.1, 'front_seat_max_tilt': 5, 'normal_dist': False }
     ],
     "multiple_cameras": True,
     "use_nir": True,
@@ -62,7 +69,7 @@ incabin_config = {
             "cam_positions": {
                 'Audi_Q5': {'rotation': (-81, 0, 106), 'position': (0.72, 0.67, 1.19) }, 
                 'Chevrolet_Menlo':  {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05) },
-                'Lexus_UX':         {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05) },
+                'Lexus_UX':         {'rotation': (-90, 0, 103), 'position': (0.57, 0.64, 1.09) },
                 'Porsche_CayenneS': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05) },
                 'Unbranded_GenericSUV':    {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05) },
                 'Volkswagen_Passat': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
@@ -70,15 +77,19 @@ incabin_config = {
                 'LandRover_Autobiography': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
                 'Ford_Escape': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
                 'Honda_Jazz': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
-                'Kia_EV_GT': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
+                'Kia_EV6_GT': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
+                'MercedesBenz_EQE': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
                 'Buick_LaCrosse': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
                 'Peugeot_3008': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
                 'Tesla_S': {'rotation': (-88, 0, 107), 'position': (0.77, 0.65, 1.05)},
                 'Venucia_Star': {'rotation': (-90, 0, 107), 'position': (0.72, 0.68, 1.18)},
                 'Nio_ES6': {'rotation': (-88, 0, 108), 'position': (0.76, 0.75, 1.19)},
                 'BMW_X5': {'rotation': (-85, 0, 104), 'position': (0.74, 0.71, 1.21) }, 
-                'Cadillac_XT5': {'rotation': (-85, 0, 104), 'position': (0.74, 0.71, 1.21) }, 
+                'Cadillac_XT5': {'rotation': (-99, 0, 102), 'position': (0.59, 0.66, 1.35) }, 
+                'Honda_CRV': {'rotation': (-89, 0, 104), 'position': (0.64, 0.69, 1.22) }, 
+                'Volkswagen_ID3': {'rotation': (-89, 0, 110), 'position': (0.66, 0.67, 1.06) }, 
+                'BYD_Atto_3': {'rotation': (-96, 0, 105), 'position': (0.58, 0.64, 1.25) }, 
+                'Geely_Geometry_E': {'rotation': (-97, 0, 105), 'position': (0.59, 0.58, 1.22) }, 
                 'default':          {'rotation': (-110, 0, 115), 'position': (0.29, 0.60, 1.49)}
             },
         },
@@ -88,9 +99,9 @@ incabin_config = {
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
-                'Audi_Q5': {'rotation': (112, 180, -90), 'position': (0.45, 0.40, 1.07) }, 
+                'Audi_Q5': {'rotation': (112, 180, -90), 'position': (0.48, 0.40, 1.10) }, 
                 'Chevrolet_Menlo':  {'rotation': (112, 180, -90), 'position': (0.585, 0.38, 0.99) },
-                'Lexus_UX':         {'rotation': (112, 180, -90), 'position': (0.44, 0.37, 0.97) },
+                'Lexus_UX':         {'rotation': (110, 180, -90), 'position': (0.41, 0.37, 0.96) },
                 'Porsche_CayenneS': {'rotation': (99, 180, -90), 'position': (0.59, 0.42, 1.20) },
                 'Unbranded_GenericSUV':    {'rotation': (106, 180, -90), 'position': (0.50, 0.37, 1.095) },
                 'Volkswagen_Passat': {'rotation': (112, 180, -90), 'position': (0.68, 0.36, 0.95)},
@@ -98,15 +109,19 @@ incabin_config = {
                 'LandRover_Autobiography': {'rotation': (110, 180, -90), 'position': (0.57, 0.43, 1.25)},
                 'Ford_Escape': {'rotation': (115, 180, -90), 'position': (0.50, 0.36, 1.07)},
                 'Honda_Jazz': {'rotation': (112, 180, -90), 'position': (0.50, 0.33, 0.93)},
-                'Kia_EV_GT': {'rotation': (112, 180, -90), 'position': (0.60, 0.39, 1.08)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (112, 180, -90), 'position': (0.52, 0.47, 1.13)},
+                'Kia_EV6_GT': {'rotation': (112, 180, -90), 'position': (0.60, 0.39, 1.08)},
+                'MercedesBenz_EQE': {'rotation': (112, 180, -90), 'position': (0.52, 0.47, 1.13)},
                 'Buick_LaCrosse': {'rotation': (112, 180, -90), 'position': (0.61, 0.43, 1.03)},
                 'Peugeot_3008': {'rotation': (120, 180, -90), 'position': (0.50, 0.36, 1.08)},
                 'Tesla_S': {'rotation': (112, 180, -90), 'position': (0.51, 0.415, 0.89)},
                 'Venucia_Star': {'rotation': (109, 180, -90), 'position': (0.60, 0.39, 1.13)},
                 'Nio_ES6': {'rotation': (106, 180, -90), 'position': (0.52, 0.43, 1.12)},
                 'BMW_X5': {'rotation': (99, 180, -90), 'position': (0.54, 0.46, 1.16) },
-                'Cadillac_XT5': {'rotation': (99, 180, -90), 'position': (0.54, 0.46, 1.16) },
+                'Cadillac_XT5': {'rotation': (99, 180, -90), 'position': (0.45, 0.42, 1.12) },
+                'Honda_CRV': {'rotation': (100, 180, -90), 'position': (0.43, 0.40, 1.11) },
+                'Volkswagen_ID3': {'rotation': (100, 180, -90), 'position': (0.51, 0.335, 1.035) },
+                'BYD_Atto_3': {'rotation': (100, 180, -90), 'position': (0.49, 0.36, 1.045) },
+                'Geely_Geometry_E': {'rotation': (102, 180, -93), 'position': (0.42, 0.315, 1.01) },
                 'default':          {'rotation': (112, 180, -90), 'position': (-0.40, -0.53, 1.35)}
             },
         },
@@ -126,8 +141,8 @@ incabin_config = {
                 'LandRover_Autobiography': {'rotation': (47, 180, 230), 'position': (-0.45, -0.60, 1.70)},
                 'Ford_Escape': {'rotation': (50, 180, 230), 'position': (-0.39, -0.55, 1.45)},
                 'Honda_Jazz': {'rotation': (44, 180, 230), 'position': (-0.45, -0.50, 1.33)},
-                'Kia_EV_GT': {'rotation': (50, 180, 230), 'position': (-0.42, -0.54, 1.39)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (50, 180, 230), 'position': (-0.405, -0.61, 1.53)},
+                'Kia_EV6_GT': {'rotation': (50, 180, 230), 'position': (-0.42, -0.54, 1.39)},
+                'MercedesBenz_EQE': {'rotation': (50, 180, 230), 'position': (-0.405, -0.61, 1.53)},
                 'Buick_LaCrosse': {'rotation': (50, 180, 230), 'position': (-0.42, -0.64, 1.39)},
                 'Peugeot_3008': {'rotation': (45, 180, 230), 'position': (-0.43, -0.55, 1.49)},
                 'Tesla_S': {'rotation': (50, 180, 230), 'position': (-0.46, -0.60, 1.27)},
@@ -154,8 +169,8 @@ incabin_config = {
                 'LandRover_Autobiography': {'rotation': (47, 180, -50), 'position': (-0.45, 0.60, 1.70)},
                 'Ford_Escape': {'rotation': (50, 180, -50), 'position': (-0.39, 0.55, 1.45)},
                 'Honda_Jazz': {'rotation': (44, 180, -50), 'position': (-0.45, 0.50, 1.33)},
-                'Kia_EV_GT': {'rotation': (50, 180, -50), 'position': (-0.42, 0.54, 1.39)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (50, 180, -50), 'position': (-0.405, 0.61, 1.53)},
+                'Kia_EV6_GT': {'rotation': (50, 180, -50), 'position': (-0.42, 0.54, 1.39)},
+                'MercedesBenz_EQE': {'rotation': (50, 180, -50), 'position': (-0.405, 0.61, 1.53)},
                 'Buick_LaCrosse': {'rotation': (50, 180, -50), 'position': (-0.42, 0.64, 1.39)},
                 'Peugeot_3008': {'rotation': (45, 180, -50), 'position': (-0.43, 0.55, 1.49)},
                 'Tesla_S': {'rotation': (50, 180, -50), 'position': (-0.46, 0.60, 1.27)},
@@ -182,15 +197,17 @@ incabin_config = {
                 'LandRover_Autobiography': {'rotation': (40, 180, -90), 'position': (0.22, 0.0, 1.68)},
                 'Ford_Escape': {'rotation': (43, 180, -90), 'position': (0.23, 0.0, 1.478)},
                 'Honda_Jazz': {'rotation': (40, 180, -90), 'position': (0.18, 0.0, 1.32)},
-                'Kia_EV_GT': {'rotation': (42, 180, -90), 'position': (0.18, 0.0, 1.43)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (44, 180, -90), 'position': (0.24, 0.0, 1.54)},
+                'Kia_EV6_GT': {'rotation': (42, 180, -90), 'position': (0.18, 0.0, 1.43)},
+                'MercedesBenz_EQE': {'rotation': (44, 180, -90), 'position': (0.24, 0.0, 1.54)},
                 'Buick_LaCrosse': {'rotation': (30, 180, -90), 'position': (0.21, 0.0, 1.40)},
                 'Peugeot_3008': {'rotation': (40, 180, -90), 'position': (0.26, 0.0, 1.46)},
                 'Tesla_S': {'rotation': (45, 180, -90), 'position': (0.16, 0.0, 1.24)},
                 'Venucia_Star': {'rotation': (40, 180, -90), 'position': (0.25, 0.0, 1.53)},
-                'Nio_ES6': {'rotation': (25, 180, -90), 'position': (0.07, 0.0, 1.58)},
+                'Nio_ES6': {'rotation': (25, 180, -90), 'position': (0.21, 0.0, 1.54)},
                 'BMW_X5': {'rotation': (40, 180, -90), 'position': (0.17, 0.0, 1.65) },
                 'Cadillac_XT5': {'rotation': (40, 180, -90), 'position': (0.17, 0.0, 1.65) },
+                'Honda_CRV': {'rotation': (55, 180, -90), 'position': (0.30, 0.0, 1.49) },
+                'Volkswagen_ID3': {'rotation': (55, 180, -90), 'position': (0.30, 0.0, 1.49) },
                 'default':          {'rotation': (65, 180, -90), 'position': (0.60, 0.0, 1.75)}
             },
         },
@@ -200,25 +217,29 @@ incabin_config = {
             "vibration_traslation": [0,0,0], # in meters
             "vibration_rotation": [0,0,0], # in degrees
             "cam_positions": {
-                'Audi_Q5': {'rotation': (50, 180, -90), 'position': (0.34, 0.0, 1.44) }, 
-                'Chevrolet_Menlo':  {'rotation': (55, 180, -90), 'position': (0.31, 0.0, 1.315) },
+                'Audi_Q5': {'rotation': (57, 180, -90), 'position': (0.38, 0.0, 1.42) }, 
+                'Chevrolet_Menlo':  {'rotation': (52, 180, -90), 'position': (0.33, 0.0, 1.33) },
                 'Lexus_UX':         {'rotation': (55, 180, -90), 'position': (0.35, 0.005, 1.31) },
-                'Porsche_CayenneS': {'rotation': (50, 180, -90), 'position': (0.50, 0.0, 1.45) },
+                'Porsche_CayenneS': {'rotation': (55, 180, -90), 'position': (0.50, 0.0, 1.45) },
                 'Unbranded_GenericSUV':    {'rotation': (50, 180, -90), 'position': (0.485, -0.005, 1.43) },
-                'Volkswagen_Passat': {'rotation': (50, 180, -90), 'position': (0.42, 0.1, 1.28)},
+                'Volkswagen_Passat': {'rotation': (50, 180, -90), 'position': (0.44, 0.0, 1.31)},
                 'Hyundai_Ioniq': {'rotation': (50, 180, -90), 'position': (0.45, -0.02, 1.315)},
                 'LandRover_Autobiography': {'rotation': (50, 180, -90), 'position': (0.41, 0.0, 1.58)},
                 'Ford_Escape': {'rotation': (55, 180, -90), 'position': (0.42, 0.0, 1.37)},
                 'Honda_Jazz': {'rotation': (50, 180, -90), 'position': (0.35, 0.0, 1.3)},
-                'Kia_EV_GT': {'rotation': (55, 180, -90), 'position': (0.41, 0.0, 1.40)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (50, 180, -90), 'position': (0.42, 0.0, 1.45)},
-                'Buick_LaCrosse': {'rotation': (55, 180, -90), 'position': (0.44, -0.03, 1.31)},
-                'Peugeot_3008': {'rotation': (50, 180, -90), 'position': (0.37, 0.0, 1.42)},
+                'Kia_EV6_GT': {'rotation': (55, 180, -90), 'position': (0.41, 0.0, 1.40)},
+                'MercedesBenz_EQE': {'rotation': (52, 180, -90), 'position': (0.395, 0.0, 1.49)},
+                'Buick_LaCrosse': {'rotation': (55, 180, -90), 'position': (0.36, 0.0, 1.34)},
+                'Peugeot_3008': {'rotation': (50, 180, -90), 'position': (0.30, 0.0, 1.42)},
                 'Tesla_S': {'rotation': (50, 180, -90), 'position': (0.32, 0.0, 1.22)},
-                'Venucia_Star': {'rotation': (55, 180, -90), 'position': (0.45, 0.0, 1.44)},
-                'Nio_ES6': {'rotation': (41, 180, -90), 'position': (0.33, 0.0, 1.50)},
-                'BMW_X5': {'rotation': (50, 180, -90), 'position': (0.40, 0.0, 1.54) },
-                'Cadillac_XT5': {'rotation': (70, 180, -90), 'position': (0.41, 0.0, 1.44) },
+                'Venucia_Star': {'rotation': (57, 180, -90), 'position': (0.46, 0.0, 1.44)},
+                'Nio_ES6': {'rotation': (51, 180, -90), 'position': (0.34, 0.0, 1.50)},
+                'BMW_X5': {'rotation': (51, 180, -90), 'position': (0.41, 0.0, 1.53) },
+                'Cadillac_XT5': {'rotation': (53, 180, -90), 'position': (0.395, 0.0, 1.48) },
+                'Honda_CRV': {'rotation': (56, 180, -90), 'position': (0.46, 0.0, 1.44) },
+                'Volkswagen_ID3': {'rotation': (50, 180, -90), 'position': (0.38, 0.0, 1.38) },
+                'BYD_Atto_3': {'rotation': (55, 180, -90), 'position': (0.415, 0.0, 1.38) },
+                'Geely_Geometry_E': {'rotation': (55, 180, -90), 'position': (0.375, 0.0, 1.42) },
                 'default':          {'rotation': (65, 180, -90), 'position': (0.60, 0.0, 1.75)}
             },
         },
@@ -238,15 +259,19 @@ incabin_config = {
                 'LandRover_Autobiography': {'rotation': (80, 180, -90), 'position': (0.63, 0.0, 1.22)},
                 'Ford_Escape': {'rotation': (80, 180, -90), 'position': (0.51, 0.0, 1.21)},
                 'Honda_Jazz': {'rotation': (80, 180, -90), 'position': (0.58, 0.0, 1.03)},
-                'Kia_EV_GT': {'rotation': (80, 180, -90), 'position': (0.65, 0.0, 1.175)},
-                'Mercedes_Benz_EQE_SUV': {'rotation': (80, 180, -90), 'position': (0.63, 0.0, 1.18)},
+                'Kia_EV6_GT': {'rotation': (80, 180, -90), 'position': (0.65, 0.0, 1.175)},
+                'MercedesBenz_EQE': {'rotation': (80, 180, -90), 'position': (0.63, 0.0, 1.18)},
                 'Buick_LaCrosse': {'rotation': (80, 180, -90), 'position': (0.66, 0.0, 1.03)},
                 'Peugeot_3008': {'rotation': (70, 180, -90), 'position': (0.58, 0.0, 1.23)},
                 'Tesla_S': {'rotation': (80, 180, -90), 'position': (0.61, 0.0, 0.98)},
                 'Venucia_Star': {'rotation': (75, 180, -90), 'position': (0.66, 0.0, 1.19)},
                 'Nio_ES6': {'rotation': (80, 180, -90), 'position': (0.66, 0.0, 1.17)},
                 'BMW_X5':  {'rotation': (80, 180, -90), 'position': (0.71, 0.065, 1.18)},
-                'Cadillac_XT5':  {'rotation': (80, 180, -90), 'position': (0.71, 0.065, 1.18)},
+                'Cadillac_XT5':  {'rotation': (80, 180, -90), 'position': (0.55, 0.065, 1.15)},
+                'Honda_CRV':  {'rotation': (73, 180, -90), 'position': (0.58, 0.0, 1.21)},
+                'Volkswagen_ID3':  {'rotation': (75, 180, -90), 'position': (0.63, 0.0, 1.08)},
+                'BYD_Atto_3':  {'rotation': (76, 180, -90), 'position': (0.64, 0.0, 1.10)},
+                'Geely_Geometry_E':  {'rotation': (74, 180, -90), 'position': (0.53, 0.0, 1.065)},
                 'default':           {'rotation': (65, -180, -90), 'position': (0.60, 0.0, 1.75)}
             },
         },
@@ -267,11 +292,11 @@ incabin_config = {
             "on_for_multiradar": False,
             "probability": 1.0,
             "radar_positions": {
-                'Audi_Q5': {'rotation': (0, -145, 0), 'position': (0.045, 0.0, 1.54) }, 
-                'Chevrolet_Menlo':  {'rotation': (0, -140, 0), 'position': (0.25, 0.0, 1.395) },
-                'Venucia_Star':  {'rotation': (0, -140, 0), 'position': (0.22, 0.0, 1.53) },
-                'Nio_ES6':  {'rotation': (0, -145, 0), 'position': (0.10, 0.0, 1.57) },
-                'BMW_X5': {'rotation': (0, -145, 0), 'position': (0.17, 0.0, 1.65) }, 
+                'Audi_Q5': {'rotation': (-145,0,90), 'position': (0.045, 0.0, 1.54) }, 
+                'Chevrolet_Menlo':  {'rotation': (-140,0,90), 'position': (0.25, 0.0, 1.395) },
+                'Venucia_Star':  {'rotation': (-140,0,90), 'position': (0.22, 0.0, 1.53) },
+                'Nio_ES6':  {'rotation': (-145,0,90), 'position': (0.10, 0.0, 1.57) },
+                'BMW_X5': {'rotation': (-145,0,90), 'position': (0.17, 0.0, 1.65) }, 
                 'default':          {'rotation': (0, 0, 0), 'position': (0, 0, 0)}
             },
         },
@@ -279,23 +304,57 @@ incabin_config = {
             "on_for_multiradar": False,
             "probability": 1.0,
             "radar_positions": {
-                'Audi_Q5': {'rotation': (0, -130, 0), 'position': (0.34, 0.0, 1.44) }, 
-                'Chevrolet_Menlo':  {'rotation': (0, -125, 0), 'position': (0.31, 0.0, 1.315) },
-                'Venucia_Star':  {'rotation': (0, -125, 0), 'position': (0.44, 0.0, 1.46) },
-                'Nio_ES6':  {'rotation': (0, -139, 0), 'position': (0.33, 0.0, 1.52) },
-                'BMW_X5': {'rotation': (0, -130, 0), 'position': (0.40, 0.0, 1.54) }, 
+                'Audi_Q5': {'rotation': (-140,0,90), 'position': (0.38, 0.0, 1.42) }, 
+                'Chevrolet_Menlo':  {'rotation': (-140,0,90), 'position': (0.31, 0.0, 1.315) },
+                'Lexus_UX':  {'rotation': (-140,0,90), 'position': (0.35, 0.005, 1.31) },
+                'Porsche_CayenneS':  {'rotation': (-140,0,90), 'position': (0.50, 0.0, 1.45) },
+                'Volkswagen_Passat':  {'rotation': (-140,0,90), 'position': (0.44, 0.0, 1.31) },
+                'Hyundai_Ioniq':  {'rotation': (-140,0,90), 'position': (0.45, -0.02, 1.315) },
+                'LandRover_Autobiography':  {'rotation': (-140,0,90), 'position': (0.41, 0.0, 1.58) },
+                'Ford_Escape':  {'rotation': (-140,0,90), 'position': (0.42, 0.0, 1.37) },
+                'Honda_Jazz':  {'rotation': (-140,0,90), 'position': (0.35, 0.0, 1.3) },
+                'Kia_EV6_GT':  {'rotation': (-140,0,90), 'position': (0.41, 0.0, 1.40) },
+                'MercedesBenz_EQE':  {'rotation': (-140,0,90), 'position': (0.395, 0.0, 1.49) },
+                'Buick_LaCrosse':  {'rotation': (-140,0,90), 'position': (0.36, 0.0, 1.34) },
+                'Peugeot_3008':  {'rotation': (-140,0,90), 'position': (0.30, 0.0, 1.42) },
+                'Tesla_S':  {'rotation': (-140,0,90), 'position': (0.32, 0.0, 1.22) },
+                'Venucia_Star':  {'rotation': (-140,0,90), 'position': (0.44, 0.0, 1.46) },
+                'Nio_ES6':  {'rotation': (-140,0,90), 'position': (0.33, 0.0, 1.52) },
+                'BMW_X5': {'rotation': (-140,0,90), 'position': (0.41, 0.0, 1.53) }, 
+                'Cadillac_XT5': {'rotation': (-140,0,90), 'position': (0.395, 0.0, 1.48) }, 
+                'Honda_CRV': {'rotation': (-140,0,90), 'position': (0.40, 0.0, 1.54) }, 
+                'Volkswagen_ID3': {'rotation': (-140,0,90), 'position': (0.38, 0.0, 1.38) }, 
+                'BYD_Atto_3': {'rotation': (-140,0,90), 'position': (0.375, 0.0, 1.42) }, 
+                'Geely_Geometry_E': {'rotation': (-140,0,90), 'position': (0.415, 0.0, 1.38) }, 
                 'default': {'rotation': (0, 0, 0), 'position': (0, 0, 0)}
             },
         },
-        "Ceilling": { 
+        "Ceiling": { 
             "on_for_multiradar": False,
             "probability": 0.0,
             "radar_positions": {
-                'Audi_Q5': {'rotation': (0, 180, 0), 'position': (-0.4, 0.0, 1.605)}, 
-                'Chevrolet_Menlo':   {'rotation': (0, 180, 0), 'position': (-0.3, 0.0, 1.49)},
-                'Venucia_Star':   {'rotation': (0, 180, 0), 'position': (-0.33, 0.0, 1.65)},
-                'Nio_ES6':   {'rotation': (0, 180, 0), 'position': (-0.64, 0.0, 1.67)},
-                'BMW_X5': {'rotation': (0, 180, 0), 'position': (0.345, 0.0, 1.72)}, 
+                'Audi_Q5': {'rotation': (0, 180, -90), 'position': (-0.4, 0.0, 1.605)}, 
+                'Chevrolet_Menlo':   {'rotation': (0, 180, -90), 'position': (-0.3, 0.0, 1.49)},
+                'Lexus_UX':   {'rotation': (0, 180, -90), 'position': (-0.48, 0.0, 1.45)},
+                'Porsche_CayenneS':   {'rotation': (0, 180, -90), 'position': (-0.41, 0.0, 1.61)},
+                'Volkswagen_Passat':   {'rotation': (0, 180, -90), 'position': (-0.31, 0.0, 1.47)},
+                'Hyundai_Ioniq':   {'rotation': (0, 180, -90), 'position': (-0.33, 0.0, 1.45)},
+                'LandRover_Autobiography':   {'rotation': (0, 180, -90), 'position': (-0.37, 0.0, 1.80)},
+                'Ford_Escape':   {'rotation': (0, 180, -90), 'position': (-0.34, 0.0, 1.61)},
+                'Honda_Jazz':   {'rotation': (0, 180, -90), 'position': (-0.36, 0.0, 1.42)},
+                'Kia_EV6_GT':   {'rotation': (0, 180, -90), 'position': (-0.37, 0.0, 1.50)},
+                'MercedesBenz_EQE':   {'rotation': (0, 180, -90), 'position': (-0.37, 0.0, 1.69)},
+                'Buick_LaCrosse':   {'rotation': (0, 180, -90), 'position': (-0.31, 0.0, 1.50)},
+                'Peugeot_3008':   {'rotation': (0, 180, -90), 'position': (-0.31, 0.0, 1.59)},
+                'Tesla_S':   {'rotation': (0, 180, -90), 'position': (-0.58, 0.0, 1.35)},
+                'Venucia_Star':   {'rotation': (0, 180, -90), 'position': (-0.33, 0.0, 1.65)},
+                'Nio_ES6':   {'rotation': (0, 180, -90), 'position': (-0.64, 0.0, 1.67)},
+                'BMW_X5': {'rotation': (0, 180, -90), 'position': (0.345, 0.0, 1.72)}, 
+                'Cadillac_XT5': {'rotation': (0, 180, -90), 'position': (0.36, 0.0, 1.65)}, 
+                'Honda_CRV': {'rotation': (0, 180, -90), 'position': (0.345, 0.0, 1.72)}, 
+                'Volkswagen_ID3': {'rotation': (0, 180, -90), 'position': (0.29, 0.0, 1.565)}, 
+                'BYD_Atto_3': {'rotation': (0, 180, -90), 'position': (0.37, 0.0, 1.61)}, 
+                'Geely_Geometry_E': {'rotation': (0, 180, -90), 'position': (0.37, 0.0, 1.61)}, 
                 'default': {'rotation': (0, 0, 0), 'position': (0, 0, 0)}  
             },
         }
@@ -338,7 +397,7 @@ def isDMSCamera(cam_name):
 
 #_____________________________________________________________________
 def isSegmentedCar(car):
-    segmented_brands = ['Audi', 'Chevrolet', 'Venucia', 'Nio', 'BMW', 'Volkswagen', 'Cadillac']
+    segmented_brands = ['Audi', 'Chevrolet', 'Lexus', 'Porsche', 'Hyundai', 'Land Rover', 'Kia', 'Venucia', 'Nio', 'BMW', 'Volkswagen', 'Cadillac', 'Honda', 'Peugeot', 'Ford', 'MercedesBenz', 'Tesla', 'Buick']
     is_segmented = True if car['brand'] in segmented_brands else False
     return is_segmented
 
@@ -360,8 +419,8 @@ def placeCameraAndLights(car_name, camera, cameras, on = True, interior_lights =
     # with active lights and cameras
     the_cabin = icu.getCars()[0]
     cam_loc_ids = [ li for li in icu.getCabinCameraLocators(the_cabin,'CAM') if re.match(camera, workspace.get_entity_name(li)) ]
-    cam_loc_id = cam_loc_ids[0] if len(cam_loc_ids) >= 1 else 0
-    if cam_loc_id != 0:
+    # cam_loc_id = cam_loc_ids[0] if len(cam_loc_ids) >= 1 else 0
+    for cam_loc_id in cam_loc_ids:
         cam_loc_pos, _ = icu.setCameraLocatorInPosition(cam_loc_id, cam_loc_position, cam_loc_rotation)
         cam_ids = [ c for c in workspace.get_hierarchy(cam_loc_id) if 'Camera' == workspace.get_entity_type(c) ]
         if len(cam_ids) == 0:
@@ -519,11 +578,11 @@ if selected_car['entity_id'] != -1:
     workspace.set_parent_entity(sensor_rig_locator, the_car)
 
     print(selected_car['name'])
-    if isSegmentedCar(selected_car):
-        with_parts = True
-    else:
-        with_parts = False
-    icu.buildCar(selected_car, the_car, with_parts, dynamic_materials = False, move_seats_conf = move_seats_conf, change_belt_material = change_belt_material)
+    # if isSegmentedCar(selected_car):
+    #     with_parts = True
+    # else:
+    #     with_parts = False
+    icu.buildCar(selected_car, the_car, with_parts = True, dynamic_materials = False, move_seats_conf = move_seats_conf, change_belt_material = change_belt_material)
 
     # Set car info from car metadata and put it as custom metadata for annotations
     car_info = icu.setCarInfo(selected_car,the_car)
